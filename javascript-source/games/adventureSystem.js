@@ -260,6 +260,14 @@
         $.say($.lang.get('adventuresystem.start.success', $.resolveRank(username), $.pointNameMultiple));
     };
 
+    function getUserMaxBet(username) {
+        var userPoints = $.getUserPoints(username);
+        if(userPoints > maxBet) {
+            return maxBet;
+        }
+        return userPoints;
+    }
+
     /**
      * @function joinHeist
      * @param {string} username
@@ -459,6 +467,11 @@
             if (!action) {
                 $.say($.whisperPrefix(sender) + $.lang.get('adventuresystem.adventure.usage', $.pointNameMultiple));
                 return;
+            }
+
+            if(action.equalsIgnoreCase('max')) {
+                var points = getUserMaxBet(sender);
+                joinHeist(sender, parseInt(points));
             }
 
             if (!isNaN(parseInt(action))) {
