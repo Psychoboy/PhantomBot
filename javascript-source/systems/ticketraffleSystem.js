@@ -392,7 +392,7 @@
         /**
          * @commandpath tickets [amount] - Buy tickets to enter the ticket raffle.
          */
-        if (command.equalsIgnoreCase('tickets') || command.equalsIgnoreCase('ticket')) {
+        if (command.equalsIgnoreCase('enter')) {
             if (!action) {
                 if (msgToggle && raffleStatus) {
                     if (userGetsBonus(sender, event)) {
@@ -413,8 +413,7 @@
      */
     $.bind('initReady', function () {
         $.registerChatCommand('./systems/ticketraffleSystem.js', 'traffle', 2);
-        $.registerChatCommand('./systems/ticketraffleSystem.js', 'tickets', 7);
-        $.registerChatCommand('./systems/ticketraffleSystem.js', 'ticket', 7);
+        $.registerChatCommand('./systems/ticketraffleSystem.js', 'enter', 7);
 
         reopen();
     });
