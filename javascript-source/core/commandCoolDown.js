@@ -88,6 +88,7 @@
                command == 'ffa' ||
                command == 'pancake' ||
                command == 'waffle' ||
+               command == 'wheelspin' ||
                command == $.firstCommand ||
                command == $.secondCommand ||
                command == $.raffleCommand;
@@ -109,7 +110,7 @@
             if(command == $.firstCommand || command == $.secondCommand) {
                 return 0;
             }
-            if ((command == 'adventure' || command == 'ffa') && defaultCooldowns[command] !== undefined && defaultCooldowns[command] > $.systemTime()) {
+            if ((command == 'adventure' || command == 'ffa' || 'wheelspin') && defaultCooldowns[command] !== undefined && defaultCooldowns[command] > $.systemTime()) {
                 return defaultCooldowns[command];
             } else {
                 return 0;
