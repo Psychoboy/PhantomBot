@@ -693,6 +693,7 @@
                 $.inidb.SetInteger(username, 'waifus', id, unlock);
                 $.say($.lang.get('waifugames.catch.new', rare + $.userPrefix(username, true), unlock, replace(waifu), id, encodeURI(link) + candy));
                 $.inidb.SetString(username, 'wHitPoints', getWaifuId(id), 50);
+                $.inidb.SetString('waifuscollected', username, getWaifuId(id), replace(waifu));
             }
 
             if ($.inidb.GetInteger(username, 'buffed', getWaifuId(id)) < 1) {
@@ -1022,6 +1023,14 @@
         } else {
             $.say($.lang.get('waifugames.harem.release404', replace(getWaifu(id))));
             return;
+        }
+    }
+
+    function updateWaifuList(username) {
+        for(var id = 0; id < totalWaifus + 1; id++) {
+            if ($.inidb.GetInteger(username, 'waifus', getWaifuId(id)) >= 1) {
+                $.inidb.SetString('waifuscollected', username, getWaifuId(id), replace(getWaifu(id)));
+            }
         }
     }
 
@@ -1702,6 +1711,30 @@
 
     }
 
+    function runExport() {
+        var exportWaifuList = "viewer,waifu ID, Waifu\r\n"
+        var sectionList = $.inidb.GetCategoryList('waifuscollected');
+        for(var x = 0; x < sectionList.length; x++) {
+            var keylist = $.inidb.GetKeyList('waifuscollected', sectionList[x]);
+            for(var i = 0; i < keylist.length; i++) {
+                var waifu = $.inidb.GetString('waifuscollected', sectionList[x], keylist[i]);
+                exportWaifuList = exportWaifuList + sectionList[x] + ',' + keylist[i] + ',' + '"' + waifu + '"\r\n'
+            }
+        }
+        var writer = new java.io.OutputStreamWriter(new java.io.FileOutputStream('./addons/youtubePlayer/' + 'waifu.csv'), 'UTF-8');
+        try {
+            writer.write(exportWaifuList);
+        } catch (ex) {
+            $.log.error('Failed to update waifu file: ' + ex.toString());
+        } finally {
+            writer.close();
+        }
+    }
+
+    var interval = setInterval(function() {
+        runExport();
+    }, 60000)
+
     /*
      * @event command
      */
@@ -1910,6 +1943,21 @@
         if (command.equalsIgnoreCase('waifuhelp')) {
             $.say($.whisperPrefix(sender) + $.lang.exists('waifugames.waifuhelp'));
         }
+
+        if (command.equalsIgnoreCase('waifusupdate')) {
+            updateWaifuList(sender);
+            $.say($.whisperPrefix(sender) + "Waifus updated.")
+        }
+
+        if (command.equalsIgnoreCase('updatewaifus')) {
+            updateWaifuList(user);
+            $.say($.whisperPrefix(sender) + "Waifus updated.")
+        }
+
+        if (command.equalsIgnoreCase('waifuexport')) {
+            runExport();
+            $.say($.whisperPrefix(sender) + "Waifus exported.")
+        }
     });
 
     /*
@@ -1948,6 +1996,9 @@
             $.registerChatCommand('./games/waifuGames.js', 'resetboss', 1);
             $.registerChatCommand('./games/waifuGames.js', 'genwaifu', 1);
             $.registerChatCommand('./games/waifuGames.js', 'maxexp', 1);
+            $.registerChatCommand('./games/waifuGames.js', 'updatewaifus', 1)
+            $.registerChatCommand('./games/waifuGames.js', 'waifusupdate', 7)
+            $.registerChatCommand('./games/waifuGames.js', 'waifuexport', 1)
             load();
         }
     });
