@@ -1872,7 +1872,7 @@
 
         if (command.equalsIgnoreCase('profile')) {
             if (args.length >= 1) {
-                waifuProfile(player);
+                waifuProfile(user);
             } else {
                 waifuProfile(sender);
             }
