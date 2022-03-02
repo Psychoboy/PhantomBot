@@ -134,8 +134,9 @@
      * @return {String}
      */
     function replace2(str) {
-        var retval = str.match(reGetTitle).slice(2)[0];
-        return retval == undefined ? "" : retval;
+//        var retval = str.match(reGetTitle).slice(2)[0];
+//        return retval == undefined ? "" : retval;
+        return replace(str);
     }
 
     /*
@@ -636,7 +637,7 @@
 
         /* When !rarechance is enabled this increases the chances of seducing a Rare character*/
         if ($.inidb.get('settings', 'rChance') == 'true') {
-            rarechance = $.randRange(22, 25);
+            rarechance = $.randRange(14, 25);
         }
 
         /* Changes the chances of seducing the character when [Rare], [S Rare] or [SS Rare] is included in the name*/

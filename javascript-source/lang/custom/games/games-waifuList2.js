@@ -32,7 +32,7 @@ $.lang.register('waifugames.waifu.1580', 'Arachne Gorgon =Soul Eater=');
 $.lang.register('waifugames.waifu.1581', '[Rare] Medusa Gorgon =Soul Eater=');
 $.lang.register('waifugames.waifu.1582', 'Maka Albarn =Soul Eater=');
 $.lang.register('waifugames.waifu.1583', 'Mizune =Soul Eater=');
-$.lang.register('waifugames.waifu.1584', '[SS RARE] Junko Asagiri =Desert Punk=');
+$.lang.register('waifugames.waifu.1584', '[SS Rare] Junko Asagiri =Desert Punk=');
 $.lang.register('waifugames.waifu.1585', '[SS Rare] Marie Rose =Dead or Alive=');
 $.lang.register('waifugames.waifu.1586', 'Kasumi =Dead or Alive=');
 $.lang.register('waifugames.waifu.1587', 'Honoka =Dead or Alive=');
