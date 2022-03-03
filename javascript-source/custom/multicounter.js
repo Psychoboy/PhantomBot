@@ -51,7 +51,7 @@
             actionArg1 = eventArgs[1],
             counterName = args.trim();
 
-        if(!$.isMod(sender) || !action) {
+        if(!$.isMod(sender) || !$.isSub(sender) || !$.isVIP(sender) || !action) {
             return {
                 result: getCount(counterName),
                 cache: false

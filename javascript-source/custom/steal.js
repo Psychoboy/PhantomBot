@@ -34,6 +34,11 @@
             action = args[0];
 
         if(command.equalsIgnoreCase('steal')) {
+            if (!$.twitchcache.isStreamOnline()) {
+                $.say($.whisperPrefix(sender) + $.lang.get('steal.offline'));
+                return;
+            }
+
             if(!target || target.equalsIgnoreCase(sender)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('steal.usage'));
                 return;

@@ -14,7 +14,7 @@
 
         if(command.equalsIgnoreCase('wheelspin')) {
             if ($.getUserPoints(sender) < cost) {
-                $.say($.whisperPrefix(sender) + ' you don\'t have a enough pasties. Wheelspin costs 10,000')
+                $.say($.whisperPrefix(sender) + ' you don\'t have a enough pasties. Wheelspin costs 10,000 pasties')
                 return;
             }
 
@@ -27,8 +27,8 @@
 
             users[sender] = $.systemTime();
             $.inidb.decr('points', sender, cost);
-            $.alertspollssocket.alertImage('wheelspin.gif, 6, 1.0,color: #BAB2B3;font-size: 50px;font-family: Cantarell;width: 600px;word-wrap: break-word;,' + (sender) + ' paid ' + cost + ' to spin the wheel');
-            $.say((sender) + ' paid ' + cost + ' to spin the wheel!');
+            $.alertspollssocket.alertImage('wheelspin.gif, 6, 1.0,color: #BAB2B3;font-size: 50px;font-family: Cantarell;width: 600px;word-wrap: break-word;,' + (sender) + ' paid ' + cost + ' pasties to spin the wheel');
+            $.say((sender) + ' paid ' + cost + ' pasties to spin the wheel!');
             var time = String($.getCurrentLocalTimeString('h:mm:ss a', 'America/Phoenix'));
             $.writeToFile( time + ' ' + sender + ' Wheel Spin', './addons/wheelspins.txt', true);
             $.coolDown.set('wheelspin', false, coolDown, false);
