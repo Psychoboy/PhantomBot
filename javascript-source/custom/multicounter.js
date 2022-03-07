@@ -51,38 +51,39 @@
             actionArg1 = eventArgs[1],
             counterName = args.trim();
 
-        if(!$.isMod(sender) || !$.isSub(sender) || !$.isVIP(sender) || !action) {
+        if(!action) {
             return {
                 result: getCount(counterName),
                 cache: false
             }
         }
-
-        if(action == "+") {
-            return {
-                result: addCount(counterName),
-                cache: false
+        if ($.isMod(sender) || $.isSub(sender) || $.isVIP(sender)) {
+            if(action == "+") {
+                return {
+                    result: addCount(counterName),
+                    cache: false
+                }
             }
-        }
 
-        if(action == "-") {
-            return {
-                result: removeCount(counterName),
-                cache: false
+            if(action == "-") {
+                return {
+                    result: removeCount(counterName),
+                    cache: false
+                }
             }
-        }
 
-        if(action == "reset") {
-            return {
-                result: resetCount(counterName),
-                cache: false
+            if(action == "reset") {
+                return {
+                    result: resetCount(counterName),
+                    cache: false
+                }
             }
-        }
 
-        if(action == "set") {
-            return {
-                result: setCount(counterName, actionArg1),
-                cache: false
+            if(action == "set") {
+                return {
+                    result: setCount(counterName, actionArg1),
+                    cache: false
+                }
             }
         }
 
