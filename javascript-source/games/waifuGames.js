@@ -42,7 +42,7 @@
             link;
 
         while ($.lang.exists('waifugames.waifu.' + i)) {
-            link = (google + url(getWaifu(i)));
+            link = google + url(getWaifu(i));
             string += $.lang.get('waifugames.function.characterlist') + i + ' ' + replace3($.lang.get('waifugames.waifu.' + i)) + '\r\n';
             ++i;
         }
@@ -617,7 +617,7 @@
             rarechance = $.randRange(1, 25),
             reward = getReward(),
             waifu = getWaifu(id),
-            link = (google + url(waifu)),
+            link = $.shortenUrl(google + url(waifu)),
             candy = '',
             candy2 = '',
             candyDrop = $.randRange(1, 2),
@@ -763,7 +763,7 @@
         id = getWaifuId(id);
 
         var waifu = getWaifu(id),
-            link = (google + url(waifu));
+            link = $.shortenUrl(google + url(waifu));
 
         if (getUserWaifuCount(username, id) > 0) {
             $.say($.lang.get('waifugames.giftwaifu.success', $.userPrefix(username, true), replace(waifu), $.userPrefix(receiver, false), encodeURI(link)));
@@ -878,7 +878,7 @@
         }
 
         var waifu = getWaifu(id),
-            link = (google + url(waifu));
+            link = $.shortenUrl(google + url(waifu));
 
         $.inidb.incr(username, 'waifus', getWaifuId(id), 1);
         $.inidb.set(username, 'wAttribute', $.randRange(1, (responses.attribute - 1)));
@@ -904,7 +904,7 @@
         }
 
         var waifu = getWaifu(id),
-            link = (google + url(waifu));
+            link = $.shortenUrl(google + url(waifu));
 
         $.inidb.incr(sender, 'waifus', getWaifuId(id), 1);
         $.inidb.SetInteger(sender, 'wHitPoints', getWaifuId(id), 100);
@@ -956,7 +956,7 @@
         id = getWaifuId(id);
 
         var waifu = getWaifu(id),
-            link = (google + url(waifu)),
+            link = $.shortenUrl(google + url(waifu)),
             stats = '';
 
         if (getUserWaifuCount(sender, id) > 0) {
@@ -976,7 +976,7 @@
     function randomWaifu(username) {
         var id = $.randRange(0, totalWaifus),
             waifu = getWaifu(id),
-            link = (google + url(waifu));
+            link = $.shortenUrl(google + url(waifu));
 
         if (getTotalUserWaifus(username) === 0) {
             $.say($.lang.get('waifugames.random.0', $.whisperPrefix(username)));
@@ -986,7 +986,7 @@
                 
             } else {
                 id = getWaifuId(getMarried(username));
-                link = (google + url(getWaifu(id)));
+                link = $.shortenUrl(google + url(getWaifu(id)));
                 $.say($.lang.get('waifugames.random.married', $.userPrefix(username, true), replace(getWaifu(id)) + getBonus(username, id), id, getHitPoints(username, id), getLevel(username, id), getAttack(username, id), getDefense(username, id), getLove(username, id), encodeURI(link)));
                 
             }
