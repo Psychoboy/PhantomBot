@@ -1,34 +1,41 @@
 (function() {
     baseFileOutputPath ='./addons/'
-    function getCount(counterName) {
-        return $.getSetIniDbString('multicounter', counterName, '0');
+    function getCount(counterName, alertStr) {
+        var total = $.getSetIniDbString('multicounter', counterName, '0');
+        sendAlert(total, alertStr);
+        return total;
     }
 
-    function resetCount(counterName) {
+    function resetCount(counterName, alertStr) {
         $.inidb.set('multicounter', counterName, 0);
         writeFile(counterName, '0')
         return '0';
     }
 
-    function addCount(counterName) {
+    function addCount(counterName, alertStr) {
         $.inidb.incr('multicounter', counterName, 1);
-        return getAndWriteCount(counterName)
+        return getAndWriteCount(counterName, alertStr)
     }
 
-    function removeCount(counterName) {
+    function removeCount(counterName, alertStr) {
         $.inidb.decr('multicounter', counterName, 1);
-        return getAndWriteCount(counterName);
+        return getAndWriteCount(counterName, alertStr);
     }
 
-    function setCount(counterName, amount) {
+    function setCount(counterName, amount, alertStr) {
         $.inidb.set('multicounter', counterName, parseInt(amount));
-        return getAndWriteCount(counterName);
+        return getAndWriteCount(counterName, alertStr);
     }
 
-    function getAndWriteCount(counterName) {
-        count = getCount(counterName);
+    function getAndWriteCount(counterName, alertStr) {
+        count = getCount(counterName, alertStr);
         writeFile(counterName, count);
         return count
+    }
+
+    function sendAlert(total, alertStr) {
+        alertStr = $.replace(alertStr, '(totalcount)', total);
+        $.alertspollssocket.alertImage(alertStr);
     }
 
     function writeFile(counterName, amount) {
@@ -48,43 +55,58 @@
         var sender = event.getSender().toLowerCase(),
             eventArgs = event.getArgs(),
             action = eventArgs[0],
-            actionArg1 = eventArgs[1],
-            counterName = args.trim();
+            actionArg1 = eventArgs[1];
+
+        if ((match = args.match(/^\s(\S+)(?:\s(.*))?$/))) {
+            counterName = match[1];
+            alertStr = match[2] || '';
+        } else {
+            return {
+                result: '',
+                cache: false
+            }
+        }
 
         if(!action) {
             return {
-                result: getCount(counterName),
+                result: getCount(counterName, alertStr),
                 cache: false
             }
         }
         if ($.isMod(sender) || $.isSub(sender) || $.isVIP(sender)) {
             if(action == "+") {
                 return {
-                    result: addCount(counterName),
+                    result: addCount(counterName, alertStr),
                     cache: false
                 }
             }
 
             if(action == "-") {
                 return {
-                    result: removeCount(counterName),
+                    result: removeCount(counterName, alertStr),
                     cache: false
                 }
             }
 
             if(action == "reset") {
                 return {
-                    result: resetCount(counterName),
+                    result: resetCount(counterName, alertStr),
                     cache: false
                 }
             }
 
             if(action == "set") {
                 return {
-                    result: setCount(counterName, actionArg1),
+                    result: setCount(counterName, actionArg1, alertStr),
                     cache: false
                 }
             }
+            
+            return {
+                result: getCount(counterName, alertStr),
+                cache: false
+            }
+
         }
 
     }

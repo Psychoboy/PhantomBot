@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 phantombot.github.io/PhantomBot
+ * Copyright (C) 2016-2022 phantombot.github.io/PhantomBot
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,12 @@ $(run = function() {
     let discordChannels = null;
     let allowedChannelTypes = ['GUILD_NEWS', 'GUILD_TEXT'];
 
-    function refreshChannels() {
+    function refreshChannels(oncomplete) {
         socket.getDiscordChannelList('discord_customcommands1_getchannels', function (d) {
             discordChannels = d.data;
+            if (oncomplete !== undefined && oncomplete !== null) {
+                oncomplete();
+            }
         });
     }
 
@@ -57,6 +60,9 @@ $(run = function() {
     }
 
     function discordChannelTemplate(fchannel) {
+        if (discordChannels === undefined || discordChannels === null) {
+            return $('<span><i class="fa fa-triangle-exclamation fa-lg" style="margin-right: 5px;" /> Unable retrieve channel list</span>');
+        }
         if (fchannel.id) {
             for (const [category, channels] of Object.entries(discordChannels)) {
                 for (const [channel, info] of Object.entries(channels)) {
@@ -295,12 +301,12 @@ $(run = function() {
                                 });
                         }
                     }).on('shown.bs.modal', function(e) {
-                        refreshChannels();
-                        $('#command-permission').select2({ templateResult: discordChannelTemplate });
-
-                        if (discordChannels !== null) {
-                            $('#command-channel').select2({ templateResult: discordChannelTemplate });
-                        }
+                        refreshChannels(function() {
+                            if (discordChannels !== null) {
+                                $('#command-permission').select2({ templateResult: discordChannelTemplate });
+                                $('#command-channel').select2({ templateResult: discordChannelTemplate });
+                            }
+                        });
                     }).modal('toggle');
                 });
             });
@@ -316,9 +322,12 @@ $(function() {
     let discordChannels = null;
     let allowedChannelTypes = ['GUILD_NEWS', 'GUILD_TEXT'];
 
-    function refreshChannels() {
+    function refreshChannels(oncomplete) {
         socket.getDiscordChannelList('discord_customcommands2_getchannels', function (d) {
             discordChannels = d.data;
+            if (oncomplete !== undefined && oncomplete !== null) {
+                oncomplete();
+            }
         });
     }
 
@@ -354,6 +363,9 @@ $(function() {
     }
 
     function discordChannelTemplate(fchannel) {
+        if (discordChannels === undefined || discordChannels === null) {
+            return $('<span><i class="fa fa-triangle-exclamation fa-lg" style="margin-right: 5px;" /> Unable retrieve channel list</span>');
+        }
         if (fchannel.id) {
             for (const [category, channels] of Object.entries(discordChannels)) {
                 for (const [channel, info] of Object.entries(channels)) {
@@ -520,12 +532,12 @@ $(function() {
                         });
                 }
             }).on('shown.bs.modal', function(e) {
-                refreshChannels();
-                $('#command-permission').select2({ templateResult: discordChannelTemplate });
-
-                if (discordChannels !== null) {
-                    $('#command-channel').select2({ templateResult: discordChannelTemplate });
-                }
+                refreshChannels(function() {
+                    if (discordChannels !== null) {
+                        $('#command-permission').select2({ templateResult: discordChannelTemplate });
+                        $('#command-channel').select2({ templateResult: discordChannelTemplate });
+                    }
+                });
             }).modal('toggle');
         });
     });

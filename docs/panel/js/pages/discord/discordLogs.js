@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 phantombot.github.io/PhantomBot
+ * Copyright (C) 2016-2022 phantombot.github.io/PhantomBot
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,9 +20,12 @@ $(function() {
     let discordChannels = null;
     let allowedChannelTypes = ['GUILD_NEWS', 'GUILD_TEXT'];
 
-    function refreshChannels() {
+    function refreshChannels(oncomplete) {
         socket.getDiscordChannelList('discord_logs_getchannels', function (d) {
             discordChannels = d.data;
+            if (oncomplete !== undefined && oncomplete !== null) {
+                oncomplete();
+            }
         });
     }
 
@@ -58,6 +61,9 @@ $(function() {
     }
 
     function discordChannelTemplate(fchannel) {
+        if (discordChannels === undefined || discordChannels === null) {
+            return $('<span><i class="fa fa-triangle-exclamation fa-lg" style="margin-right: 5px;" /> Unable retrieve channel list</span>');
+        }
         if (fchannel.id) {
             for (const [category, channels] of Object.entries(discordChannels)) {
                 for (const [channel, info] of Object.entries(channels)) {

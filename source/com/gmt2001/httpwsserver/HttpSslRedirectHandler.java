@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 phantombot.github.io/PhantomBot
+ * Copyright (C) 2016-2022 phantombot.github.io/PhantomBot
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ public class HttpSslRedirectHandler extends SimpleChannelInboundHandler<FullHttp
             HttpServerPageHandler.sendHttpResponse(ctx, req, HttpServerPageHandler.prepareHttpResponse(HttpResponseStatus.BAD_REQUEST, null, null));
             return;
         }
-        
+
         QueryStringDecoder qsd = new QueryStringDecoder(req.uri());
         for (String u : ALLOWNONSSLPATHS) {
             if (qsd.path().startsWith(u)) {
@@ -67,21 +67,21 @@ public class HttpSslRedirectHandler extends SimpleChannelInboundHandler<FullHttp
         }
 
         String host = req.headers().get(HttpHeaderNames.HOST);
-        
+
         if (host != null && !host.isBlank()) {
             String uri = "https://" + host + req.uri();
-        
+
             com.gmt2001.Console.debug.println("301: " + uri);
 
             FullHttpResponse res = HttpServerPageHandler.prepareHttpResponse(HttpResponseStatus.MOVED_PERMANENTLY, null, null);
-        
+
             res.headers().set(HttpHeaderNames.LOCATION, uri);
 
             String origin = req.headers().get(HttpHeaderNames.ORIGIN);
             if (origin != null) {
                 res.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
             }
-        
+
             HttpServerPageHandler.sendHttpResponse(ctx, req, res);
         } else {
             HttpServerPageHandler.sendHttpResponse(ctx, req, HttpServerPageHandler.prepareHttpResponse(HttpResponseStatus.FORBIDDEN, "HTTPS Required".getBytes(), null));

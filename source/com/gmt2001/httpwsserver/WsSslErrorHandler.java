@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 phantombot.github.io/PhantomBot
+ * Copyright (C) 2016-2022 phantombot.github.io/PhantomBot
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,13 +50,13 @@ public class WsSslErrorHandler extends SimpleChannelInboundHandler<WebSocketFram
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame frame) throws Exception {
         QueryStringDecoder qsd = new QueryStringDecoder(ctx.channel().attr(ATTR_URI).get());
-            for (String u : ALLOWNONSSLPATHS) {
-                if (qsd.path().startsWith(u)) {
-                    ReferenceCountUtil.retain(frame);
-                    ctx.fireChannelRead(frame);
-                    return;
-                }
+        for (String u : ALLOWNONSSLPATHS) {
+            if (qsd.path().startsWith(u)) {
+                ReferenceCountUtil.retain(frame);
+                ctx.fireChannelRead(frame);
+                return;
             }
+        }
     }
 
     /**

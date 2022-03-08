@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 phantombot.github.io/PhantomBot
+ * Copyright (C) 2016-2022 phantombot.github.io/PhantomBot
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,8 +33,7 @@ public interface WsAuthenticationHandler {
     public static final AttributeKey<Boolean> ATTR_AUTHENTICATED = AttributeKey.valueOf("authenticated");
 
     /**
-     * Checks if the given {@link WebSocketFrame} is a valid authentication frame, or if the underlying {@link Channel} has already been
-     * authenticated
+     * Checks if the given {@link WebSocketFrame} is a valid authentication frame, or if the underlying {@link Channel} has already been authenticated
      *
      * When returning {@code false}, this method MUST also send an {@code Authentication Required} frame back to the client
      *
