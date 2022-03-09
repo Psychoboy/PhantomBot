@@ -1,5 +1,5 @@
 (function() {
-    var pointsToAdd = 10,
+    var pointsToAdd = 20,
         delay = 300000;
 
     function runTicketsPayout() {
@@ -9,11 +9,6 @@
             $.streamelements.AddTicketsToUsers(activeUsers,pointsToAdd);
             var subUsers = [];
             $.log.event("Sent tickets to active users");
-//            for (user in activeUsers) {
-//                if($.isSub(user)) {
-//                    subUsers.push(user);
-//                }
-//            }
             for(i = 0; i < activeUsers.length; i++) {
                 if($.isSub(activeUsers[i])) {
                     subUsers.push(activeUsers[i])

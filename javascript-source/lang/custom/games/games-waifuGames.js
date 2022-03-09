@@ -145,8 +145,7 @@ $.lang.register('waifugames.catchmiss.25', '$1 couldn\'t seduce $2 #$3 even if t
 $.lang.register('waifugames.catchmiss.26', '$1 this is not a fucking anime! You can\'t just seduce people like $2 #$3! $4');
 $.lang.register('waifugames.catchmiss.27', '$1 tried to seduce $2 #$3, but she was suddenly kidnapped by $6! $4');
 $.lang.register('waifugames.catchmiss.28', '$1 sent a love letter to $2 #$3, but she never got that letter Kappa $4');
-$.lang.register('waifugames.catchmiss.29', '$1は$2を誘惑しようとしましたが$2は$1の陰茎を打ちました.');
-$.lang.register('waifugames.catchmiss.30', '$2 #$3 is way out of your league $1 $4');
+$.lang.register('waifugames.catchmiss.29', '$2 #$3 is way out of your league $1 $4');
 
 $.lang.register('waifugames.fight.block.1', ' while blocking any incoming damage');
 $.lang.register('waifugames.fight.block.2', ' , and deflected $1\'s attack');
