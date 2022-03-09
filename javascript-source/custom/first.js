@@ -74,6 +74,7 @@
             secondCommand = newCommand;
             $.inidb.set('first', 'second', newCommand);
             $.say('Second command registered');
+            $.coolDown.add(secondCommand, 1, false);
         }
     }
 
