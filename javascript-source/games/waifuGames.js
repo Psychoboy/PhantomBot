@@ -930,10 +930,7 @@
             $.inidb.decr('points', sender, parseInt(price * amount - price));
             $.say($.lang.get('waifugames.candy.buy', $.whisperPrefix(sender), amount, $.getPointsString(price * amount), getCandy(sender)));
         } else {
-            amount = ($.inidb.get('points', sender) / price);
-            $.inidb.incr(sender, 'candy', amount);
-            $.inidb.decr('points', sender, parseInt(price * amount - price));
-            $.say($.lang.get('waifugames.candy.buy', $.whisperPrefix(sender), Math.floor(amount), $.getPointsString(price * Math.floor(amount)), getCandy(sender)));
+            $.say($.whisperPrefix(sender) + " use !buycandy [amount]");
         }
 
     }
@@ -1713,13 +1710,14 @@
     }
 
     function runExport() {
-        var exportWaifuList = "viewer,waifu ID, Waifu\r\n"
+        var exportWaifuList = "viewer,waifu ID, Waifu, URL\r\n"
         var sectionList = $.inidb.GetCategoryList('waifuscollected');
         for(var x = 0; x < sectionList.length; x++) {
             var keylist = $.inidb.GetKeyList('waifuscollected', sectionList[x]);
             for(var i = 0; i < keylist.length; i++) {
                 var waifu = $.inidb.GetString('waifuscollected', sectionList[x], keylist[i]);
-                exportWaifuList = exportWaifuList + sectionList[x] + ',' + keylist[i] + ',' + '"' + waifu + '"\r\n'
+                var link = $.shortenUrl(google + url(getWaifu(keylist[i])))
+                exportWaifuList = exportWaifuList + sectionList[x] + ',' + keylist[i] + ',' + '"' + waifu + '",' + link +  '\r\n'
             }
         }
         var writer = new java.io.OutputStreamWriter(new java.io.FileOutputStream('./addons/youtubePlayer/' + 'waifu.csv'), 'UTF-8');

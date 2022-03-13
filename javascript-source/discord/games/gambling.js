@@ -71,6 +71,14 @@
         }
     }
 
+    function getUserMaxBet(username) {
+        var userPoints = $.getUserPoints(username);
+        if(userPoints > max) {
+            return max;
+        }
+        return userPoints;
+    }
+
     /**
      * @event discordChannelCommand
      */
@@ -83,16 +91,21 @@
             action = args[0],
             subAction = args[1];
 
+
         /**
          * @discordcommandpath gamble [amount] - Gamble your points.
          */
         if (command.equalsIgnoreCase('gamble')) {
-            if (isNaN(parseInt(action))) {
+            amount = action;
+            if (action.equalsIgnoreCase('max')) {
+                amount = getUserMaxBet(sender);
+            }
+            if (isNaN(parseInt(amount))) {
                 $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.gambling.usage'));
             } else {
                 var twitchName = $.discord.resolveTwitchName(event.getSenderId());
                 if (twitchName !== null) {
-                    gamble(channel, twitchName, mention, sender, parseInt(action));
+                    gamble(channel, twitchName, mention, sender, parseInt(amount));
                 } else {
                     $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.accountlink.usage.nolink'));
                 }

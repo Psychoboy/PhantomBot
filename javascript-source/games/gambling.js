@@ -70,6 +70,14 @@
         }
     }
 
+    function getUserMaxBet(username) {
+        var userPoints = $.getUserPoints(username);
+        if(userPoints > max) {
+            return max;
+        }
+        return userPoints;
+    }
+
     $.bind('command', function(event) {
         var sender = event.getSender(),
             command = event.getCommand(),
@@ -80,12 +88,18 @@
          * @commandpath gamble [amount] - Gamble your points.
          */
         if (command.equalsIgnoreCase('gamble')) {
-            if (!parseInt(action)) {
+
+            amount = action;
+            if (action.equalsIgnoreCase('max')) {
+                amount = getUserMaxBet(sender);
+            }
+
+            if (!parseInt(amount)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('gambling.usage'));
                 return;
             }
 
-            gamble(sender, parseInt(action));
+            gamble(sender, parseInt(amount));
         }
 
         /**
