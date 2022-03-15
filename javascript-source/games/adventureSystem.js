@@ -123,9 +123,6 @@
         }
 
         for (i in payoutsKeys) {
-            if (payoutsKeys[i].equalsIgnoreCase($.ownerName) || payoutsKeys[i].equalsIgnoreCase($.botName)) {
-                continue;
-            }
             temp.push({
                 username: payoutsKeys[i],
                 amount: parseInt($.inidb.get('adventurePayouts', payoutsKeys[i])),
@@ -157,9 +154,6 @@
             }
 
             for (i in payoutsKeys) {
-                if (payoutsKeys[i].equalsIgnoreCase($.ownerName) || payoutsKeys[i].equalsIgnoreCase($.botName)) {
-                    continue;
-                }
                 temp.push({
                     username: payoutsKeys[i],
                     amount: parseInt($.inidb.get('adventurePayouts', payoutsKeys[i])),
