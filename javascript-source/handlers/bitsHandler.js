@@ -61,7 +61,7 @@
         }
         if (message.match(/\(ticketsamount\)/g)) {
             $.addActiveTickets(bits);
-            message = $.replace(message, '(ticketsamount)', '');
+            s = $.replace(s, '(ticketsamount)', '');
         }
         if (s.match(/\(message\)/g)) {
             s = $.replace(s, '(message)', ircMessage);

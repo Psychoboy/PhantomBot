@@ -6,7 +6,7 @@
         recentJoinedMembers = [],
         viewers = [];
 
-    function startRaffle(amountToWin) {
+    function startRaffle(sender, amountToWin) {
         if(currentState >= 0) {
             $.say($.whisperPrefix(sender) + $.lang.get('raffle.running', 'pancake'));
             return;
@@ -134,7 +134,7 @@
                 return;
             }
 
-            startRaffle(action);
+            startRaffle(sender, action);
         }
 
         if(command.equalsIgnoreCase('pancake')) {
