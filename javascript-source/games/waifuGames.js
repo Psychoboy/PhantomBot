@@ -1086,7 +1086,7 @@
             id = getWaifuId(id);
         }
 
-        $.consoleLn('Added: #' + number + ' Waifuid: ' + getWaifuId(id));
+        //$.consoneLn('Added: #' + number + ' Waifuid: ' + getWaifuId(id));
 
         $.inidb.SetInteger(username, 'haremList', number, id);
         $.inidb.SetInteger(username, 'harem', id, number);
@@ -1222,8 +1222,7 @@
 
     function generateBoss(sender) {
         var bosses = $.randRange(1, responses.bosses - 1),
-            bossHP = $.inidb.GetInteger('boss', 'wHitPoints', $.inidb.get('boss', 'id'));
-
+            bossHP = $.inidb.GetInteger('boss', 'wHitPoints', bosses);
         if (bossHP <= 0) {
             $.inidb.set('boss', 'id', bosses);
             $.inidb.SetInteger('boss', 'harem', bosses, 1);
@@ -1304,23 +1303,23 @@
         //$.inidb.SetInteger(username, 'harem', getWaifuId(id), haremnumber);
 
         if (action > 0) {
-            $.consoleLn('Action: ' + action);
-            $.consoleLn('Character ID: ' + getWaifuId(action));
+            //$.consoneLn('Action: ' + action);
+            //$.consoneLn('Character ID: ' + getWaifuId(action));
             id = getWaifuId(action);
 
         } else {
             for (i in keys) {
 
-                $.consoleLn('HP: ' + getHitPoints(username, $.inidb.GetInteger(username, 'haremList', keys[i])));
+                //$.consoneLn('HP: ' + getHitPoints(username, $.inidb.GetInteger(username, 'haremList', keys[i])));
 
                 if (getHitPoints(username, $.inidb.GetInteger(username, 'haremList', keys[i])) <= 0) {
-                    $.consoleLn('continue;');
+                    //$.consoneLn('continue;');
                     continue;
                 }
-                $.consoleLn('HP: ' + getHitPoints(username, $.inidb.GetInteger(username, 'haremList', keys[i])));
+                //$.consoneLn('HP: ' + getHitPoints(username, $.inidb.GetInteger(username, 'haremList', keys[i])));
 
                 if (getHitPoints(username, $.inidb.GetInteger(username, 'haremList', keys[i])) > 0) {
-                    $.consoleLn('ID: ' + $.inidb.GetInteger(username, 'haremList', keys[i]));
+                    //$.consoneLn('ID: ' + $.inidb.GetInteger(username, 'haremList', keys[i]));
                     id = $.inidb.GetInteger(username, 'haremList', keys[i]);
                     break;
                 }
@@ -1332,13 +1331,13 @@
             $.say($.lang.get('waifugames.harem.dead', $.username.resolve(username)));
             return;
         }
-
+        //$.consoneLn('Getting Boss');
         if ($.inidb.exists('boss', 'sender')) {
             bossName = $.userPrefix($.inidb.get('boss', 'sender'));
         } else {
             bossName = getBoss(id2);
         }
-
+        //$.consoneLn('Bos: ' + bossName);
         critical = $.randRange(0, 50);
         critical2 = $.randRange(0, 50);
         dmg = Math.floor(Math.abs((1.75 * ((getAttack(username, id) / getDefense(username, id) * 1.5)) * (getLevel(username, id) / 10)) * (critical / 10)));
@@ -1353,9 +1352,11 @@
         }
 
         if (getHitPoints(username, id) < 1) {
+            //$.consoneLn('Getting Not enough HP');
             $.say($.lang.get('waifugames.player.nohp', $.userPrefix(username), replace2(getWaifu(id))));
             return;
         } else if (getHitPoints(opponent, id2) < 1) {
+            //$.consoneLn('Generating new boss');
             generateBoss();
         } else {
 
@@ -1376,15 +1377,15 @@
             $.inidb.decr(username, 'wHitPoints', id, dmgRec);
 
             if (getHitPoints(opponent, id2) < 1) {
-            handleEXPGain(username, id, (parseInt(expRange) * parseInt(getLevel(username, id)) / 2 )); 
-            expReward = Math.floor((parseInt(expRange) * parseInt(getLevel(username, id)) / 2 ));
+                handleEXPGain(username, id, (parseInt(expRange) * parseInt(getLevel(username, id)) / 2 )); 
+                expReward = Math.floor((parseInt(expRange) * parseInt(getLevel(username, id)) / 2 ));
            } else {
-            handleEXPGain(username, id, parseInt(expRange));
-            expReward = expRange;
+                handleEXPGain(username, id, parseInt(expRange));
+                expReward = expRange;
            }
 
             var attack = $.lang.get('waifugames.attack.' + $.inidb.GetInteger(username, 'wAttribute', id) + '.' + $.randRange(1, attributes[getAttribute(username, id)].attacks), bossName, getHitPoints(opponent, id2));
-
+            //$.consoneLn('Attack: ' + attack);
             if ($.inidb.GetInteger(username, 'wHitPoints', id) <= 0) {
                 winMsg = $.lang.get('waifugames.boss.loss', $.userPrefix(opponent), bossName, $.userPrefix(username), replace2(getWaifu(id)));
                 $.inidb.incr(username, 'wLosses', 1);
@@ -1394,8 +1395,8 @@
                 winMsg = $.lang.get('waifugames.boss.win', $.userPrefix(username), replace2(getWaifu(id)), '[Boss] ' + bossName);
 
                 for (i in $.users) {
-                    $.inidb.incr($.users[i][0], 'candy', 10);
-                    $.inidb.incr('points', $.users[i][0], (getBReward()));
+                    $.inidb.incr($.users[i], 'candy', 10);
+                    $.inidb.incr('points', $.users[i], (getBReward()));
                 }
 
                 $.inidb.incr(username, 'wWins', 1);
@@ -1419,9 +1420,10 @@
             } else {
                 dmgRecMsg = $.lang.get('waifugames.fight.dmgrec', dmgRec, $.username.resolve($.randElement($.users)));
             }
+            //$.consoneLn('Sending Boss Result');
 
             $.say($.lang.get('waifugames.fight.boss') + ' ' + $.lang.get('waifugames.fight.' + randFight, replace2(getWaifu(id)), getHitPoints(username, id), attack, bossName, getHitPoints(opponent, id2), dmgMsg, dmgRecMsg, winMsg) + $.lang.get('waifugames.boss.expgain', expReward));
-
+            //$.consoneLn('Boss result sent');
         }
     }
 
@@ -1462,25 +1464,25 @@
             i2;
 
         if (action > 0) {
-            $.consoleLn('Action: ' + action);
-            //$.consoleLn('Character ID: ' + $.inidb.GetInteger(username, 'haremList', action));
-            $.consoleLn('Character ID: ' + getWaifuId(action));
+            //$.consoneLn('Action: ' + action);
+            ////$.consoneLn('Character ID: ' + $.inidb.GetInteger(username, 'haremList', action));
+            //$.consoneLn('Character ID: ' + getWaifuId(action));
             //id = $.inidb.GetInteger(username, 'haremList', parseInt(action));
             id = getWaifuId(action);
 
         } else {
             for (i in keys) {
 
-                $.consoleLn('HP: ' + getHitPoints(username, $.inidb.GetInteger(username, 'haremList', keys[i])));
+                //$.consoneLn('HP: ' + getHitPoints(username, $.inidb.GetInteger(username, 'haremList', keys[i])));
 
                 if (getHitPoints(username, $.inidb.GetInteger(username, 'haremList', keys[i])) <= 0) {
-                    $.consoleLn('continue;');
+                    //$.consoneLn('continue;');
                     continue;
                 }
-                $.consoleLn('HP: ' + getHitPoints(username, $.inidb.GetInteger(username, 'haremList', keys[i])));
+                //$.consoneLn('HP: ' + getHitPoints(username, $.inidb.GetInteger(username, 'haremList', keys[i])));
 
                 if (getHitPoints(username, $.inidb.GetInteger(username, 'haremList', keys[i])) > 0) {
-                    $.consoleLn('ID: ' + $.inidb.GetInteger(username, 'haremList', keys[i]));
+                    //$.consoneLn('ID: ' + $.inidb.GetInteger(username, 'haremList', keys[i]));
                     id = $.inidb.GetInteger(username, 'haremList', keys[i]);
                     break;
                 }
@@ -1494,17 +1496,17 @@
         }
 
         for (i2 in keys) {
-            $.consoleLn('HP: ' + getHitPoints(opponent, $.inidb.GetInteger(opponent, 'haremList', keys2[i2])));
-            $.consoleLn(typeof getHitPoints(opponent, $.inidb.GetInteger(opponent, 'haremList', keys2[i2])));
+            //$.consoneLn('HP: ' + getHitPoints(opponent, $.inidb.GetInteger(opponent, 'haremList', keys2[i2])));
+            //$.consoneLn(typeof getHitPoints(opponent, $.inidb.GetInteger(opponent, 'haremList', keys2[i2])));
 
 
             if (getHitPoints(opponent, $.inidb.GetInteger(opponent, 'haremList', keys2[i2])) <= 0) {
-                $.consoleLn('continue;');
+                //$.consoneLn('continue;');
                 continue;
             }
 
             if (getHitPoints(opponent, $.inidb.GetInteger(opponent, 'haremList', keys2[i2])) > 0) {
-                $.consoleLn('ID: ' + $.inidb.GetInteger(opponent, 'haremList', keys2[i2]));
+                //$.consoneLn('ID: ' + $.inidb.GetInteger(opponent, 'haremList', keys2[i2]));
                 id2 = $.inidb.GetInteger(opponent, 'haremList', keys2[i2]);
                 break;
             }
@@ -1769,7 +1771,7 @@
         }
 
         if (command.equalsIgnoreCase('boss')) {
-            if ($.isOnline($.channelName)) {
+            if ($.isOnline($.channelName) || $.isOwner(sender)) {
                 generateBoss();
                 bossBattle(sender.toLowerCase(), waifuId);
             } else {
