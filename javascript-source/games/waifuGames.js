@@ -1221,7 +1221,7 @@
 
 
     function generateBoss(sender) {
-        var bosses = $.randRange(1, responses.bosses - 1),
+        var bosses = 1;//$.randRange(1, responses.bosses - 1),
             bossHP = $.inidb.GetInteger('boss', 'wHitPoints', bosses);
         if (bossHP <= 0) {
             $.inidb.set('boss', 'id', bosses);
