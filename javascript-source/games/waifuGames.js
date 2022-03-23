@@ -1719,7 +1719,7 @@
             for(var i = 0; i < keylist.length; i++) {
                 var waifu = $.inidb.GetString('waifuscollected', sectionList[x], keylist[i]);
                 var link = $.shortenUrl(google + url(getWaifu(keylist[i])))
-                exportWaifuList = exportWaifuList + sectionList[x] + ',' + keylist[i] + ',' + '"' + waifu + '",' + link +  '\r\n'
+                exportWaifuList = exportWaifuList + sectionList[x] + ',' + keylist[i] + ',' + '"' + waifu + getBonus(sectionList[x], keylist[i]) + '",' + link +  '\r\n'
             }
         }
         var writer = new java.io.OutputStreamWriter(new java.io.FileOutputStream('./addons/youtubePlayer/' + 'waifu.csv'), 'UTF-8');
