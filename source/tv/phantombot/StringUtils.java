@@ -124,7 +124,7 @@ public class StringUtils {
             {"\u00BD", "frac12"}, // vulgar fraction one half = fraction one half
             {"\u00BE", "frac34"}, // vulgar fraction three quarters = fraction three quarters
             {"\u00BF", "iquest"}, // inverted question mark = turned question mark
-            {"\u00C0", "Agrave"}, // А - uppercase A, grave accent
+            {"\u00C0", "Agrave"}, // A - uppercase A, grave accent
             {"\u00C1", "Aacute"}, // Б - uppercase A, acute accent
             {"\u00C2", "Acirc"}, // В - uppercase A, circumflex accent
             {"\u00C3", "Atilde"}, // Г - uppercase A, tilde
@@ -137,7 +137,7 @@ public class StringUtils {
             {"\u00CA", "Ecirc"}, // К - uppercase E, circumflex accent
             {"\u00CB", "Euml"}, // Л - uppercase E, umlaut
             {"\u00CC", "Igrave"}, // М - uppercase I, grave accent
-            {"\u00CD", "Iacute"}, // Н - uppercase I, acute accent
+            {"\u00CD", "Iacute"}, // H - uppercase I, acute accent
             {"\u00CE", "Icirc"}, // О - uppercase I, circumflex accent
             {"\u00CF", "Iuml"}, // П - uppercase I, umlaut
             {"\u00D0", "ETH"}, // Р - uppercase Eth, Icelandic
@@ -173,7 +173,7 @@ public class StringUtils {
             {"\u00EE", "icirc"}, // о - lowercase i, circumflex accent
             {"\u00EF", "iuml"}, // п - lowercase i, umlaut
             {"\u00F0", "eth"}, // р - lowercase eth, Icelandic
-            {"\u00F1", "ntilde"}, // с - lowercase n, tilde
+            {"\u00F1", "ntilde"}, // C - lowercase n, tilde
             {"\u00F2", "ograve"}, // т - lowercase o, grave accent
             {"\u00F3", "oacute"}, // у - lowercase o, acute accent
             {"\u00F4", "ocirc"}, // ф - lowercase o, circumflex accent
@@ -185,9 +185,9 @@ public class StringUtils {
             {"\u00FA", "uacute"}, // ъ - lowercase u, acute accent
             {"\u00FB", "ucirc"}, // ы - lowercase u, circumflex accent
             {"\u00FC", "uuml"}, // ь - lowercase u, umlaut
-            {"\u00FD", "yacute"}, // э - lowercase y, acute accent
+            {"\u00FD", "yacute"}, // y - lowercase y, acute accent
             {"\u00FE", "thorn"}, // ю - lowercase thorn, Icelandic
-            {"\u00FF", "yuml"}, // я - lowercase y, umlaut
+            {"\u00FF", "yuml"}, // y - lowercase y, umlaut
     };
 
     private static final int MIN_ESCAPE = 2;

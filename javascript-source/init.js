@@ -475,8 +475,7 @@
                     command = event.getCommand(),
                     args = event.getArgs(),
                     subCommand = $.getSubCommandFromArguments(command, args),
-                    isMod = $.isModv3(sender, event.getTags()),
-                    whisper = event.isWhisper();
+                    isMod = $.isModv3(sender, event.getTags());
 
             if (isReady === false && command.equalsIgnoreCase($.botName) && args[0].equalsIgnoreCase('moderate')) {
                 Packages.tv.phantombot.PhantomBot.instance().getSession().getModerationStatus();
