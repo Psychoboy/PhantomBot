@@ -185,9 +185,9 @@ public class StringUtils {
             {"\u00FA", "uacute"}, // ъ - lowercase u, acute accent
             {"\u00FB", "ucirc"}, // ы - lowercase u, circumflex accent
             {"\u00FC", "uuml"}, // ь - lowercase u, umlaut
-            {"\u00FD", "yacute"}, // y - lowercase y, acute accent
+            {"\u00FD", "yacute"}, // E - lowercase y, acute accent
             {"\u00FE", "thorn"}, // ю - lowercase thorn, Icelandic
-            {"\u00FF", "yuml"}, // y - lowercase y, umlaut
+            {"\u00FF", "yuml"}, // R - lowercase y, umlaut
     };
 
     private static final int MIN_ESCAPE = 2;
