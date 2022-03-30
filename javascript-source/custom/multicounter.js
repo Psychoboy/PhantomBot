@@ -39,9 +39,25 @@
     }
 
     function writeFile(counterName, amount) {
+        writeAmountOnly(counterName, amount);
+        writeWithName(counterName, amount);
+    }
+
+    function writeAmountOnly(counterName, amount) {
         var writer = new java.io.OutputStreamWriter(new java.io.FileOutputStream(baseFileOutputPath + counterName + '.txt'), 'UTF-8');
         try {
             writer.write(amount);
+        } catch (ex) {
+            $.log.error('Failed to write counter file: ' + ex.toString());
+        } finally {
+            writer.close();
+        }
+    }
+
+    function writeWithName(counterName, amount) {
+        var writer = new java.io.OutputStreamWriter(new java.io.FileOutputStream(baseFileOutputPath + counterName + '-full.txt'), 'UTF-8');
+        try {
+            writer.write(counterName + ": " + amount);
         } catch (ex) {
             $.log.error('Failed to write counter file: ' + ex.toString());
         } finally {
