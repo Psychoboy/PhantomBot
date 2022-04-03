@@ -528,13 +528,29 @@
                 return;
             }
 
-            if (oncooldown) {
-                var cooldownSeconds = $.coolDown.getSecs(sender, command, isMod);
-                var cooldownDate = new Date(null);
-                cooldownDate.setSeconds(cooldownSeconds);
-                var cooldownDateString = cooldownDate.toISOString().substr(11,8);
-                $.sayWithTimeout($.whisperPrefix(sender) + $.lang.get('init.cooldown.msg', command, cooldownDateString), $.getIniDbBoolean('settings', 'coolDownMsgEnabled', false));
-                consoleDebug('Command !' + command + ' was not sent due to it being on cooldown.');
+            // Check the command cooldown.
+            var cooldownDuration,
+                isGlobalCooldown,
+                cooldownCommand = command;
+
+            if (args.length === 1 && $.coolDown.exists(cooldownCommand + ' ' + args[0])) {
+                cooldownCommand += ' ' + args[0];
+            }
+            if (args.length > 1 && $.coolDown.exists(cooldownCommand + ' ' + args[1])) {
+                cooldownCommand += ' ' + args[1];
+            } 
+
+            [cooldownDuration, isGlobalCooldown] = $.coolDown.get(cooldownCommand, sender, isMod);
+
+            if (cooldownDuration > 0 && $.getIniDbBoolean('settings', 'coolDownMsgEnabled')) {
+                var cooldownDateString = cooldownDuration.toISOString().substr(11,8);
+                if (isGlobalCooldown) {
+                    $.sayWithTimeout($.whisperPrefix(sender) + $.lang.get('init.cooldown.msg.global', command, cooldownDateString), true);
+                    consoleDebug('Command ! ' + command + ' was not sent due to it being on a global cooldown.');
+                } else {
+                    $.say($.whisperPrefix(sender) + $.lang.get('init.cooldown.msg.user', command, cooldownDateString));
+                    consoleDebug('Command ! ' + command + ' was not sent due to it being on cooldown for user ' + sender + '.');
+                }
                 return;
             }
 
