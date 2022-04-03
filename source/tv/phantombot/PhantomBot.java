@@ -83,6 +83,7 @@ import tv.phantombot.event.irc.channel.IrcChannelUserModeEvent;
 import tv.phantombot.event.irc.complete.IrcJoinCompleteEvent;
 import tv.phantombot.event.irc.message.IrcChannelMessageEvent;
 import tv.phantombot.event.irc.message.IrcPrivateMessageEvent;
+import tv.phantombot.event.jvm.PropertiesReloadedEvent;
 import tv.phantombot.event.jvm.ShutdownEvent;
 import tv.phantombot.httpserver.HTTPAuthenticatedHandler;
 import tv.phantombot.httpserver.HTTPNoAuthHandler;
@@ -672,6 +673,8 @@ public final class PhantomBot implements Listener {
         if (this.pubSubEdge != null) {
             this.pubSubEdge.setOAuth(this.apiOAuth);
         }
+
+        EventBus.instance().postAsync(new PropertiesReloadedEvent());
     }
 
     public static String GetExecutionPath() {
@@ -1127,9 +1130,6 @@ public final class PhantomBot implements Listener {
             HTTPWSServer.instance().close();
         }
 
-        print("Closing the logs...");
-        com.gmt2001.Logger.instance().close();
-
         try {
             for (int i = 5; i > 0; i--) {
                 com.gmt2001.Console.out.print("\rWaiting for everything else to shutdown... " + i + " ");
@@ -1459,7 +1459,7 @@ public final class PhantomBot implements Listener {
                             }
                         }
                     } else {
-                        String[] newVersionInfo = GitHubAPIv3.instance().CheckNewRelease();
+                        String[] newVersionInfo = GitHubAPIv3.CheckNewRelease();
                         if (newVersionInfo != null) {
                             try {
                                 Thread.sleep(6000);

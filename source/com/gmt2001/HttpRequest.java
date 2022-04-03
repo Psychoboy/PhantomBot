@@ -16,94 +16,99 @@
  */
 package com.gmt2001;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import com.gmt2001.httpclient.HttpClient;
+import com.gmt2001.httpclient.HttpClientResponse;
+import com.gmt2001.httpclient.HttpUrl;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  *
  * @author gmt2001
  */
-public class HttpRequest {
+@Deprecated
+public final class HttpRequest {
 
-    private static final int TIMEOUT = 5 * 1000;
-
+    @Deprecated
     public static enum RequestType {
 
-        GET, POST, PUT, DELETE
+        GET, POST, PATCH, PUT, DELETE
     }
 
     private HttpRequest() {
-        Thread.setDefaultUncaughtExceptionHandler(com.gmt2001.UncaughtExceptionHandler.instance());
     }
 
+    @Deprecated
     public static HttpResponse getData(RequestType type, String url, String post, HashMap<String, String> headers) {
         Thread.setDefaultUncaughtExceptionHandler(com.gmt2001.UncaughtExceptionHandler.instance());
 
         HttpResponse r = new HttpResponse();
-
-        r.type = type;
         r.url = url;
-        r.post = post;
         r.headers = headers;
+        r.type = type;
+        r.post = post;
 
         try {
-            URL u = new URL(url);
-
-            HttpURLConnection h = (HttpURLConnection) u.openConnection();
-
-            if (u.getUserInfo() != null) {
-                String basicAuth = "Basic " + new String(new Base64().encode(u.getUserInfo().getBytes()));
-                h.setRequestProperty("Authorization", basicAuth);
-            }
-
+            HttpUrl uri = HttpUrl.fromUri(url);
+            HttpHeaders h = HttpClient.createHeaders();
             if (headers != null) {
-                headers.entrySet().stream().forEach((e) -> {
-                    h.addRequestProperty(e.getKey(), e.getValue());
-                });
+                headers.forEach(h::add);
             }
 
-            h.setRequestMethod(type.name());
-            h.setUseCaches(false);
-            h.setDefaultUseCaches(false);
-            h.setConnectTimeout(TIMEOUT);
-            h.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.52 Safari/537.36 PhantomBotJ/2020");
-            if (type == RequestType.POST || type == RequestType.PUT) {
-                h.setDoOutput(true);
-                h.setRequestProperty("Content-Length", "" + post.getBytes().length);
+            if (uri.getUserInfo() != null && !uri.getUserInfo().isBlank()) {
+                String basicAuth = "Basic " + new String(new Base64().encode(uri.getUserInfo().getBytes()));
+                h.add("Authorization", basicAuth);
             }
 
-            h.connect();
+            HttpClientResponse hcr = HttpClient.request(HttpMethod.valueOf(type.name()), uri, h, post);
 
-            if (type == RequestType.POST || type == RequestType.PUT) {
-                try (BufferedOutputStream stream = new BufferedOutputStream(h.getOutputStream())) {
-                    stream.write(post.getBytes());
-                    stream.flush();
-                }
-            }
-
-            if (h.getResponseCode() < 400) {
-                r.content = IOUtils.toString(new BufferedInputStream(h.getInputStream()), h.getContentEncoding());
-                r.httpCode = h.getResponseCode();
+            if (hcr.responseCode().code() < 400) {
+                r.content = hcr.responseBody();
+                r.httpCode = hcr.responseCode().code();
                 r.success = true;
             } else {
-                r.content = IOUtils.toString(new BufferedInputStream(h.getErrorStream()), h.getContentEncoding());
-                r.httpCode = h.getResponseCode();
+                r.content = hcr.responseBody();
+                r.httpCode = hcr.responseCode().code();
                 r.success = false;
             }
-        } catch (IOException ex) {
-            r.success = false;
-            r.httpCode = 0;
-            r.exception = ex.getMessage();
-
+        } catch (URISyntaxException ex) {
             com.gmt2001.Console.err.printStackTrace(ex);
+            r.success = false;
+            r.exception = ex.getClass().getSimpleName() + ": " + ex.getMessage();
+            r.httpCode = 0;
         }
 
         return r;
+    }
+
+    /**
+     * Method that adds extra information to our returned object.
+     *
+     * @param obj
+     * @param isSuccess
+     * @param requestType
+     * @param data
+     * @param url
+     * @param responseCode
+     * @param exception
+     * @param exceptionMessage
+     */
+    @Deprecated
+    public static void generateJSONObject(JSONObject obj, boolean isSuccess,
+            String requestType, String data, String url, int responseCode,
+            String exception, String exceptionMessage) throws JSONException {
+
+        obj.put("_success", isSuccess);
+        obj.put("_type", requestType);
+        obj.put("_post", data);
+        obj.put("_url", url);
+        obj.put("_http", responseCode);
+        obj.put("_exception", exception);
+        obj.put("_exceptionMessage", exceptionMessage);
     }
 }

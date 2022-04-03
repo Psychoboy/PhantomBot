@@ -16,25 +16,21 @@
  */
 package com.gmt2001;
 
+import com.gmt2001.httpclient.HttpClient;
+import com.gmt2001.httpclient.HttpClientResponse;
+import com.gmt2001.httpclient.HttpUrl;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.handler.codec.http.QueryStringEncoder;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.time.ZoneOffset;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.stream.Collectors;
-import javax.net.ssl.HttpsURLConnection;
-import org.json.JSONException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.json.JSONObject;
 import tv.phantombot.CaselessProperties;
 import tv.phantombot.CaselessProperties.Transaction;
@@ -49,10 +45,9 @@ import tv.phantombot.twitch.api.TwitchValidate;
 public class TwitchAuthorizationCodeFlow {
 
     private static final String BASE_URL = "https://id.twitch.tv/oauth2";
-    private static final String USER_AGENT = "PhantomBot/2022";
     private static final long REFRESH_INTERVAL = 900000L;
     private static final int DEFAULT_EXPIRE_TIME = 900000;
-    private Timer t = null;
+    private boolean timerStarted = false;
     private Transaction refreshTransaction = null;
     private static Transaction newTransaction = null;
 
@@ -171,22 +166,19 @@ public class TwitchAuthorizationCodeFlow {
     }
 
     private synchronized void startup(String clientid, String clientsecret) {
-        if (t != null) {
+        if (this.timerStarted) {
             com.gmt2001.Console.debug.println("timer exists");
             return;
         }
 
         if (clientid != null && !clientid.isBlank() && clientsecret != null && !clientsecret.isBlank()) {
             com.gmt2001.Console.debug.println("starting timer");
-            this.t = new Timer();
-            this.t.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    if (PhantomBot.instance() != null) {
-                        checkAndRefreshTokens(PhantomBot.instance().getProperties());
-                    }
+            Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+                if (PhantomBot.instance() != null) {
+                    checkAndRefreshTokens(PhantomBot.instance().getProperties());
                 }
-            }, REFRESH_INTERVAL, REFRESH_INTERVAL);
+            }, REFRESH_INTERVAL, REFRESH_INTERVAL, TimeUnit.MILLISECONDS);
+            this.timerStarted = true;
         } else {
             com.gmt2001.Console.debug.println("not starting");
         }
@@ -288,76 +280,37 @@ public class TwitchAuthorizationCodeFlow {
     }
 
     private static JSONObject tryAuthorize(String code, String redirect_uri) {
-        QueryStringEncoder qse = new QueryStringEncoder("/token");
-        qse.addParam("client_id", PhantomBot.instance().getProperties().getProperty("clientid"));
-        qse.addParam("client_secret", PhantomBot.instance().getProperties().getProperty("clientsecret"));
-        qse.addParam("code", code);
-        qse.addParam("grant_type", "authorization_code");
-        qse.addParam("redirect_uri", redirect_uri);
+        Map<String, String> query = new HashMap<>();
+        query.put("client_id", PhantomBot.instance().getProperties().getProperty("clientid"));
+        query.put("client_secret", PhantomBot.instance().getProperties().getProperty("clientsecret"));
+        query.put("code", code);
+        query.put("grant_type", "authorization_code");
+        query.put("redirect_uri", redirect_uri);
 
-        return doRequest(qse);
+        return doRequest("/token", query);
     }
 
     private static JSONObject tryRefresh(String clientid, String clientsecret, String refresh_token) {
-        QueryStringEncoder qse = new QueryStringEncoder("/token");
-        qse.addParam("client_id", clientid);
-        qse.addParam("client_secret", clientsecret);
-        qse.addParam("refresh_token", refresh_token);
-        qse.addParam("grant_type", "refresh_token");
+        Map<String, String> query = new HashMap<>();
+        query.put("client_id", clientid);
+        query.put("client_secret", clientsecret);
+        query.put("refresh_token", refresh_token);
+        query.put("grant_type", "refresh_token");
 
-        return doRequest(qse);
+        return doRequest("/token", query);
     }
 
-    private static JSONObject doRequest(QueryStringEncoder qse) {
+    private static JSONObject doRequest(String path, Map<String, String> query) {
         try {
-            URL url = new URL(BASE_URL + qse.toString());
+            HttpUrl url = HttpUrl.fromUri(BASE_URL, path).withQuery(query);
+            HttpHeaders headers = HttpClient.createHeaders(HttpMethod.POST, true);
 
-            HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+            HttpClientResponse response = HttpClient.post(url, headers, "");
 
-            connection.addRequestProperty("Accept", "application/json");
-            connection.addRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            connection.addRequestProperty("User-Agent", USER_AGENT);
-            connection.setRequestMethod("POST");
-            connection.setConnectTimeout(5000);
-            connection.setDoOutput(true);
+            com.gmt2001.Console.debug.println(response.responseCode());
 
-            connection.connect();
-
-            try ( BufferedOutputStream stream = new BufferedOutputStream(connection.getOutputStream())) {
-                stream.write("".getBytes());
-                stream.flush();
-            }
-
-            com.gmt2001.Console.debug.println(connection.getResponseCode());
-
-            if (connection.getResponseCode() == 200) {
-                try ( InputStream inStream = connection.getInputStream()) {
-                    String r = new BufferedReader(new InputStreamReader(inStream)).lines().collect(Collectors.joining("\n"));
-                    if (!r.startsWith("{")) {
-                        r = "{\"error\": \"" + connection.getResponseMessage() + "\",\"message\":\"" + r + "\",\"status\":" + connection.getResponseCode() + "}";
-                    }
-                    com.gmt2001.Console.debug.println(r);
-                    return new JSONObject(r);
-                }
-            } else {
-                try ( InputStream inStream = connection.getErrorStream()) {
-                    String r = new BufferedReader(new InputStreamReader(inStream)).lines().collect(Collectors.joining("\n"));
-                    if (!r.startsWith("{")) {
-                        r = "{\"error\": \"" + connection.getResponseMessage() + "\",\"message\":\"" + r + "\",\"status\":" + connection.getResponseCode() + "}";
-                    }
-                    com.gmt2001.Console.debug.println(r);
-                    JSONObject j = new JSONObject(r);
-                    if (!j.has("error")) {
-                        if (j.has("status")) {
-                            j.put("error", j.getInt("status"));
-                        } else {
-                            j.put("error", j.getInt("E_UNKWN"));
-                        }
-                    }
-                    return j;
-                }
-            }
-        } catch (IOException | NullPointerException | JSONException ex) {
+            return response.jsonOrThrow();
+        } catch (Throwable ex) {
             com.gmt2001.Console.debug.printStackTrace(ex);
             return new JSONObject("{\"error\": \"Internal\",\"message\":\"" + ex.toString() + "\",\"status\":0}");
         }

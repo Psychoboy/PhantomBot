@@ -97,9 +97,12 @@
             if (!parseInt(amount)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('gambling.usage'));
                 return;
+            } else {
+                points = parseInt(amount);
             }
 
-            gamble(sender, parseInt(amount));
+            gamble(sender, points);
+            return;
         }
 
         /**

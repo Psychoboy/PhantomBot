@@ -58,6 +58,18 @@ public final class HttpUrl {
     }
 
     /**
+     * Starts a new HttpUrl from a string URI
+     *
+     * @param baseUri A base URI to parse
+     * @param endPoint An endpoint to combine with the base URI
+     * @return
+     * @throws URISyntaxException If the given string violates RFC 2396
+     */
+    public static HttpUrl fromUri(String baseUri, String endPoint) throws URISyntaxException {
+        return fromUri(new URI(baseUri + (!baseUri.endsWith("/") && !endPoint.startsWith("/") && !endPoint.startsWith("?") ? "/" : "") + endPoint));
+    }
+
+    /**
      * Starts a new HttpUrl from a URI
      *
      * @param uri A URI object
@@ -86,12 +98,14 @@ public final class HttpUrl {
         u.path = uri.getPath();
         u.querySep = querySep;
 
-        for (String s : uri.getQuery().split(querySep)) {
-            String[] param = s.split("=", 1);
-            if (param.length == 2) {
-                u.query.put(param[0], param[1]);
-            } else {
-                u.query.put(param[0], null);
+        if (uri.getQuery() != null) {
+            for (String s : uri.getQuery().split(querySep)) {
+                String[] param = s.split("=", 2);
+                if (param.length == 2) {
+                    u.query.put(param[0], param[1]);
+                } else {
+                    u.query.put(param[0], null);
+                }
             }
         }
 
@@ -306,19 +320,16 @@ public final class HttpUrl {
     public String build() {
         if (this.builtUri == null) {
             StringBuilder sb = new StringBuilder();
-            sb.append(this.scheme);
-            sb.append("://");
+            sb.append(this.scheme).append("://");
 
             if (this.userInfo != null && !this.userInfo.isBlank()) {
-                sb.append(this.userInfo);
-                sb.append("@");
+                sb.append(this.userInfo).append('@');
             }
 
             sb.append(this.host);
 
             if (this.port > 0 && this.port <= 65535) {
-                sb.append(":");
-                sb.append(this.port);
+                sb.append(':').append(this.port);
             }
 
             if (this.path != null && !this.path.isBlank()) {
@@ -326,7 +337,7 @@ public final class HttpUrl {
             }
 
             if (!this.query.isEmpty()) {
-                sb.append("?");
+                sb.append('?');
 
                 int len = sb.length();
                 this.query.forEach((k, v) -> {
@@ -338,8 +349,7 @@ public final class HttpUrl {
                         sb.append(URLEncoder.encode(k, Charset.forName("UTF-8")));
 
                         if (v != null) {
-                            sb.append("=");
-                            sb.append(URLEncoder.encode(v, Charset.forName("UTF-8")));
+                            sb.append('=').append(URLEncoder.encode(v, Charset.forName("UTF-8")));
                         }
                     }
                 });

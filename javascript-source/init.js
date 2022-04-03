@@ -484,7 +484,7 @@
             // Check if the command exists or if the module is disabled.
             if (!$.commandExists(command) || !isModuleEnabled($.getCommandScript(command))) {
                 return;
-            } else
+            }
 
             // Check if the command has an alias.
             if ($.aliasExists(command)) {
@@ -512,29 +512,20 @@
                     }
                 }
                 return;
-            } else
+            }
 
             // Check the command permission.
             if ($.permCom(sender, command, subCommand, event.getTags()) !== 0) {
                 $.sayWithTimeout($.whisperPrefix(sender) + $.lang.get('cmd.perm.404', (!$.subCommandExists(command, subCommand) ? $.getCommandGroupName(command) : $.getSubCommandGroupName(command, subCommand))), $.getIniDbBoolean('settings', 'permComMsgEnabled', false));
                 consoleDebug('Command !' + command + ' was not sent due to the user not having permission for it.');
                 return;
-            } else
+            }
 
             // Check the command cost.
             if ($.priceCom(sender, command, subCommand, isMod) === 1) {
                 $.sayWithTimeout($.whisperPrefix(sender) + $.lang.get('cmd.needpoints', $.getPointsString($.getCommandPrice(command, subCommand, ''))), $.getIniDbBoolean('settings', 'priceComMsgEnabled', false));
                 consoleDebug('Command !' + command + ' was not sent due to the user not having enough points.');
                 return;
-            } else
-                // Check the command cooldown.
-                var oncooldown = false;
-            if (args.length > 1 && $.coolDown.exists(command + ' ' + args[0] + ' ' + args[1])) {
-                oncooldown = $.coolDown.get(command + ' ' + args[0] + ' ' + args[1], sender, isMod) !== 0;
-            } else if (args.length > 0 && $.coolDown.exists(command + ' ' + args[0])) {
-                oncooldown = $.coolDown.get(command + ' ' + args[0], sender, isMod) !== 0;
-            } else {
-                oncooldown = $.coolDown.get(command, sender, isMod) !== 0;
             }
 
             if (oncooldown) {

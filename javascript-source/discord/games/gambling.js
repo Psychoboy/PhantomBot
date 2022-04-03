@@ -102,6 +102,7 @@
             }
             if (isNaN(parseInt(amount))) {
                 $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.gambling.usage'));
+                return;
             } else {
                 var twitchName = $.discord.resolveTwitchName(event.getSenderId());
                 if (twitchName !== null) {
@@ -110,6 +111,9 @@
                     $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.accountlink.usage.nolink'));
                 }
             }
+            
+            gamble(channel, twitchName, mention, sender, points);
+            return;
         }
 
         if (command.equalsIgnoreCase('gambling')) {

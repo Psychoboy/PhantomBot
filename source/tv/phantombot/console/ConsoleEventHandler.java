@@ -598,7 +598,7 @@ public class ConsoleEventHandler implements Listener {
         }
 
         /**
-         * @consolecommand reconnect - Reconnects to RMI, Host TMI, and PubSub.
+         * @consolecommand reconnect - Reconnects to TMI, Host TMI, and PubSub.
          */
         if (message.equalsIgnoreCase("reconnect")) {
             com.gmt2001.Console.out.println("[CONSOLE] Executing TMI, Host TMI, and PubSub reconnect");
@@ -638,7 +638,7 @@ public class ConsoleEventHandler implements Listener {
         }
 
         /**
-         * @consolecommand dumplogs - Prints the latest logs to the console.
+         * @consolecommand printlogs - Prints the latest logs to the console.
          */
         if (message.equalsIgnoreCase("printlogs")) {
             com.gmt2001.Console.out.println("[CONSOLE] Executing printlogs");
