@@ -129,9 +129,9 @@
             maxCoolDown = 0;
             
 
-        if(canIgnore(username, isMod)) {
-            return [maxCoolDown, isGlobal];
-        }
+        // if(canIgnore(username, isMod)) {
+        //     return [maxCoolDown, isGlobal];
+        // }
 
         if (isSpecial(command)) {
             if (command.equalsIgnoreCase('adventure' || command == 'ffa' || 'wheelspin') && defaultCooldowns[command] !== undefined && defaultCooldowns[command] > $.systemTime()) {
