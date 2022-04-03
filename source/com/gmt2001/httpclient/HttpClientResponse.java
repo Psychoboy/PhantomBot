@@ -19,6 +19,7 @@ package com.gmt2001.httpclient;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import java.nio.charset.StandardCharsets;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,7 +36,7 @@ public final class HttpClientResponse {
     private final Throwable jsonException;
     private final HttpMethod method;
     private final String requestBody;
-    private final String responseBody;
+    private final byte[] responseBody;
     private final HttpHeaders requestHeaders;
     private final HttpHeaders responseHeaders;
     private final HttpResponseStatus responseCode;
@@ -50,7 +51,7 @@ public final class HttpClientResponse {
      * @param url The URL requested
      * @param response The response metadata object
      */
-    protected HttpClientResponse(Throwable exception, String requestBody, String responseBody, HttpUrl url,
+    protected HttpClientResponse(Throwable exception, String requestBody, byte[] responseBody, HttpUrl url,
             reactor.netty.http.client.HttpClientResponse response) {
         this.exception = exception;
         this.isSuccess = response.status().code() > 0 && response.status().code() < 400;
@@ -66,7 +67,7 @@ public final class HttpClientResponse {
         Throwable jsonExceptionT = null;
 
         try {
-            jsonT = new JSONObject(responseBody);
+            jsonT = new JSONObject(new String(this.responseBody, StandardCharsets.UTF_8));
         } catch (JSONException ex) {
             jsonExceptionT = ex;
         }
@@ -88,7 +89,7 @@ public final class HttpClientResponse {
      * @param responseCode The response status code
      * @param url The URL requested
      */
-    protected HttpClientResponse(Throwable exception, boolean isSuccess, HttpMethod method, String requestBody, String responseBody,
+    protected HttpClientResponse(Throwable exception, boolean isSuccess, HttpMethod method, String requestBody, byte[] responseBody,
             HttpHeaders requestHeaders, HttpHeaders responseHeaders, HttpResponseStatus responseCode, HttpUrl url) {
         this.exception = exception;
         this.isSuccess = isSuccess;
@@ -104,7 +105,7 @@ public final class HttpClientResponse {
         Throwable jsonExceptionT = null;
 
         try {
-            jsonT = new JSONObject(responseBody);
+            jsonT = new JSONObject(new String(this.responseBody, StandardCharsets.UTF_8));
         } catch (JSONException ex) {
             jsonExceptionT = ex;
         }
@@ -147,6 +148,20 @@ public final class HttpClientResponse {
      */
     public JSONObject json() {
         return this.json;
+    }
+
+    /**
+     * Returns the response body as a JSONObject, if it was a valid stringified JSON object, otherwise throws the JSONException that was thrown
+     *
+     * @return
+     * @throws java.lang.Throwable
+     */
+    public JSONObject jsonOrThrow() throws Throwable {
+        if (this.hasJson()) {
+            return this.json;
+        } else {
+            throw this.jsonException;
+        }
     }
 
     /**
@@ -195,11 +210,20 @@ public final class HttpClientResponse {
     }
 
     /**
-     * Returns the response body
+     * Returns the response body as a string
      *
      * @return
      */
     public String responseBody() {
+        return new String(this.responseBody, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Returns the response body
+     *
+     * @return
+     */
+    public byte[] rawResponseBody() {
         return this.responseBody;
     }
 
