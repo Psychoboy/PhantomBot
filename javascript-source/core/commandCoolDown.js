@@ -141,7 +141,7 @@
             useDefault = false;
 
         if(canIgnore(username, isMod)) {
-            if (cooldown.globalSec !== Operation.UnSet) {
+            if (cooldown !== undefined && cooldown.globalSec !== Operation.UnSet) {
                 set(command, useDefault, cooldown.globalSec, undefined);
             }
             return [maxCoolDown, isGlobal];
