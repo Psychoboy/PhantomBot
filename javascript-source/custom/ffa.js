@@ -42,7 +42,7 @@
    }
 
    function endFfa() {
-        $.coolDown.set('ffa', false, coolDown, false);
+        $.coolDown.set('ffa', true, coolDown, undefined);
         gameState = 0;
         viewers = [];
    }

@@ -135,9 +135,10 @@
         // }
 
         if (isSpecial(command)) {
-            if (command.equalsIgnoreCase('adventure' || command == 'ffa' || 'wheelspin') && defaultCooldowns[command] !== undefined && defaultCooldowns[command] > $.systemTime()) {
+            if ((command.equalsIgnoreCase('adventure') || command.equalsIgnoreCase('ffa') || command.equalsIgnoreCase('wheelspin')) && defaultCooldowns[command] !== undefined && defaultCooldowns[command] > $.systemTime()) {
                 maxCoolDown = getTimeDif(defaultCooldowns[command]);
             }
+            isGlobal = true;
             return [maxCoolDown, isGlobal];
         }
 
@@ -200,7 +201,6 @@
      */
     function set(command, useDefault, duration, username) {
         finishTime = (duration > 0 ? ((parseInt(duration) * 1e3) + $.systemTime()) : 0);
-
         if (useDefault) {
             defaultCooldowns[command] = finishTime;
             return;

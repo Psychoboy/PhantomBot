@@ -36,7 +36,7 @@
             $.say((sender) + ' paid ' + cost + ' pasties to spin the wheel!');
             var time = String($.getCurrentLocalTimeString('h:mm:ss a', 'America/Phoenix'));
             $.writeToFile( time + ' ' + sender + ' Wheel Spin', './addons/wheelspins.txt', true);
-            $.coolDown.set('wheelspin', false, coolDown, false);
+            $.coolDown.set('wheelspin', true, coolDown, undefined);
             return;
         }
 
