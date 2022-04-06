@@ -42,12 +42,13 @@
             link;
 
         while ($.lang.exists('waifugames.waifu.' + i)) {
-            link = google + url(getWaifu(i));
-            string += $.lang.get('waifugames.function.characterlist') + i + ' ' + replace3($.lang.get('waifugames.waifu.' + i)) + '\r\n';
+            link = $.shortenUrl(google + url(getWaifu(i)))
+            //string += $.lang.get('waifugames.function.characterlist') + i + ' ' + replace3($.lang.get('waifugames.waifu.' + i)) + '\r\n';
+            string += i + ',' + replace3($.lang.get('waifugames.waifu.' + i)) + ',' + link + '\r\n';
             ++i;
         }
 
-        $.writeToFile(string, './addons/characterlist.txt', false);
+        $.writeToFile(string, './addons/characterlist.csv', false);
         totalWaifus = i;
     }
     /*

@@ -128,11 +128,6 @@
     function get(command, username, isMod) {
         var isGlobal = false,
             maxCoolDown = 0;
-            
-
-        if(canIgnore(username, isMod)) {
-            return [maxCoolDown, isGlobal];
-        }
 
         if (isSpecial(command)) {
             if ((command.equalsIgnoreCase('adventure') || command.equalsIgnoreCase('ffa') || command.equalsIgnoreCase('wheelspin')) && defaultCooldowns[command] !== undefined && defaultCooldowns[command] > $.systemTime()) {
@@ -144,6 +139,13 @@
 
         var cooldown = cooldowns[command],
             useDefault = false;
+
+        if(canIgnore(username, isMod)) {
+            if (cooldown.globalSec !== Operation.UnSet) {
+                set(command, useDefault, cooldown.globalSec, undefined);
+            }
+            return [maxCoolDown, isGlobal];
+        }
             
         if (cooldown !== undefined) {
             
