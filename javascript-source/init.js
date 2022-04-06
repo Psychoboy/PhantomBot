@@ -542,16 +542,19 @@
 
             [cooldownDuration, isGlobalCooldown] = $.coolDown.get(cooldownCommand, sender, isMod);
 
-            if (cooldownDuration > 0 && $.getIniDbBoolean('settings', 'coolDownMsgEnabled')) {
-                var cooldownDate = new Date(null);
-                cooldownDate.setSeconds(cooldownDuration);
-                var cooldownDateString = cooldownDate.toISOString().substr(11,8);
-                if (isGlobalCooldown) {
-                    $.sayWithTimeout($.whisperPrefix(sender) + $.lang.get('init.cooldown.msg.global', command, cooldownDateString), true);
-                    consoleDebug('Command ! ' + command + ' was not sent due to it being on a global cooldown.');
-                } else {
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.cooldown.msg.user', command, cooldownDateString));
-                    consoleDebug('Command ! ' + command + ' was not sent due to it being on cooldown for user ' + sender + '.');
+            if (cooldownDuration > 0) {
+                consoleDebug('Command ! ' + command + ' was not sent due to it being on cooldown ' + (isGlobalCooldown ? 'globally' : 'for user' + sender) + '.');
+                if ($.getIniDbBoolean('settings', 'coolDownMsgEnabled')) {
+                    var cooldownDate = new Date(null);
+                    cooldownDate.setSeconds(cooldownDuration);
+                    var cooldownDateString = cooldownDate.toISOString().substr(11,8);
+                    if (isGlobalCooldown) {
+                        $.sayWithTimeout($.whisperPrefix(sender) + $.lang.get('init.cooldown.msg.global', command, cooldownDateString), true);
+                        
+                    } else {
+                        $.say($.whisperPrefix(sender) + $.lang.get('init.cooldown.msg.user', command, cooldownDateString));
+                    }
+
                 }
                 return;
             }
@@ -614,7 +617,29 @@
                 return;
             }
 
-            if (isAdmin == false && $.discord.cooldown.get(command, senderId) !== 0) {
+            // Check the command cooldown.
+            var cooldownDuration,
+                isGlobalCooldown,
+                cooldownCommand = command;
+
+            if (args.length === 1 && $.discord.cooldown.exists(cooldownCommand + ' ' + args[0])) {
+                cooldownCommand += ' ' + args[0];
+            }
+            if (args.length > 1 && $.discord.cooldown.exists(cooldownCommand + ' ' + args[1])) {
+                cooldownCommand += ' ' + args[1];
+            } 
+
+            [cooldownDuration, isGlobalCooldown] = $.discord.cooldown.get(cooldownCommand, senderId);
+
+            if (isAdmin === false && cooldownDuration > 0) {
+                if ($.getIniDbBoolean('discordCooldownSettings', 'coolDownMsgEnabled')) {
+                    consoleDebug('Discord command ! ' + command + ' was not sent due to it being on cooldown ' + (isGlobalCooldown ? 'globally' : 'for user' + username) + '.');
+                    if (isGlobalCooldown) {
+                        $.discord.say(channelId, $.discord.userPrefix(username) + $.lang.get('init.cooldown.msg.global', command, cooldownDuration));
+                    } else {
+                        $.discord.say(channelId, $.discord.userPrefix(username) + $.lang.get('init.cooldown.msg.user', command, cooldownDuration));
+                    }
+                }
                 return;
             }
 
