@@ -137,8 +137,8 @@
         if (isSpecial(command)) {
             if ((command.equalsIgnoreCase('adventure') || command.equalsIgnoreCase('ffa') || command.equalsIgnoreCase('wheelspin')) && defaultCooldowns[command] !== undefined && defaultCooldowns[command] > $.systemTime()) {
                 maxCoolDown = getTimeDif(defaultCooldowns[command]);
+                isGlobal = true;
             }
-            isGlobal = true;
             return [maxCoolDown, isGlobal];
         }
 
