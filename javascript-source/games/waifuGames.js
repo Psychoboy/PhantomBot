@@ -1978,7 +1978,7 @@
             $.registerChatCommand('./games/waifuGames.js', 'profile', 7);
             $.registerChatCommand('./games/waifuGames.js', 'seduce', 7);
             $.registerChatCommand('./games/waifuGames.js', 'battle', 7);
-            $.registerChatCommand('./games/waifuGames.js', 'boss', 7);
+            //$.registerChatCommand('./games/waifuGames.js', 'boss', 7);
             $.registerChatCommand('./games/waifuGames.js', 'attribute', 7);
             $.registerChatCommand('./games/waifuGames.js', 'forceseduce', 1);
             $.registerChatCommand('./games/waifuGames.js', 'forcefight', 1);

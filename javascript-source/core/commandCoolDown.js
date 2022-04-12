@@ -111,6 +111,7 @@
                command == 'pancake' ||
                command == 'waffle' ||
                command == 'wheelspin' ||
+               command == 'boss' ||
                command == $.firstCommand ||
                command == $.secondCommand ||
                command == $.raffleCommand;
@@ -130,7 +131,7 @@
             maxCoolDown = 0;
 
         if (isSpecial(command)) {
-            if ((command.equalsIgnoreCase('adventure') || command.equalsIgnoreCase('ffa') || command.equalsIgnoreCase('wheelspin')) && defaultCooldowns[command] !== undefined && defaultCooldowns[command] > $.systemTime()) {
+            if ((command.equalsIgnoreCase('boss') || command.equalsIgnoreCase('adventure') || command.equalsIgnoreCase('ffa') || command.equalsIgnoreCase('wheelspin')) && defaultCooldowns[command] !== undefined && defaultCooldowns[command] > $.systemTime()) {
                 maxCoolDown = getTimeDif(defaultCooldowns[command]);
                 isGlobal = true;
             }

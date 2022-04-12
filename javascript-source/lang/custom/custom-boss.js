@@ -1,0 +1,10 @@
+$.lang.register('boss.notenough','Could not find a boss for the group size. The raid on the boss has been called off.');
+$.lang.register('boss.start','$1 has decided to start forming a raid on a boss! Type !boss to join!');
+$.lang.register('boss.alreadyjoined','You have already joined the boss raid!');
+$.lang.register('boss.running.1','All the raiders have stepped into the pit! Will they be able to beat $1?!');
+$.lang.register('boss.running.2','The raiders planer their strategy to defeat $1... You can hear the beaks and wings flapping!');
+$.lang.register('boss.results','The splashing has ended and the survivors are $1, they each get $2');
+$.lang.register('boss.nosurvivors','Everyone fell to $1, there were no survivors.');
+$.lang.register('boss.tomanyresults','The raid is over and there were a total of $1 survivors, they each get $2');
+$.lang.register('boss.joined','$1 has decided to join the raid on a boss!');
+$.lang.register('boss.notpossible', 'You can not join now.');
