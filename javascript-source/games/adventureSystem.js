@@ -123,9 +123,6 @@
         }
 
         for (i in payoutsKeys) {
-            if (payoutsKeys[i].equalsIgnoreCase($.ownerName) || payoutsKeys[i].equalsIgnoreCase($.botName)) {
-                continue;
-            }
             temp.push({
                 username: payoutsKeys[i],
                 amount: parseInt($.inidb.get('adventurePayouts', payoutsKeys[i])),
@@ -144,6 +141,42 @@
         }
         $.say($.lang.get('adventuresystem.top5', top5.join(', ')));
     };
+
+    function bottom5() {
+        var payoutsKeys = $.inidb.GetKeyList('adventurePayouts', ''),
+            temp = [],
+            counter = 1,
+            bottom5 = [],
+            i;
+
+        if (payoutsKeys.length == 0) {
+            $.say($.lang.get('adventuresystem.top5.empty'));
+        }
+
+        for (i in payoutsKeys) {
+            temp.push({
+                username: payoutsKeys[i],
+                amount: parseInt($.inidb.get('adventurePayouts', payoutsKeys[i])),
+            });
+        }
+
+        temp.sort(function(a, b) {
+            return (a.amount > b.amount ? 1 : -1);
+        });
+
+        for (i in temp) {
+            if (counter <= 5) {
+                bottom5.push(counter + '. ' + temp[i].username + ': ' + $.getPointsString(temp[i].amount));
+                counter++;
+            }
+        }
+        $.say($.lang.get('adventuresystem.bottom5', bottom5.join(', ')));
+    };
+
+    function resetTop5() {
+        $.inidb.RemoveFile('adventurePayouts');
+        $.say('Top/Bottom Heists reset');
+    }
 
     /**
      * @function checkUserAlreadyJoined
@@ -180,7 +213,8 @@
     function calculateResult() {
         var i;
         for (i in currentAdventure.users) {
-            if ($.randRange(0, 20) > 5) {
+            var ranValue = $.randRange(0, 100);
+            if (ranValue > 48) {
                 currentAdventure.survivors.push(currentAdventure.users[i]);
             } else {
                 currentAdventure.caught.push(currentAdventure.users[i]);
@@ -224,6 +258,14 @@
 
         $.say($.lang.get('adventuresystem.start.success', $.resolveRank(username), $.pointNameMultiple));
     };
+
+    function getUserMaxBet(username) {
+        var userPoints = $.getUserPoints(username);
+        if(userPoints > maxBet) {
+            return maxBet;
+        }
+        return userPoints;
+    }
 
     /**
      * @function joinHeist
@@ -341,7 +383,7 @@
      * @function endHeist
      */
     function endHeist() {
-        var i, pay, username, maxlength = 0;
+        var i, pay, username, maxlength = 0, bet = 0;
         var temp = [];
 
         for (i in currentAdventure.survivors) {
@@ -351,10 +393,17 @@
             $.inidb.incr('points', currentAdventure.survivors[i].username, currentAdventure.survivors[i].bet + pay);
         }
 
+        for (i in currentAdventure.caught) {
+            bet = currentAdventure.caught[i].bet;
+            $.inidb.decr('adventurePayouts',  currentAdventure.caught[i].username, bet);
+        }
+
         for (i in currentAdventure.survivors) {
             username = currentAdventure.survivors[i].username;
+            bet = currentAdventure.survivors[i].bet;
+            pay = parseInt($.inidb.get('adventurePayoutsTEMP', currentAdventure.survivors[i].username));
             maxlength += username.length();
-            temp.push($.username.resolve(username) + ' (+' + $.getPointsString($.inidb.get('adventurePayoutsTEMP', currentAdventure.survivors[i].username)) + ')');
+            temp.push($.username.resolve(username) + ' (' + $.getPointsString(bet + pay) + ')');
         }
 
         if (temp.length == 0) {
@@ -399,6 +448,21 @@
             actionArg1 = args[1],
             actionArg2 = args[2];
 
+        if (command.equalsIgnoreCase('heisttop')) {
+            top5();
+            return;
+        }
+
+        if (command.equalsIgnoreCase('heistbottom')) {
+            bottom5();
+            return;
+        }
+
+        if (command.equalsIgnoreCase('resetheist')) {
+            resetTop5();
+            return;
+        }
+
         /**
          * @commandpath adventure - Adventure command for starting, checking or setting options
          * @commandpath adventure [amount] - Start/join an adventure
@@ -407,6 +471,11 @@
             if (!action) {
                 $.say($.whisperPrefix(sender) + $.lang.get('adventuresystem.adventure.usage', $.pointNameMultiple));
                 return;
+            }
+
+            if(action.equalsIgnoreCase('max')) {
+                var points = getUserMaxBet(sender);
+                joinHeist(sender, parseInt(points));
             }
 
             if (!isNaN(parseInt(action))) {
@@ -527,6 +596,9 @@
      */
     $.bind('initReady', function() {
         $.registerChatCommand('./games/adventureSystem.js', 'adventure', 7);
+        $.registerChatCommand('./games/adventureSystem.js', 'heisttop', 7);
+        $.registerChatCommand('./games/adventureSystem.js', 'heistbottom', 7);
+        $.registerChatCommand('./games/adventureSystem.js', 'resetheist', 1);
         $.registerChatSubcommand('adventure', 'set', 1);
         $.registerChatSubcommand('adventure', 'top5', 3);
 

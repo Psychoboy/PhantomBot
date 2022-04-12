@@ -101,13 +101,19 @@
      * @return {Boolean}
      */
     function isSpecial(command) {
-        return command === 'bet' ||
-               command === 'tickets' ||
-               command === 'bid' ||
-               command === 'adventure' ||
-               command === 'vote' ||
-               command === 'joinqueue' ||
-               command === $.raffleCommand;
+        return command == 'bet' ||
+               command == 'tickets' ||
+               command == 'bid' ||
+               command == 'adventure' ||
+               command == 'vote' ||
+               command == 'joinqueue' ||
+               command == 'ffa' ||
+               command == 'pancake' ||
+               command == 'waffle' ||
+               command == 'wheelspin' ||
+               command == $.firstCommand ||
+               command == $.secondCommand ||
+               command == $.raffleCommand;
     }
 
     /*
@@ -122,14 +128,9 @@
     function get(command, username, isMod) {
         var isGlobal = false,
             maxCoolDown = 0;
-            
-
-        if(canIgnore(username, isMod)) {
-            return [maxCoolDown, isGlobal];
-        }
 
         if (isSpecial(command)) {
-            if (command.equalsIgnoreCase('adventure') && defaultCooldowns[command] !== undefined && defaultCooldowns[command] > $.systemTime()) {
+            if ((command.equalsIgnoreCase('adventure') || command.equalsIgnoreCase('ffa') || command.equalsIgnoreCase('wheelspin')) && defaultCooldowns[command] !== undefined && defaultCooldowns[command] > $.systemTime()) {
                 maxCoolDown = getTimeDif(defaultCooldowns[command]);
                 isGlobal = true;
             }
@@ -138,6 +139,13 @@
 
         var cooldown = cooldowns[command],
             useDefault = false;
+
+        if(canIgnore(username, isMod)) {
+            if (cooldown !== undefined && cooldown.globalSec !== Operation.UnSet) {
+                set(command, useDefault, cooldown.globalSec, undefined);
+            }
+            return [maxCoolDown, isGlobal];
+        }
             
         if (cooldown !== undefined) {
             
@@ -195,7 +203,6 @@
      */
     function set(command, useDefault, duration, username) {
         var finishTime = (duration > 0 ? ((parseInt(duration) * 1e3) + $.systemTime()) : 0);
-
         if (useDefault) {
             defaultCooldowns[command] = finishTime;
             return;

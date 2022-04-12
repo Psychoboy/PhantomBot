@@ -23,7 +23,10 @@
 (function() {
 
     var quoteMode = $.getSetIniDbBoolean('settings', 'quoteMode', true),
+    baseFileOutputPath = $.getSetIniDbString('ytSettings', 'baseFileOutputPath', './addons/youtubePlayer/'),
+        isExporting = false;
         isDeleting = false;
+
 
     /**
      * @function updateQuote
@@ -127,6 +130,34 @@
         }
     }
 
+    function exportQuotes() {
+        if (isExporting) {
+            return;
+        }
+        isExporting = true;
+        var csv = "ID,Quote,User,Game,Date\r\n"
+        var i = 0;
+        while (true) {
+            quote = getQuote(i.toString());
+            if(quote.length <= 0)
+                break;
+            csv = csv + i + ",\"" + quote[1].replace(new RegExp('"','g'), "''")+ "\","
+            + $.resolveRank(quote[0]) + ","
+            + (quote.length == 5 ? quote[3].replace("\"").replace(",","") : "Some Game") + ","
+            +  $.getLocalTimeString('MM-dd-yyyy', parseInt(quote[2])) + "\r\n"
+            i++;
+        }
+        isExporting = false;
+        var writer = new java.io.OutputStreamWriter(new java.io.FileOutputStream(baseFileOutputPath + 'quotes.csv'), 'UTF-8');
+        try {
+            writer.write(csv);
+        } catch (ex) {
+            $.log.error('Failed to update quotes file: ' + ex.toString());
+        } finally {
+            writer.close();
+        }
+    }
+
     /**
      * @event command
      * @param event
@@ -135,6 +166,7 @@
         var sender = event.getSender(),
             command = event.getCommand(),
             args = event.getArgs(),
+            action = args[0],
             quote,
             quoteStr;
 
@@ -200,6 +232,7 @@
                 quote = args.splice(0).join(' ');
                 $.say($.lang.get('quotesystem.add.success', $.username.resolve(sender), saveQuote(String($.username.resolve(sender)), quote)));
                 $.log.event(sender + ' added a quote "' + quote + '".');
+                exportQuotes();
                 return;
             } else {
                 if (args.length < 2) {
@@ -216,6 +249,7 @@
                 var username = useTwitchNames ? $.username.resolve(target) : target;
                 $.say($.lang.get('quotesystem.add.success', username, saveQuote(String(username), quote)));
                 $.log.event(sender + ' added a quote "' + quote + '".');
+                exportQuotes();
                 return;
             }
         }
@@ -233,6 +267,7 @@
 
             quote = args.splice(0).join(' ');
             saveQuote(String($.username.resolve(sender)), quote);
+            exportQuotes();
         }
 
         /**
@@ -253,6 +288,7 @@
             }
 
             $.log.event(sender + ' removed quote with id: ' + args[0]);
+            exportQuotes();
         }
 
         /**
@@ -266,12 +302,29 @@
             var newCount;
 
             if ((newCount = deleteQuote(args[0])) >= 0) {} else {}
+            exportQuotes();
         }
 
         /**
          * @commandpath quote [quoteId] - Announce a quote by its Id, omit the id parameter to get a random quote
          */
         if (command.equalsIgnoreCase('quote')) {
+
+            if (action && action.toLowerCase() == "add") {
+                if (quoteMode) {
+                    if (args.length < 2) {
+                        $.say($.whisperPrefix(sender) + $.lang.get('quotesystem.add.usage1'));
+                        return;
+                    }
+                    quote = args.splice(1).join(' ');
+                    $.say($.lang.get('quotesystem.add.success', $.username.resolve(sender), saveQuote(String($.username.resolve(sender)), quote)));
+                    $.log.event(sender + ' added a quote "' + quote + '".');
+                    exportQuotes();
+                    return;
+                }
+                return;
+            }
+
             quote = getQuote(args[0]);
             if (quote.length > 0) {
                 quoteStr = ($.inidb.exists('settings', 'quoteMessage') ? $.inidb.get('settings', 'quoteMessage') : $.lang.get('quotesystem.get.success'));
@@ -280,7 +333,7 @@
                 replace('(userrank)', $.resolveRank(quote[0])).
                 replace('(user)', $.username.resolve(quote[0])).
                 replace('(game)', (quote.length === 5 ? quote[3] : "Some Game")).
-                replace('(date)', $.getLocalTimeString($.getSetIniDbString('settings', 'quoteDateFormat', 'dd-MM-yyyy'), parseInt(quote[2])));
+                replace('(date)', $.getLocalTimeString($.getSetIniDbString('settings', 'quoteDateFormat', 'MM-dd-yyyy'), parseInt(quote[2])));
                 $.say(quoteStr);
             } else {
                 $.say($.whisperPrefix(sender) + $.lang.get('quotesystem.get.404', (typeof args[0] !== 'undefined' ? args[0] : '')));
@@ -372,5 +425,6 @@
         $.registerChatCommand('./systems/quoteSystem.js', 'quotemessage', 1);
         $.registerChatCommand('./systems/quoteSystem.js', 'quotedateformat', 1);
         $.registerChatCommand('./systems/quoteSystem.js', 'quotetwitchnamestoggle', 1);
+        $.registerChatSubcommand('quote', 'add', 2);
     });
 })();

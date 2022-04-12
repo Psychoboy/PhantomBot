@@ -352,8 +352,8 @@ $.lang.register('init.mod.toggle.price.msg.off', 'The price message has been dis
 $.lang.register('init.mod.toggle.price.msg.on', 'The price message has been enabled.');
 $.lang.register('init.toggle.cooldown.msg.on', 'The cooldown message has been enabled.');
 $.lang.register('init.toggle.cooldown.msg.off', 'The cooldown message has been disabled.');
-$.lang.register('init.cooldown.msg.global', 'command !$1 is still on a global cooldown. ($2 seconds left)');
-$.lang.register('init.cooldown.msg.user', 'command !$1 is still on cooldown for you. ($2 seconds left)');
+$.lang.register('init.cooldown.msg.global', 'command !$1 is still on a global cooldown. ($2)');
+$.lang.register('init.cooldown.msg.user', 'command !$1 is still on cooldown for you. ($2)');
 $.lang.register('lang.curlang', 'The current language is $1!');
 $.lang.register('lang.lang.404', 'That language file does not exist!');
 $.lang.register('lang.lang.changed', 'Changed language to $1!');

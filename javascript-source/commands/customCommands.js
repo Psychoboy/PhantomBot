@@ -84,9 +84,9 @@
                 break;
             case 3:
                 if ($.isSwappedSubscriberVIP()) {
-                    allowed = $.isVIP(username, tags) || $.isModv3(username, tags);
-                } else {
                     allowed = $.isSubv3(username, tags) || $.isModv3(username, tags);
+                } else {
+                    allowed = $.isVIP(username, tags) || $.isModv3(username, tags);
                 }
                 break;
             case 4:
@@ -94,10 +94,10 @@
                 break;
             case 5:
                 if ($.isSwappedSubscriberVIP()) {
-                    allowed = $.isSubv3(username, tags) || $.isModv3(username, tags);
-                } else {
-                    allowed = $.isVIP(username, tags) || $.isModv3(username, tags);
-                }
+                     allowed = $.isVIP(username, tags) || $.isModv3(username, tags);
+                 } else {
+                     allowed = $.isSubv3(username, tags) || $.isModv3(username, tags);
+                 }
                 break;
             case 6:
                 allowed = $.isReg(username) || $.isModv3(username, tags);
@@ -641,6 +641,8 @@
          * @commandpath commands - Provides a list of all available custom commands.
          */
         if (command.equalsIgnoreCase('commands')) {
+            $.say('For list of commands: https://superpenguintv.com/stream-commands/');
+            return;
             var cmds = $.inidb.GetKeyList('command', ''),
                     aliases = $.inidb.GetKeyList('aliases', ''),
                     externalCommands = $.inidb.GetKeyList('externalCommands', ''),

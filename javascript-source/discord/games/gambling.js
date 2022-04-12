@@ -71,6 +71,14 @@
         }
     }
 
+    function getUserMaxBet(username) {
+        var userPoints = $.getUserPoints(username);
+        if(userPoints > max) {
+            return max;
+        }
+        return userPoints;
+    }
+
     /**
      * @event discordChannelCommand
      */
@@ -83,26 +91,25 @@
             action = args[0],
             subAction = args[1];
 
+
         /**
          * @discordcommandpath gamble [amount] - Gamble your points.
          */
         if (command.equalsIgnoreCase('gamble')) {
-            var twitchName = $.discord.resolveTwitchName(event.getSenderId());
-            if (twitchName === null) {
-                $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.accountlink.usage.nolink'));
-                return;
+            amount = action;
+            if (action.equalsIgnoreCase('max')) {
+                amount = getUserMaxBet(sender);
             }
-
-            var points;
-            if ($.equalsIgnoreCase(action, "all") || $.equalsIgnoreCase(action, "allin") || $.equalsIgnoreCase(action, "all-in")){
-                points = $.getUserPoints(sender);
-            } else if ($.equalsIgnoreCase(action, "half")){
-                points = Math.floor($.getUserPoints(sender)/2);
-            } else if (isNaN(parseInt(action))) {
+            if (isNaN(parseInt(amount))) {
                 $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.gambling.usage'));
                 return;
             } else {
-                points = parseInt(action);
+                var twitchName = $.discord.resolveTwitchName(event.getSenderId());
+                if (twitchName !== null) {
+                    gamble(channel, twitchName, mention, sender, parseInt(amount));
+                } else {
+                    $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.accountlink.usage.nolink'));
+                }
             }
             
             gamble(channel, twitchName, mention, sender, points);

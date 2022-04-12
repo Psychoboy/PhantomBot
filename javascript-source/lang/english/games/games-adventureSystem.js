@@ -34,6 +34,7 @@ $.lang.register('adventuresystem.set.usage', 'Usage: !adventure set [settingname
 $.lang.register('adventuresystem.start.success', '$1 is trying get a team together for some serious adventure business! Use "!adventure [$2]" to join in!');
 $.lang.register('adventuresystem.tamagotchijoined', '$1 is also joining the adventure.');
 $.lang.register('adventuresystem.top5', 'The top 5 adventurers are: $1.');
+$.lang.register('adventuresystem.bottom5', 'The top 5 LOSING adventurers are: $1.');
 $.lang.register('adventuresystem.top5.empty', 'There haven\'t been any adventure winners recorded yet.');
 $.lang.register('adventuresystem.reset', 'The adventure has now cooled off! Use "!adventure [$1]" to start a new adventure!');
 
@@ -45,12 +46,12 @@ $.lang.register('adventuresystem.stories.1.chapter.2', 'Unable to leave their mi
 $.lang.register('adventuresystem.stories.1.chapter.3', 'We find ourselves back in the room we started in as consciousness of (survivors) slowly fades again, only to wake up in our beds like nothing at all has happened.');
 
 $.lang.register('adventuresystem.stories.2.title', 'Beartraps');
-$.lang.register('adventuresystem.stories.2.chapter.1', 'Friends! I\'ve got coordinates for a secret stash of bolts, hidden away within the bowels of the elven forest. We should shoe up and give this a go!');
+$.lang.register('adventuresystem.stories.2.chapter.1', 'Friends! I\'ve got coordinates for a secret stash of pasties, hidden away within the bowels of the elven forest. We should shoe up and give this a go!');
 $.lang.register('adventuresystem.stories.2.chapter.2', 'Look out, bear traps! (caught) got their legs ripped off!');
 $.lang.register('adventuresystem.stories.2.chapter.3', 'Dayum, that was a close call for losing a leg. But you\'ve deserved this (survivors)!');
 
 $.lang.register('adventuresystem.stories.3.title', 'Vampires?!');
-$.lang.register('adventuresystem.stories.3.chapter.1', 'Ah, my dear friends! I may have found the adventure of a lifetime. Namely the house of count Dracula is believed to be the bolts master! I\'m for going now!');
+$.lang.register('adventuresystem.stories.3.chapter.1', 'Ah, my dear friends! I may have found the adventure of a lifetime. Namely the house of count Dracula is believed to be the pasties master! I\'m for going now!');
 $.lang.register('adventuresystem.stories.3.chapter.2', 'It\'s him! (caught) got slaughtered violently!');
 $.lang.register('adventuresystem.stories.3.chapter.3', 'That was a close call, I don\'t think I\'ve been bitten. you? Ow well, (survivors), here\'s your share! ~Transforms into a bat and flutters off~');
 
@@ -94,3 +95,9 @@ $.lang.register('adventuresystem.stories.4.chapter.4', '(survivors) run away. Le
 //$.lang.register('adventuresystem.stories.custom.1.chapter.1', '');
 //$.lang.register('adventuresystem.stories.custom.1.chapter.2', '');
 //$.lang.register('adventuresystem.stories.custom.1.chapter.3', '');
+
+$.lang.register('adventuresystem.stories.custom.1.title', 'Pastie Heist');
+$.lang.register('adventuresystem.stories.custom.1.chapter.1', 'The Fin Fam superp64TFF gets ready to steal some pasties from Charlie! SHARK ');
+$.lang.register('adventuresystem.stories.custom.1.chapter.2', 'Everyone sharpens their beaks, brushes their feathers, and gets ready to sneak past Charlie!');
+$.lang.register('adventuresystem.stories.custom.1.chapter.3', 'Look out! Charlie SHARK captured (caught)');
+$.lang.register('adventuresystem.stories.custom.1.chapter.4', '(survivors) superp64TFF managed to sneak past Charlie sharkS and grab some of those precious pasties!');

@@ -16,11 +16,7 @@
  */
 package com.gmt2001;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -39,6 +35,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import tv.phantombot.PhantomBot;
+import tv.phantombot.StringUtils;
 
 /**
  * Communicates with YouTube via the version 3 API
@@ -49,6 +46,10 @@ public class YouTubeAPIv3 {
 
     private static YouTubeAPIv3 instance;
     private String apikey = "";
+    private String apikey2 = "";
+    private String apikey3 = "";
+
+    int lastApiKey = 1;
 
     private enum request_type {
 
@@ -93,6 +94,42 @@ public class YouTubeAPIv3 {
         jsonObject.put("_exception", exception);
         jsonObject.put("_exceptionMessage", exceptionMessage);
         jsonObject.put("_content", jsonContent);
+    }
+
+    private String GetBody(request_type type, String urlAddress) {
+        InputStream inputStream = null;
+        URL urlRaw;
+        HttpsURLConnection urlConn;
+        String jsonText = "";
+        try {
+            urlRaw = new URL(urlAddress);
+            urlConn = (HttpsURLConnection) urlRaw.openConnection();
+            urlConn.setDoInput(true);
+            urlConn.setRequestMethod("GET");
+            urlConn.addRequestProperty("Content-Type", "application/json");
+            urlConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 " +
+                    "(KHTML, like Gecko) Chrome/44.0.2403.52 Safari/537.36 PhantomBotJ/2015");
+            urlConn.connect();
+
+            if (urlConn.getResponseCode() == 200) {
+                inputStream = urlConn.getInputStream();
+            } else {
+                inputStream = urlConn.getErrorStream();
+            }
+
+            BufferedReader rd = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
+            jsonText = readAll(rd);
+        } catch (Exception ex) {
+            com.gmt2001.Console.err.printStackTrace(ex);
+        } finally {
+            if (inputStream != null)
+                try {
+                    inputStream.close();
+                } catch (IOException ex) {
+                    com.gmt2001.Console.err.printStackTrace(ex);
+                }
+        }
+        return jsonText;
     }
 
     @SuppressWarnings( {
@@ -173,6 +210,14 @@ public class YouTubeAPIv3 {
         this.apikey = apikey;
     }
 
+    public void SetAPIKey2(String apikey) {
+        this.apikey2 = apikey;
+    }
+
+    public void SetAPIKey3(String apikey) {
+        this.apikey3 = apikey;
+    }
+
     public String[] SearchForVideo(String q) throws JSONException {
         com.gmt2001.Console.debug.println("Query = [" + q + "]");
 
@@ -186,6 +231,7 @@ public class YouTubeAPIv3 {
             q = matcher.group(1);
         }
 
+        q = GetBody(request_type.GET, "https://beta.decapi.me/youtube/videoid?search=" + q);
         JSONObject j = GetData(request_type.GET, "https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=" + q + "&format=json");
         if (j.getBoolean("_success") && !j.toString().contains("Bad Request") && !j.toString().contains("Not Found")) {
             if (j.toString().contains("Unauthorized")) {
@@ -196,9 +242,7 @@ public class YouTubeAPIv3 {
 
             if (j.getInt("_http") == 200) {
                 try {
-                    com.gmt2001.Console.debug.println("URL Check Success");
-
-                    String a = j.getString("title");
+                    String a =  StringUtils.unescapeHtml3(j.getString("title"));
                     return new String[] { q, a, "" };
                 } catch (JSONException ex) {
                     com.gmt2001.Console.err.printStackTrace(ex);
@@ -206,10 +250,14 @@ public class YouTubeAPIv3 {
                     return new String[] { "", "", "" };
                 }
             }
-        } else {
+        }else {
+            com.gmt2001.Console.debug.println("Search API Fail: Returned Failure");
+
+            return new String[] { "", "", "" };
+        }/* else {
             q = URLEncoder.encode(q, Charset.forName("UTF-8"));
 
-            JSONObject j2 = GetData(request_type.GET, "https://www.googleapis.com/youtube/v3/search?q=" + q + "&key=" + apikey + "&type=video&part=snippet&maxResults=1");
+            JSONObject j2 = GetData(request_type.GET, "https://www.googleapis.com/youtube/v3/search?q=" + q + "&key=" + this.GetApiKey() + "&type=video&part=snippet&maxResults=1");
             if (j2.getBoolean("_success")) {
                 updateQuota(100L);
                 if (j2.getInt("_http") == 200) {
@@ -240,22 +288,40 @@ public class YouTubeAPIv3 {
 
                     return new String[] { "", "", "" };
                 }
-            } else {
-                com.gmt2001.Console.debug.println("Search API Fail: Returned Failure");
-
-                return new String[] { "", "", "" };
-            }
-        }
+            }*/
+        //}
 
         com.gmt2001.Console.debug.println("URL Check Fatal Error");
 
         return new String[] { "", "", "" };
     }
 
+    public String GetApiKey() {
+        if (lastApiKey == 4) {
+            lastApiKey = 1;
+        }
+        String apiKey = "";
+        switch (lastApiKey) {
+            case 1:
+                apiKey = this.apikey;
+                break;
+            case 2:
+                apiKey = this.apikey2;
+                break;
+            case 3:
+                apiKey = this.apikey3;
+                break;
+            default:
+                apiKey = this.apikey;
+        }
+        this.lastApiKey++;
+        return apiKey;
+    }
+
     public int[] GetVideoLength(String id) throws JSONException {
         com.gmt2001.Console.debug.println("Query = [" + id + "]");
 
-        JSONObject j = GetData(request_type.GET, "https://www.googleapis.com/youtube/v3/videos?id=" + id + "&key=" + apikey + "&part=contentDetails");
+        JSONObject j = GetData(request_type.GET, "https://www.googleapis.com/youtube/v3/videos?id=" + id + "&key=" + this.GetApiKey() + "&part=contentDetails");
         if (j.getBoolean("_success")) {
             if (j.getInt("_http") == 200) {
                 updateQuota(3L);
@@ -306,7 +372,7 @@ public class YouTubeAPIv3 {
         int licenseRetval = 0;
         int embedRetval = 0;
 
-        JSONObject jsonObject = GetData(request_type.GET, "https://www.googleapis.com/youtube/v3/videos?id=" + id + "&key=" + apikey + "&part=status");
+        JSONObject jsonObject = GetData(request_type.GET, "https://www.googleapis.com/youtube/v3/videos?id=" + id + "&key=" + this.GetApiKey() + "&part=status");
 
         if (jsonObject.getBoolean("_success")) {
             if (jsonObject.getInt("_http") == 200) {

@@ -104,7 +104,10 @@
             if (message.match(/\(name\)/g)) {
                 message = $.replace(message, '(name)', subscriber);
             }
-
+            if (message.match(/\(ticketsamount\)/g)) {
+                $.addActiveTickets(500);
+                message = $.replace(message, '(ticketsamount)', '');
+            }
             if (message.match(/\(reward\)/g)) {
                 message = $.replace(message, '(reward)', String(subReward));
             }
@@ -152,7 +155,10 @@
             if (message.match(/\(name\)/g)) {
                 message = $.replace(message, '(name)', subscriber);
             }
-
+            if (message.match(/\(ticketsamount\)/g)) {
+                $.addActiveTickets(500);
+                message = $.replace(message, '(ticketsamount)', '');
+            }
             if (message.match(/\(reward\)/g)) {
                 message = $.replace(message, '(reward)', String(subReward));
             }
@@ -199,7 +205,10 @@
             if (message.match(/\(name\)/g)) {
                 message = $.replace(message, '(name)', resubscriber);
             }
-
+            if (message.match(/\(ticketsamount\)/g)) {
+                $.addActiveTickets(500);
+                message = $.replace(message, '(ticketsamount)', '');
+            }
             if (message.match(/\(months\)/g)) {
                 message = $.replace(message, '(months)', months);
             }
@@ -261,7 +270,10 @@
             if (message.match(/\(name\)/g)) {
                 message = $.replace(message, '(name)', gifter);
             }
-
+            if (message.match(/\(ticketsamount\)/g)) {
+                $.addActiveTickets(500);
+                message = $.replace(message, '(ticketsamount)', '');
+            }
             if (message.match(/\(recipient\)/g)) {
                 message = $.replace(message, '(recipient)', recipient);
             }
@@ -328,6 +340,12 @@
                 message = massGiftSubMessage;
 
         if (massGiftSubWelcomeToggle === true && announce === true) {
+
+            if (message.match(/\(ticketsamount\)/g)) {
+                $.addActiveTickets(amount*500);
+                message = $.replace(message, '(ticketsamount)', '');
+            }
+
             if (message.match(/\(name\)/g)) {
                 message = $.replace(message, '(name)', gifter);
             }
@@ -383,7 +401,10 @@
             if (message.match(/\(name\)/g)) {
                 message = $.replace(message, '(name)', gifter);
             }
-
+            if (message.match(/\(ticketsamount\)/g)) {
+                $.addActiveTickets(500);
+                message = $.replace(message, '(ticketsamount)', '');
+            }
             if (message.match(/\(recipient\)/g)) {
                 message = $.replace(message, '(recipient)', recipient);
             }
@@ -441,6 +462,11 @@
                 message = massAnonGiftSubMessage;
 
         if (massAnonGiftSubWelcomeToggle === true && announce === true) {
+            if (message.match(/\(ticketsamount\)/g)) {
+                $.addActiveTickets(amount*500);
+                message = $.replace(message, '(ticketsamount)','');
+            }
+
             if (message.match(/\(name\)/g)) {
                 message = $.replace(message, '(name)', gifter);
             }

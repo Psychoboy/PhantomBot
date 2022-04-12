@@ -53,6 +53,7 @@
             raidObj.lastRaidTime = $.systemTime();
             // Last raid viewers.
             raidObj.lastRaidViewers = viewers;
+            raidObj.online = false;
             // Push this raid to the raids array.
             //raidObj.raids.push({
             //    time: $.systemTime(),
@@ -68,6 +69,7 @@
             raidObj.lastRaidTime = $.systemTime();
             // Last raid viewers.
             raidObj.lastRaidViewers = viewers;
+            raidObj.online = false;
             // Create new raid array.
             //raidObj.raids = [];
             // Push this raid to the raids array.
@@ -132,16 +134,30 @@
             message = $.replace(message, '(url)', 'https://twitch.tv/' + username);
         }
 
-        // Spam the message, if needed.
-        for (var i = 0; i < raidOutSpam; i++) {
-            $.say(message);
-        }
+//        // Spam the message, if needed.
+//        for (var i = 0; i < raidOutSpam; i++) {
+//            $.say(message);
+//        }
 
         // Use the .raid command.
         $.say('.raid ' + username);
         // Increase out going raids.
         saveOutRaidForUsername(username + '', $.getViewers($.channelName) + '');
     }
+
+    function runIsOnline() {
+        var keys = $.inidb.GetKeyList('incoming_raids', ''),
+        raidObj;
+        for(var i = 0; i < keys.length; i++) {
+            raidObj = JSON.parse($.getIniDbString('incoming_raids', keys[i]));
+            raidObj.online = $.isOnline(keys[i]);
+            $.setIniDbString('incoming_raids', keys[i], JSON.stringify(raidObj));
+        }
+    }
+
+    var interval = setInterval(function() {
+            runIsOnline();
+        }, 6e4, 'scripts::handlers::raidHandler.js');
 
     /*
      * @event twitchRaid

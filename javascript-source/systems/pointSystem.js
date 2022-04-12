@@ -134,6 +134,24 @@
     };
 
     /**
+     * @function getUserPoints
+     * @param {string} username
+     * @returns {*}
+     */
+     function getUserPointsRank(username) {
+        var keylist = $.inidb.GetKeysByOrderValue('points'),
+        rank = 1,
+        i;
+        for(i in keylist) {
+            if(keylist[i].equals(username)) {
+                return rank;
+            }
+            rank++;
+        }
+        return rank;
+     }
+
+    /**
      * @function getPointsString
      * @export $
      * @param {Number} points
@@ -143,8 +161,15 @@
         if (parseInt(points) === 1) {
             return points + ' ' + pointNameSingle;
         }
-        return points + ' ' + pointNameMultiple;
+        return String(points).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' ' + pointNameMultiple;
     };
+
+    function getPointsAsString(points) {
+            if (parseInt(points) === 1) {
+                return String(points);
+            }
+            return String(points).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        };
 
     /**
      * @function runPointsPayout
@@ -367,7 +392,11 @@
         }
 
         if (s.match(/\(points\)/)) {
-            s = $.replace(s, '(points)', String(getUserPoints(username)));
+            s = $.replace(s, '(points)', String(getUserPoints(username)).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+        }
+
+        if (s.match(/\(pointsrank\)/)) {
+            s = $.replace(s, '(pointsrank)', String(getUserPointsRank(username)));
         }
 
         if (s.match(/\(pointsname\)/)) {
@@ -376,6 +405,14 @@
 
         if (s.match(/\(time\)/)) {
             s = $.replace(s, '(time)', $.getUserTimeString(username));
+        }
+
+        if (s.match(/\(messagesrank\)/)) {
+            s = $.replace(s, '(messagesrank)', $.getUserMessagesRank(username));
+        }
+
+        if (s.match(/\(messages\)/)) {
+            s = $.replace(s, '(messages)', $.getUserMessages(username));
         }
 
         if (s.match(/\(rank\)/)) {
@@ -848,6 +885,7 @@
     $.getUserPoints = getUserPoints;
     $.getPointsString = getPointsString;
     $.getPointsMessage = getPointsMessage;
+    $.getPointsAsString = getPointsAsString;
     $.updateSettings = updateSettings;
     $.setTempBonus = setTempBonus;
     $.giveAll = giveAll;

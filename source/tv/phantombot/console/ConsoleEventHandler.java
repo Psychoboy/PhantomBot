@@ -22,12 +22,6 @@ import com.gmt2001.HttpResponse;
 import com.gmt2001.TwitchAPIv5;
 import com.scaniatv.BotImporter;
 import com.scaniatv.GenerateLogs;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.TimeZone;
 import net.engio.mbassy.listener.Handler;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,14 +40,12 @@ import tv.phantombot.event.twitch.host.TwitchHostedEvent;
 import tv.phantombot.event.twitch.offline.TwitchOfflineEvent;
 import tv.phantombot.event.twitch.online.TwitchOnlineEvent;
 import tv.phantombot.event.twitch.raid.TwitchRaidEvent;
-import tv.phantombot.event.twitch.subscriber.TwitchAnonymousSubscriptionGiftEvent;
-import tv.phantombot.event.twitch.subscriber.TwitchMassAnonymousSubscriptionGiftedEvent;
-import tv.phantombot.event.twitch.subscriber.TwitchPrimeSubscriberEvent;
-import tv.phantombot.event.twitch.subscriber.TwitchReSubscriberEvent;
-import tv.phantombot.event.twitch.subscriber.TwitchSubscriberEvent;
-import tv.phantombot.event.twitch.subscriber.TwitchSubscriptionGiftEvent;
+import tv.phantombot.event.twitch.subscriber.*;
 import tv.phantombot.event.twitter.TwitterRetweetEvent;
 import tv.phantombot.script.Script;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class ConsoleEventHandler implements Listener {
 
@@ -260,6 +252,17 @@ public class ConsoleEventHandler implements Listener {
             }
 
             BotImporter.ImportAnkh(arguments);
+            return;
+        }
+
+        if (message.equalsIgnoreCase("ImportWordCount")) {
+            com.gmt2001.Console.out.println("[CONSOLE] Executing ImportWordCount");
+            if (argument == null) {
+                com.gmt2001.Console.out.println("You must specify the file name you want to convert.");
+                return;
+            }
+
+            BotImporter.ImportWordCount(arguments);
             return;
         }
 

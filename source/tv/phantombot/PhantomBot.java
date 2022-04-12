@@ -106,7 +106,6 @@ import tv.phantombot.twitch.pubsub.TwitchPubSub;
 import tv.phantombot.ytplayer.WsYTHandler;
 
 public final class PhantomBot implements Listener {
-
     /* Bot Information */
     private TwitchAuthorizationCodeFlow authflow;
     private TwitchClientCredentialsFlow appflow;
@@ -314,7 +313,7 @@ public final class PhantomBot implements Listener {
 
         /* Assign properties passed in to local instance. */
         this.pbProperties = pbProperties;
-
+      
         /* twitch cache */
         PhantomBot.twitchCacheReady = "false";
 
@@ -889,6 +888,7 @@ public final class PhantomBot implements Listener {
         Script.global.defineProperty("customAPI", CustomAPI.instance(), 0);
         Script.global.defineProperty("streamLabsAPI", TwitchAlertsAPIv1.instance(), 0);
         Script.global.defineProperty("moderation", Moderation.instance(), 0);
+        Script.global.defineProperty("streamelements", StreamElementsAPIv2.instance(), 0);
 
         /* And finally try to load init, that will then load the scripts */
         try {
