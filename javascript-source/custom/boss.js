@@ -189,7 +189,7 @@
         //End Messages - All Success, All Failure, Some Success
         if(winners.length == 0) {
             $.consoleLn('No survivors');
-            $.say($.lang.get('boss.nosurvivors'));
+            $.say($.lang.get('boss.nosurvivors', selectedBoss.name));
         } else {
             var i = 0;
             var prize = parseInt(selectedBoss.loot / winners.length);
