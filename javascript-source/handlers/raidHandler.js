@@ -147,17 +147,27 @@
 
     function runIsOnline() {
         var keys = $.inidb.GetKeyList('incoming_raids', ''),
-        raidObj;
+        raidObj,
+        currentTime;
+        currentTime = $.systemTime();
+        var maxUpdates = 500;
         for(var i = 0; i < keys.length; i++) {
             raidObj = JSON.parse($.getIniDbString('incoming_raids', keys[i]));
-            raidObj.online = $.isOnline(keys[i]);
-            $.setIniDbString('incoming_raids', keys[i], JSON.stringify(raidObj));
+            if(raidObj.lastCheck === undefined || (parseInt(raidObj.lastCheck) + 600000) < currentTime) {
+                raidObj.online = $.isOnline(keys[i]);
+                raidObj.lastCheck = currentTime;
+                $.setIniDbString('incoming_raids', keys[i], JSON.stringify(raidObj));
+                maxUpdates--;
+                if(maxUpdates === 0) {
+                    break
+                }
+            }
         }
     }
 
     var interval = setInterval(function() {
             runIsOnline();
-        }, 6e4, 'scripts::handlers::raidHandler.js');
+        },1 * 6e4, 'scripts::handlers::raidHandler.js'); 
 
     /*
      * @event twitchRaid
