@@ -1393,7 +1393,7 @@
             }
 
             if ($.inidb.GetInteger(opponent, 'wHitPoints', id2) <= 0) {
-                winMsg = $.lang.get('waifugames.boss.win', $.userPrefix(username), replace2(getWaifu(id)), '[Boss] ' + bossName);
+                winMsg = $.lang.get('waifugames.boss.win', $.userPrefix(username), replace2(getWaifu(id)), '[Madam] ' + bossName);
 
                 for (i in $.users) {
                     $.inidb.incr($.users[i], 'candy', 10);
@@ -1778,7 +1778,7 @@
             }
         }
 
-        if (command.equalsIgnoreCase('boss')) {
+        if (command.equalsIgnoreCase('madam')) {
             if ($.isOnline($.channelName) || $.isOwner(sender)) {
                 generateBoss();
                 bossBattle(sender.toLowerCase(), waifuId);
@@ -1792,7 +1792,7 @@
             catchWaifu(sender);
         }
 
-        if (command.equalsIgnoreCase('forceboss')) {
+        if (command.equalsIgnoreCase('forcemadam')) {
             generateBoss();
             bossBattle(sender, waifuId);
         }
@@ -1925,7 +1925,7 @@
             }
         }
 
-        if (command.equalsIgnoreCase('bossreward')) {
+        if (command.equalsIgnoreCase('madamreward')) {
             if (action === undefined) {
                 $.say($.lang.get('waifugames.bossreward.get', $.getPointsString(getBReward())));
             } else {
@@ -1942,7 +1942,7 @@
             }
         }
 
-        if (command.equalsIgnoreCase('resetboss')) {
+        if (command.equalsIgnoreCase('resetmadam')) {
             $.inidb.RemoveSection('boss', 'harem');
             $.inidb.del('boss', 'id');
             $.inidb.del('boss', 'sender');
@@ -1978,11 +1978,11 @@
             $.registerChatCommand('./games/waifuGames.js', 'profile', 7);
             $.registerChatCommand('./games/waifuGames.js', 'seduce', 7);
             $.registerChatCommand('./games/waifuGames.js', 'battle', 7);
-            //$.registerChatCommand('./games/waifuGames.js', 'boss', 7);
+            $.registerChatCommand('./games/waifuGames.js', 'madam', 7);
             $.registerChatCommand('./games/waifuGames.js', 'attribute', 7);
             $.registerChatCommand('./games/waifuGames.js', 'forceseduce', 1);
             $.registerChatCommand('./games/waifuGames.js', 'forcefight', 1);
-            $.registerChatCommand('./games/waifuGames.js', 'forceboss', 1);
+            $.registerChatCommand('./games/waifuGames.js', 'forcemadam', 1);
             $.registerChatCommand('./games/waifuGames.js', 'candy', 7);
             $.registerChatCommand('./games/waifuGames.js', 'buycandy', 7);
             $.registerChatCommand('./games/waifuGames.js', 'revive', 1);
@@ -2001,8 +2001,8 @@
             $.registerChatCommand('./games/waifuGames.js', 'resetratio', 1);
             $.registerChatCommand('./games/waifuGames.js', 'waifureward', 1);
             $.registerChatCommand('./games/waifuGames.js', 'fightreward', 1);
-            $.registerChatCommand('./games/waifuGames.js', 'bossreward', 1);
-            $.registerChatCommand('./games/waifuGames.js', 'resetboss', 1);
+            $.registerChatCommand('./games/waifuGames.js', 'madamreward', 1);
+            $.registerChatCommand('./games/waifuGames.js', 'resetmadam', 1);
             $.registerChatCommand('./games/waifuGames.js', 'genwaifu', 1);
             $.registerChatCommand('./games/waifuGames.js', 'maxexp', 1);
             $.registerChatCommand('./games/waifuGames.js', 'updatewaifus', 1)
