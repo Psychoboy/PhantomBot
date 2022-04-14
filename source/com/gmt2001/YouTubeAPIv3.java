@@ -169,7 +169,7 @@ public class YouTubeAPIv3 {
                     JSONArray jaerror = jsonResult.getJSONObject("error").getJSONArray("errors");
                     if (jaerror.getJSONObject(0).has("reason") && jaerror.getJSONObject(0).has("domain")) {
                         com.gmt2001.Console.err.println("YouTubeAPIv3 Error: [Domain] " + jaerror.getJSONObject(0).getString("domain") + 
-                                                        " [Reason] " + jaerror.getJSONObject(0).getString("reason"));
+                                                        " [Reason] " + jaerror.getJSONObject(0).getString("reason") + " [URL] " + urlAddress);
                     }
                 }
             }
@@ -297,25 +297,7 @@ public class YouTubeAPIv3 {
     }
 
     public String GetApiKey() {
-        if (lastApiKey == 4) {
-            lastApiKey = 1;
-        }
-        String apiKey = "";
-        switch (lastApiKey) {
-            case 1:
-                apiKey = this.apikey;
-                break;
-            case 2:
-                apiKey = this.apikey2;
-                break;
-            case 3:
-                apiKey = this.apikey3;
-                break;
-            default:
-                apiKey = this.apikey;
-        }
-        this.lastApiKey++;
-        return apiKey;
+        return this.apikey;
     }
 
     public int[] GetVideoLength(String id) throws JSONException {
