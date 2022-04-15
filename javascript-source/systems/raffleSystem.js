@@ -72,7 +72,7 @@
             return;
         }
 
-        clear();
+        //clear();
 
         /* Check if the caster wants to use time or points for the raffle */
         if (arguments.match('-usetime')) {
@@ -159,10 +159,10 @@
         }, 5 * 6e4);
 
         /* Clear the old raffle data */
-        entries = [];
+        //entries = [];
         $.raffleCommand = keyword;
-        $.inidb.RemoveFile('raffleList');
-        $.inidb.set('raffleresults', 'raffleEntries', 0);
+        //$.inidb.RemoveFile('raffleList');
+        //$.inidb.set('raffleresults', 'raffleEntries', 0);
         // Mark the raffle as on for the panel.
         $.inidb.set('raffleSettings', 'isActive', 'true');
 
