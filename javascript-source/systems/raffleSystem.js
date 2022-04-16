@@ -165,6 +165,10 @@
         //$.inidb.set('raffleresults', 'raffleEntries', 0);
         // Mark the raffle as on for the panel.
         $.inidb.set('raffleSettings', 'isActive', 'true');
+        var n;
+        for(n = 0; n < entries.length; n++) {
+            entered[entries[n]] = true;
+        }
 
         /* Mark the raffle as opened */
         status = true;
@@ -180,6 +184,12 @@
 
         entries = JSON.parse($.inidb.get('raffleState', 'entries'));
         entered = JSON.parse($.inidb.get('raffleState', 'entered'));
+
+        var n;
+        for(n = 0; n < entries.length; n++) {
+            entered[entries[n]] = true;
+        }
+
         keyword = $.inidb.get('raffleState', 'keyword');
         entryFee = parseInt($.inidb.get('raffleState', 'entryFee'));
         timerTime = parseInt($.inidb.get('raffleState', 'timerTime'));
@@ -311,6 +321,15 @@
         }
     }
 
+    function checkIfAlreadyEntered(username) {
+        for(i in entries) {
+            if(entries[i].equalsIgnoreCase(username)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * @function enter
      * @info enters the user into the raffle
@@ -320,6 +339,11 @@
     function enter(username, tags) {
         /* Check if the user already entered the raffle */
         if (entered[username] !== undefined) {
+            message(username, $.lang.get('rafflesystem.enter.404'));
+            return;
+        }
+
+        if (checkIfAlreadyEntered(username) == true) {
             message(username, $.lang.get('rafflesystem.enter.404'));
             return;
         }
@@ -357,12 +381,12 @@
         /* Push the user into the array */
         entered[username] = true;
         entries.push(username);
-        if (subscriberBonus > 0 && $.isSubv3(username, tags)) {
-            for (var i = 0; i < subscriberBonus; i++) {
+        if (subscriberBonus > 1 && $.isSubv3(username, tags)) {
+            for (var i = 1; i < subscriberBonus; i++) {
                 entries.push(username);
             }
-        } else if (regularBonus > 0 && $.isReg(username)) {
-            for (var i = 0; i < regularBonus; i++) {
+        } else if (regularBonus > 1 && $.isReg(username)) {
+            for (var i = 1; i < regularBonus; i++) {
                 entries.push(username);
             }
         }

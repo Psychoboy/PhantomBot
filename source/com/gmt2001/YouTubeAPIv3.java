@@ -221,15 +221,15 @@ public class YouTubeAPIv3 {
     public String[] SearchForVideo(String q) throws JSONException {
         com.gmt2001.Console.debug.println("Query = [" + q + "]");
 
-        if (q.contains("v=") | q.contains("?v=")) {
-            q = q.substring(q.indexOf("v=") + 2, q.indexOf("v=") + 13);
-        }
-        Pattern pattern = Pattern.compile(".*(?:youtu.be\\/|v\\/|u\\/\\w\\/|embed\\/|watch\\?v=)([^#\\&\\?^\\s]*).*");
-        Matcher matcher = pattern.matcher(q);
+        // if (q.contains("v=") | q.contains("?v=")) {
+        //     q = q.substring(q.indexOf("v=") + 2, q.indexOf("v=") + 13);
+        // }
+        // Pattern pattern = Pattern.compile(".*(?:youtu.be\\/|v\\/|u\\/\\w\\/|embed\\/|watch\\?v=)([^#\\&\\?^\\s]*).*");
+        // Matcher matcher = pattern.matcher(q);
 
-        if (matcher.matches()) {
-            q = matcher.group(1);
-        }
+        // if (matcher.matches()) {
+        //     q = matcher.group(1);
+        // }
 
         q = GetBody(request_type.GET, "https://beta.decapi.me/youtube/videoid?search=" + q);
         JSONObject j = GetData(request_type.GET, "https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=" + q + "&format=json");
