@@ -427,7 +427,7 @@ public class TwitchWSIRCParser extends SubmissionPublisher<Map<String, String>> 
         }
 
         // Send the message to the scripts.
-        eventBus.post(new IrcChannelMessageEvent(session, username, message, tags));
+        eventBus.postAsync(new IrcChannelMessageEvent(session, username, message, tags));
 
         // Print the tags for debugging.
         com.gmt2001.Console.debug.println("IRCv3 Tags: " + tags);
@@ -534,7 +534,7 @@ public class TwitchWSIRCParser extends SubmissionPublisher<Map<String, String>> 
         switch (message) {
             case "Login authentication failed":
                 com.gmt2001.Console.out.println();
-                com.gmt2001.Console.out.println("Twitch Inidicated Login Failed. Check OAUTH password.");
+                com.gmt2001.Console.out.println("Twitch Indicated Login Failed. Check OAUTH password.");
                 com.gmt2001.Console.out.println("Exiting PhantomBot.");
                 com.gmt2001.Console.out.println();
                 PhantomBot.exitError();

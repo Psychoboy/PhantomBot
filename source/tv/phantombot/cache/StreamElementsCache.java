@@ -162,7 +162,7 @@ public class StreamElementsCache implements Runnable {
                     PhantomBot.instance().getDataStore().SetString("modules", "", "./handlers/streamElementsHandler.js", "false");
                     killed = true;
                 } else {
-                    throw new Exception("Failed to get donations: " + jsonResult);
+                    throw new Exception("Failed to get donations: " + jsonResult.toString());
                 }
             }
         } else {
@@ -171,7 +171,7 @@ public class StreamElementsCache implements Runnable {
 
         if (firstUpdate && !killed) {
             firstUpdate = false;
-            EventBus.instance().post(new StreamElementsDonationInitializedEvent());
+            EventBus.instance().postAsync(new StreamElementsDonationInitializedEvent());
         }
 
         if (donations != null && !killed) {

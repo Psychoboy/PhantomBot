@@ -238,7 +238,7 @@
                 if (cmd.length > 0) {
                     var EventBus = Packages.tv.phantombot.event.EventBus;
                     var CommandEvent = Packages.tv.phantombot.event.command.CommandEvent;
-                    EventBus.instance().post(new CommandEvent(event.getSender(), cmd, argStr));
+                    EventBus.instance().postAsync(new CommandEvent(event.getSender(), cmd, argStr));
                 }
                 return {cancel: true};
             }

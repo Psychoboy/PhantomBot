@@ -1230,7 +1230,7 @@
         var EventBus = Packages.tv.phantombot.event.EventBus,
             CommandEvent = Packages.tv.phantombot.event.command.CommandEvent;
 
-        EventBus.instance().post(new CommandEvent($.botName, 'ytp', 'togglerandom'));
+        EventBus.instance().postAsync(new CommandEvent($.botName, 'ytp', 'togglerandom'));
     });
 
     /**
