@@ -2,7 +2,7 @@
     var shortUrlKey = $.getSetIniDbString('shorten', 'key', 'NOTSET')
     function shortenUrl(url) {
         var encodedUrl = encodeURI(url);
-        //encodedUrl = encodeURIComponent(encodedUrl);
+        encodedUrl = encodeURIComponent(encodedUrl);
         var completeUrl = "https://superpenguin.tv/s/yourls-api.php?action=shorturl&url=" + encodedUrl + "&signature=" + shortUrlKey + "&format=simple";
         return $.customAPI.get(completeUrl).content;
     }

@@ -42,9 +42,10 @@
             link;
 
         while ($.lang.exists('waifugames.waifu.' + i)) {
-            link = $.shortenUrl(google + url(getWaifu(i)))
+            //link = $.shortenUrl(google + url(getWaifu(i)))
             //string += $.lang.get('waifugames.function.characterlist') + i + ' ' + replace3($.lang.get('waifugames.waifu.' + i)) + '\r\n';
-            string += i + ',' + replace3($.lang.get('waifugames.waifu.' + i)) + ',' + link + '\r\n';
+            //string += i + ',' + replace3($.lang.get('waifugames.waifu.' + i)) + ',' + link + '\r\n';
+            string += i + ',' + replace3($.lang.get('waifugames.waifu.' + i)) + '\r\n';
             ++i;
         }
 
