@@ -1,10 +1,10 @@
 (function() {
 
-    $.bind('twitchOnline', function () {
+    $.bind('twitchOnline', function (event) {
         setTimeout(function() {
-            if ($.twitchcache.isStreamOnline()) {
+            if ($.isOnline()) {
                 $.say('Stream is now online, refresh if you do not see the video.')
             }
-        }, 6e4);
+        }, 60000);
     });
 })()
