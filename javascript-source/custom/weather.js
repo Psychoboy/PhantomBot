@@ -12,12 +12,13 @@
         var lat = data.lat;
         var lon = data.lon;
         var location = data.name;
+        var country = data.country;
         url = "https://api.openweathermap.org/data/2.5/weather?lat=" + lat + "&lon=" + lon + "&appid=" + apikey + "&units=imperial"
         var data = JSON.parse($.customAPI.get(url).content);
         var temp = data.main.temp;
         var description = data.weather[0].description;
         var tempC = Number(((temp - 32) / 1.8).toFixed(2));
-        $.say($.whisperPrefix(sender) +  "The weather currently in " + location + " is " + temp + "F, " + tempC + "C Condition: " + description);
+        $.say($.whisperPrefix(sender) +  "The weather currently in " + location + ", " + country + " is " + temp + "F, " + tempC + "C Condition: " + description);
     }
 
     $.bind('command', function(event) {
