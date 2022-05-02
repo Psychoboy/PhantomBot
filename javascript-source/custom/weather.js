@@ -1,13 +1,12 @@
 (function() {
     var apikey = $.getSetIniDbString('weather', 'key', 'NOTSET');
 
-    function getWeather(sender, location) {
+    function getWeather(location) {
         location = encodeURIComponent(location);
         var url = "https://api.weatherapi.com/v1/current.json?key=" + apikey + "&q=" + location + "&aqi=no";
         var data = JSON.parse($.customAPI.get(url).content);
         if(data.error) {
-            $.say($.whisperPrefix(sender) + data.error.message)
-            return;
+            return data.error.message;
         }
 
         var name = data.location.name;
@@ -15,21 +14,22 @@
         var tempF = data.current.temp_f;
         var tempC = data.current.temp_c;
         var condition = data.current.condition.text;
-        $.say($.whisperPrefix(sender) + "The weather currently in " + name + ", " + country + " is " + tempF + "F, " + tempC + "C. Current Condition: " + condition);
+        return "The weather currently in " + name + ", " + country + " is " + tempF + "F, " + tempC + "C. Current Condition: " + condition;
     }
 
     $.bind('command', function(event) {
         var sender = event.getSender().toLowerCase(),
         command = event.getCommand(),
         args = event.getArgs(),
-        location = args.join(" ");
+        location = args.join(" "),
         action = args[0];
         if(command.equalsIgnoreCase('weather')) {
             if(!location) {
                 location = "85234";
             }
 
-            getWeather(sender, location);
+            var msg = getWeather(location);
+            $.say($.whisperPrefix(sender) + msg);
             return;
         }
 
@@ -45,4 +45,6 @@
         $.registerChatCommand('./custom/weather.js', 'weather', 7);
         $.registerChatCommand('./custom/weather.js', 'setweatherapi', 1);
     })
+
+    $.getWeather = getWeather;
 })();
