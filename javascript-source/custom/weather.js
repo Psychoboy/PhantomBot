@@ -1,37 +1,35 @@
 (function() {
     var apikey = $.getSetIniDbString('weather', 'key', 'NOTSET');
 
-    function getWeather(sender, zipcode) {
-        var url = "http://api.openweathermap.org/geo/1.0/zip?zip=" + zipcode + "&appid=" + apikey;
+    function getWeather(sender, location) {
+        location = encodeURIComponent(location);
+        var url = "https://api.weatherapi.com/v1/current.json?key=" + apikey + "&q=" + location + "&aqi=no";
         var data = JSON.parse($.customAPI.get(url).content);
-        if(data.cod === "404") {
-            $.say($.whisperPrefix(sender) +  "Could not find the location for weather, please use zip code or Postal,Country code (E14,GB)");
+        if(data.error) {
+            $.say($.whisperPrefix(sender) + data.error.message)
             return;
         }
 
-        var lat = data.lat;
-        var lon = data.lon;
-        var location = data.name;
-        var country = data.country;
-        url = "https://api.openweathermap.org/data/2.5/weather?lat=" + lat + "&lon=" + lon + "&appid=" + apikey + "&units=imperial"
-        var data = JSON.parse($.customAPI.get(url).content);
-        var temp = data.main.temp;
-        var description = data.weather[0].description;
-        var tempC = Number(((temp - 32) / 1.8).toFixed(2));
-        $.say($.whisperPrefix(sender) +  "The weather currently in " + location + ", " + country + " is " + temp + "F, " + tempC + "C Condition: " + description);
+        var name = data.location.name;
+        var country = data.location.country;
+        var tempF = data.current.temp_f;
+        var tempC = data.current.temp_c;
+        var condition = data.current.condition.text;
+        $.say($.whisperPrefix(sender) + "The weather currently in " + name + ", " + country + " is " + tempF + "F, " + tempC + "C. Current Condition: " + condition);
     }
 
     $.bind('command', function(event) {
         var sender = event.getSender().toLowerCase(),
         command = event.getCommand(),
         args = event.getArgs(),
+        location = args.join(" ");
         action = args[0];
         if(command.equalsIgnoreCase('weather')) {
-            if(!action) {
-                action = "85234";
+            if(!location) {
+                location = "85234";
             }
 
-            getWeather(sender, action);
+            getWeather(sender, location);
             return;
         }
 
