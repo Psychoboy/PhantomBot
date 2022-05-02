@@ -14,7 +14,9 @@
         var tempF = data.current.temp_f;
         var tempC = data.current.temp_c;
         var condition = data.current.condition.text;
-        return "The weather currently in " + name + ", " + country + " is " + tempF + "F, " + tempC + "C. Current Condition: " + condition;
+        var humidity = data.current.humidity;
+        var region = data.location.region;
+        return "The weather currently in " + name + ", " + region + ", " + country + " is " + tempF + "F, " + tempC + "C. Humidity: " + humidity + "% Current Condition: " + condition;
     }
 
     $.bind('command', function(event) {
