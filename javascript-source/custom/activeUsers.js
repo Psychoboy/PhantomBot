@@ -25,8 +25,15 @@
         var currentTime = $.systemTime();
         var users = [];
         var currentUsers = $.users;
-        for (i in $.users) {
-            username = $.users[i].toLowerCase();
+        var username;
+        for (i in currentUsers) {
+            try {
+                username = currentUsers[i].toLowerCase();
+            } catch (ex) {
+                $.log.warn(ex.toString());
+                continue;
+            }
+            
             if(isExcluded(username) == true ) {
                 continue;
             }
@@ -36,16 +43,6 @@
                 }
             }
         }
-
-//        for (user in userCache) {
-//            if(excludedUsers.includes(user)) {
-//                continue;
-//            }
-//            if(userCache[user] + activeTime > currentTime) {
-//                users.push(user);
-//            }
-//        }
-//
         return users;
     }
 
