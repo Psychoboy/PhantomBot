@@ -3,7 +3,7 @@
 
     function getWeather(location) {
         location = encodeURIComponent(location);
-        var url = "https://api.weatherapi.com/v1/current.json?key=" + apikey + "&q=" + location + "&aqi=no";
+        var url = "https://api.weatherapi.com/v1/forecast.json?key=" + apikey + "&q=" + location + "&days=1&aqi=no&alerts=no";
         var data = JSON.parse($.customAPI.get(url).content);
         if(data.error) {
             return data.error.message;
@@ -16,7 +16,14 @@
         var condition = data.current.condition.text;
         var humidity = data.current.humidity;
         var region = data.location.region;
-        return "The weather currently in " + name + ", " + region + ", " + country + " is " + tempF + "F, " + tempC + "C. Humidity: " + humidity + "% Current Condition: " + condition;
+        var maxF = data.forecast.forecastday[0].day.maxtemp_f;
+        var maxC = data.forecast.forecastday[0].day.maxtemp_c;
+        var minf = data.forecast.forecastday[0].day.mintemp_f;
+        var minc = data.forecast.forecastday[0].day.mintemp_c;
+        var todaycondition = data.forecast.forecastday[0].day.condition.text;
+        var result = "The weather currently in " + name + ", " + region + ", " + country + " is " + tempF + "F/" + tempC + "C. Humidity: " + humidity + "% Condition: " + condition;
+        result = result + ". Todays high: " + maxF + "F/" + maxC + "C Low: " + minf + "F/" + minc + "C Condition: " + todaycondition;
+        return result;
     }
 
     $.bind('command', function(event) {
