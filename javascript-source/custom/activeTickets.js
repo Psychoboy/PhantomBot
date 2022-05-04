@@ -4,7 +4,6 @@
         delay = 1000;
 
     function addActiveTickets(amount) {
-        var activeUsers = $.getActiveUsers();
         ticketsToGiveOut += parseInt(amount);
         lastTicketsAdded = $.systemTime();
     }

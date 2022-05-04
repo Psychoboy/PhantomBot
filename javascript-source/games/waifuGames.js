@@ -1743,7 +1743,7 @@
 
     var interval = setInterval(function() {
         runExport();
-    }, 60000)
+    }, 600000)
 
     /*
      * @event command
