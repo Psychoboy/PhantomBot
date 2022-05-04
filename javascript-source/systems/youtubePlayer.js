@@ -264,18 +264,18 @@
          * from what should be URLs.  We do not wish to do this at the non-URL level
          * as someone might be searching for a song using an ampersand.
          */
-        if (searchQuery.includes('watch?v=')) {
-            searchQuery = searchQuery.split('=', 2)[1];
-            if (searchQuery.includes('&')) {
-                searchQuery = searchQuery.split('&', 2)[0];
-            }
-        }
-        if (searchQuery.startsWith('https://youtu.be/')) {
-            searchQuery = searchQuery.split('/', 4)[3];
-            if (searchQuery.includes('&')) {
-                searchQuery = searchQuery.split('&', 2)[0];
-            }
-        }
+        // if (searchQuery.includes('watch?v=')) {
+        //     searchQuery = searchQuery.split('=', 2)[1];
+        //     if (searchQuery.includes('&')) {
+        //         searchQuery = searchQuery.split('&', 2)[0];
+        //     }
+        // }
+        // if (searchQuery.startsWith('https://youtu.be/')) {
+        //     searchQuery = searchQuery.split('/', 4)[3];
+        //     if (searchQuery.includes('&')) {
+        //         searchQuery = searchQuery.split('&', 2)[0];
+        //     }
+        // }
 
         if ($.inidb.exists('ytcache', searchQuery)) {
             var jsonString = $.inidb.get('ytcache', searchQuery);
