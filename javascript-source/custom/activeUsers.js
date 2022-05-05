@@ -5,7 +5,6 @@
     excludedUsers = [
         'super_waffle_bot',
         'truckybot',
-        'superpenguintv',
         'moobot',
         'soundalerts',
         'streamelements',
