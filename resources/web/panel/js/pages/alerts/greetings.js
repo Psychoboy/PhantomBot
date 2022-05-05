@@ -30,8 +30,11 @@ $(run = function() {
 
             helpers.temp.defaultMessage = results[1].value; // The default message is saved in the second entry
 
-            for (let i = 3; i < results.length; i++) {
+            for (let i = 0; i < results.length; i++) {
                 // The first three entries are settings for the greeting system
+                if(results[i].key === 'autoGreetEnabled' || results[i].key === 'defaultJoin' || results[i].key === 'cooldown' || results[i].key === 'greetOnSay') {
+                    continue;
+                }
 
                 tableData.push([
                     i,
@@ -113,7 +116,7 @@ $(run = function() {
                     // Append User.
                     .append(helpers.getInputGroup('greeting-username', 'text', 'Username', '', greetingUser, 'The user this greeting is for.'))
                     // Append Greeting Message
-                    .append(helpers.getInputGroup('greeting-message', 'text', 'Greeting Message', '', e.greeting, 'The greeting message for ' + greetingUser + '.')), function() {// Callback once we click the save button.
+                    .append(helpers.getTextAreaGroup('greeting-message', 'text', 'Greeting Message', '', e.greeting, 'The greeting message for ' + greetingUser + '.')), function() {// Callback once we click the save button.
                         let greetingUsername = $('#greeting-username'),
                             greetingMessage = $('#greeting-message');
 
@@ -168,7 +171,7 @@ $(function() {
             // Append User.
             .append(helpers.getInputGroup('greeting-username', 'text', 'Username', '', '', 'The user this greeting is for.'))
             // Append Greeting Message
-            .append(helpers.getInputGroup('greeting-message', 'text', 'Greeting Message', e.defaultJoin, undefined, 'The greeting posted after the user has sent their first message and is considered as active.')), function() {// Callback once we click the save button.
+            .append(helpers.getTextAreaGroup('greeting-message', 'text', 'Greeting Message', e.defaultJoin, undefined, 'The greeting posted after the user has sent their first message and is considered as active.')), function() {// Callback once we click the save button.
                 let greetingUsername = $('#greeting-username'),
                     greetingMessage = $('#greeting-message').val() !== '' ? $('#greeting-message').val() : e.defaultJoin;
                 
@@ -208,7 +211,7 @@ $(function() {
             .append(helpers.getInputGroup('greeting-cooldown', 'number', 'Greeting Cooldown (Hours)', '', (parseInt(e.cooldown) / 36e5),
                 'How long the greeting message per user will be in hours. Minimum is 5 hours.'))
             // Add input for the default greeting message
-            .append(helpers.getInputGroup('greeting-default-message', 'text', 'Default Greeting Message', '', e.defaultJoin,
+            .append(helpers.getTextAreaGroup('greeting-default-message', 'text', 'Default Greeting Message', '', e.defaultJoin,
                 'The default greeting message.')),
             function() { // Callback once the user clicks save.
                 let greetingToggle = $('#greeting-toggle').find(':selected').text() === 'Yes',

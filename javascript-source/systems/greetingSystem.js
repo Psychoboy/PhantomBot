@@ -25,6 +25,7 @@
     var autoGreetEnabled = $.getSetIniDbBoolean('greeting', 'autoGreetEnabled', false),
         defaultJoinMessage = $.getSetIniDbString('greeting', 'defaultJoin', '(name) joined!'),
         greetingCooldown = $.getSetIniDbNumber('greeting', 'cooldown', (6 * 36e5)),
+        greetOnSay = $.getSetIniDbBoolean('greeting', 'greetOnSay', false),
         /* 6 Hours */
         greetingQueue = new java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -48,6 +49,24 @@
         }
     });
 
+    $.bind('ircChannelMessage', function(event) {
+        if($.isOnline($.channelName) && greetOnSay) {
+            var sender = event.getSender().toLowerCase();
+            var username = event.getSender();
+            var message = $.getIniDbString('greeting', sender, '');
+            if(message) {
+                var lastUserGreeting = $.getIniDbNumber('greetingCoolDown', sender, 0),
+                now = $.systemTime();
+                if (lastUserGreeting + greetingCooldown < now) {
+                    message = $.replace(message,'(name)', username);
+                    message = $.replace(message,'(game)', $.javaString($.getGame(username)));
+                    greetingQueue.add(message);
+                    $.inidb.set('greetingCoolDown', sender, now);
+                }
+            }
+        }
+    });
+
     /**
      * @function doUserGreetings
      * Provides timer function for sending greetings into chat. Will delete messages if the 
@@ -58,12 +77,12 @@
         setInterval(function() {
 
             /* Send a greeting out into chat. */
-            if (!greetingQueue.isEmpty() && autoGreetEnabled) {
+            if (!greetingQueue.isEmpty() && (autoGreetEnabled || greetOnSay)) {
                 $.say(greetingQueue.poll());
             }
 
             /* There are greetings, however, autoGreet has been disabled, so destroy the queue. */
-            if (!greetingQueue.isEmpty() && !autoGreetEnabled) {
+            if (!greetingQueue.isEmpty() && !autoGreetEnabled && !greetOnSay) {
                 greetingQueue = new java.util.concurrent.ConcurrentLinkedQueue;
             }
 
@@ -137,6 +156,16 @@
                     $.say($.whisperPrefix(sender) + $.lang.get('greetingsystem.set.autogreet.disabled', $.username.resolve($.botName)));
                 }
                 return;
+            }
+
+            if (action.equalsIgnoreCase('togglesay')) {
+                greetOnSay = !greetOnSay;
+                $.setIniDbBoolean('greeting', 'greetOnSay', greetOnSay);
+                if(greetOnSay) {
+                    $.say($.whisperPrefix(sender) + " Enabled greet on say.");
+                } else {
+                    $.say($.whisperPrefix(sender) + " Disabled greet on say.");
+                }
             }
 
             /**
@@ -244,6 +273,7 @@
         $.registerChatCommand('./systems/greetingSystem.js', 'greeting', 6);
         $.registerChatSubcommand('greeting', 'cooldown', 1);
         $.registerChatSubcommand('greeting', 'toggle', 1);
+        $.registerChatSubcommand('greeting', 'togglesay', 1);
         $.registerChatSubcommand('greeting', 'set', 2);
         $.registerChatSubcommand('greeting', 'setsilent', 1);
         $.registerChatSubcommand('greeting', 'setdefault', 2);
@@ -251,6 +281,7 @@
         $.registerChatSubcommand('greeting', 'remove', 2);
         $.registerChatSubcommand('greeting', 'removesilent', 1);
         $.registerChatSubcommand('greeting', 'disable', 6);
+        
 
         doUserGreetings();
     });
