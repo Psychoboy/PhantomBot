@@ -1,7 +1,7 @@
 (function() {
 
       function getUserMessagesRank(username) {
-          var keylist = $.inidb.GetKeysByOrderValue('messagecounter'),
+          var keylist = $.inidb.GetKeysByNumberOrderValue('messagecounter'),
           rank = 1,
           i;
           for(i in keylist) {

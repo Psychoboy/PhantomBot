@@ -142,7 +142,7 @@
      * @returns {*}
      */
      function getUserPointsRank(username) {
-        var keylist = $.inidb.GetKeysByOrderValue('points'),
+        var keylist = $.inidb.GetKeysByNumberOrderValue('points'),
         rank = 1,
         i;
         for(i in keylist) {
