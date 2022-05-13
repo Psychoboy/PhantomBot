@@ -18,6 +18,7 @@ package tv.phantombot;
 
 import com.gmt2001.ExponentialBackoff;
 import com.gmt2001.GamesListUpdater;
+import com.gmt2001.PathValidator;
 import com.gmt2001.RestartRunner;
 import com.gmt2001.RollbarProvider;
 import com.gmt2001.TwitchAPIv5;
@@ -129,6 +130,7 @@ public final class PhantomBot implements Listener {
     private WsPanelHandler panelHandler;
     private WsYTHandler ytHandler;
     private HTTPOAuthHandler oauthHandler;
+    private HTTPAuthenticatedHandler httpAuthenticatedHandler;
 
     /* PhantomBot Information */
     private static PhantomBot instance;
@@ -368,8 +370,8 @@ public final class PhantomBot implements Listener {
                 java.lang.management.RuntimeMXBean runtime = java.lang.management.ManagementFactory.getRuntimeMXBean();
                 int pid = Integer.parseInt(runtime.getName().split("@")[0]);
 
-                Files.write(Paths.get("PhantomBot." + this.getBotName() + ".pid"), Integer.toString(pid).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE,
-                        StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.DELETE_ON_CLOSE);
+                Files.write(Paths.get(GetExecutionPath(), "PhantomBot." + this.getBotName() + ".pid"), Integer.toString(pid).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE,
+                        StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
             } catch (IOException | NumberFormatException ex) {
                 com.gmt2001.Console.err.printStackTrace(ex);
             }
@@ -384,10 +386,12 @@ public final class PhantomBot implements Listener {
             TwitchValidate.instance().validateAPI(CaselessProperties.instance().getProperty("apioauth", ""), "API (apioauth)");
         }
 
-        /* Validate the chat OAUTH token. */
-        TwitchValidate.instance().validateChat(CaselessProperties.instance().getProperty("oauth"), "CHAT (oauth)");
+        if (!CaselessProperties.instance().getProperty("oauth", "").isEmpty()) {
+            /* Validate the chat OAUTH token. */
+            TwitchValidate.instance().validateChat(CaselessProperties.instance().getProperty("oauth"), "CHAT (oauth)");
 
-        TwitchValidate.instance().checkOAuthInconsistencies(this.getBotName());
+            TwitchValidate.instance().checkOAuthInconsistencies(this.getBotName());
+        }
     }
 
     private void initChat() {
@@ -468,6 +472,8 @@ public final class PhantomBot implements Listener {
         if (this.pubSubEdge != null) {
             this.pubSubEdge.setOAuth(CaselessProperties.instance().getProperty("apioauth", ""));
         }
+
+        this.httpAuthenticatedHandler.updateAuth(CaselessProperties.instance().getProperty("webauth"), this.getPanelOAuth().replace("oauth:", ""));
 
         EventBus.instance().postAsync(new PropertiesReloadedEvent());
     }
@@ -668,6 +674,15 @@ public final class PhantomBot implements Listener {
         return pass;
     }
 
+    private String getPanelOAuth() {
+        String pass = CaselessProperties.instance().getProperty("oauth", (String) null);
+        if (pass == null) {
+            pass = PhantomBot.generateRandomString(12);
+        }
+
+        return pass;
+    }
+
     private void initWeb() {
         /* Is the web toggle enabled? */
         if (CaselessProperties.instance().getPropertyAsBoolean("webenable", true)) {
@@ -676,7 +691,8 @@ public final class PhantomBot implements Listener {
                     CaselessProperties.instance().getPropertyAsBoolean("usehttps", true), CaselessProperties.instance().getProperty("httpsFileName", ""),
                     CaselessProperties.instance().getProperty("httpsPassword", ""), this.getBotName());
             new HTTPNoAuthHandler().register();
-            new HTTPAuthenticatedHandler(CaselessProperties.instance().getProperty("webauth"), CaselessProperties.instance().getProperty("oauth", "").replace("oauth:", "")).register();
+            this.httpAuthenticatedHandler = new HTTPAuthenticatedHandler(CaselessProperties.instance().getProperty("webauth"), this.getPanelOAuth().replace("oauth:", ""));
+            this.httpAuthenticatedHandler.register();
             new HTTPPanelAndYTHandler(CaselessProperties.instance().getProperty("paneluser", "panel"), this.getPanelPassword()).register();
             this.oauthHandler = (HTTPOAuthHandler) new HTTPOAuthHandler(CaselessProperties.instance().getProperty("paneluser", "panel"), this.getPanelPassword()).register();
             if (CaselessProperties.instance().getPropertyAsBoolean("useeventsub", false)) {
@@ -796,7 +812,7 @@ public final class PhantomBot implements Listener {
             data += "function getProtocol() { return http; }\r\n";
 
             /* Create a new file if it does not exist */
-            Files.createDirectories(Paths.get("./web/ytplayer/js/").toAbsolutePath().normalize().toRealPath());
+            Files.createDirectories(PathValidator.getRealPath(Paths.get("./web/ytplayer/js/")));
 
             /* Write the data to that file */
             Files.write(Paths.get("./web/ytplayer/js/playerConfig.js"), data.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -820,7 +836,7 @@ public final class PhantomBot implements Listener {
             data += "function getProtocol() { return http; }\r\n";
 
             /* Create a new file if it does not exist */
-            Files.createDirectories(Paths.get("./web/playlist/js/").toAbsolutePath().normalize().toRealPath());
+            Files.createDirectories(PathValidator.getRealPath(Paths.get("./web/playlist/js/")));
 
             /* Write the data to that file */
             Files.write(Paths.get("./web/playlist/js/playerConfig.js"), data.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -846,7 +862,7 @@ public final class PhantomBot implements Listener {
             data += "function getProtocol() { return panelSettings.http; }\r\n";
 
             /* Create a new file if it does not exist */
-            Files.createDirectories(Paths.get("./web/common/js/").toAbsolutePath().normalize().toRealPath());
+            Files.createDirectories(PathValidator.getRealPath(Paths.get("./web/common/js/")));
 
             /* Write the data to that file */
             Files.write(Paths.get("./web/common/js/wsConfig.js"), data.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -998,6 +1014,14 @@ public final class PhantomBot implements Listener {
             RollbarProvider.instance().close();
         } catch (Exception ex) {
             com.gmt2001.Console.err.printStackTrace(ex);
+        }
+
+        if (SystemUtils.IS_OS_LINUX && System.getProperty("interactive") == null) {
+            try {
+                Files.deleteIfExists(Paths.get(GetExecutionPath(), "PhantomBot." + this.getBotName() + ".pid"));
+            } catch (IOException ex) {
+                com.gmt2001.Console.err.printStackTrace(ex);
+            }
         }
 
         this.print(this.getBotName() + " is exiting.");
