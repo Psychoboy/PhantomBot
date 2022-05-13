@@ -237,7 +237,7 @@
                     'discord',
                     'warning',
                     'whispers'
-                ]
+                ],
                 logDirIdx,
                 datefmt = new java.text.SimpleDateFormat('dd-MM-yyyy'),
                 date,
