@@ -212,7 +212,9 @@
         if ($.inidb.HasKey('raffleresults', '', 'winner')) { //Consider raffles saved before this change
             var temp = $.inidb.get('raffleresults', 'winner');
             if (temp !== undefined && !temp.equalsIgnoreCase('undefined')) {
-                lastWinners = JSON.parse(temp); //lastWinners found
+                try {
+                    lastWinners = JSON.parse(temp); //lastWinners found
+                } catch(ex){}
             }
         }
 
