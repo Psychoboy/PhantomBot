@@ -15,7 +15,7 @@
 
         if(command.equalsIgnoreCase('wheelspin')) {
             if(wheelEnabled == false) {
-                $.say($.whisperPrefix(sender) + ' wheel is currently disabled. Bug SuperPenguinTV to enable it!')
+                $.say($.whisperPrefix(sender) + ' wheel is currently disabled while it gets re-designed.')
                 return;
             }
             if ($.getUserPoints(sender) < cost) {
