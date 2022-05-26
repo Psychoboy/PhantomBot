@@ -38,7 +38,7 @@ $.lang.register('adventuresystem.bottom5', 'The top 5 LOSING adventurers are: $1
 $.lang.register('adventuresystem.top5.empty', 'There haven\'t been any adventure winners recorded yet.');
 $.lang.register('adventuresystem.reset', 'The adventure has now cooled off! Use "!adventure [$1]" to start a new adventure!');
 
-$.lang.register('adventuresystem.stories.default', 'true');
+$.lang.register('adventuresystem.stories.default', 'false');
 
 $.lang.register('adventuresystem.stories.1.title', 'Time Heist');
 $.lang.register('adventuresystem.stories.1.chapter.1', 'Your memory is vague, on the table a small laptop is playing a video: "My name is The Architect. The bank of Karabraxos is the most secure bank in the universe. You will rob the bank of Karabraxos!"');
