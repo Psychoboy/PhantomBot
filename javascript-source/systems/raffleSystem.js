@@ -344,9 +344,13 @@
                 for (var k in newWinners) {
                     var e = entries[j];
                     if (e.equalsIgnoreCase(newWinners[k])) {
+                        $.consoleLn("Removing " + newWinners[k]);
+                        $.consoleLn("Counter: " + entries.length);
+                        $.consoleLn(JSON.stringify(entries));
                         entries.splice(j, 1);
                         $.inidb.del('raffleList', newWinners[k]);
                         $.inidb.decr('raffleresults', 'raffleEntries', 1);
+                        $.consoleLn("Counter: " + entries.length);
                     }
                 }
             }
@@ -627,7 +631,7 @@
              * @commandpath raffle subscriberbonus [1-10] - Sets the bonus luck for subscribers.
              */
             if (action.equalsIgnoreCase('subscriberbonus')) {
-                if (subAction === undefined || isNaN(parseInt(subAction)) || parseInt(subAction) < 1) {
+                if (subAction === undefined || isNaN(parseInt(subAction)) || parseInt(subAction) < 0) {
                     $.say($.whisperPrefix(sender) + $.lang.get('rafflesystem.subbonus.usage'));
                     return;
                 }
@@ -641,7 +645,7 @@
              * @commandpath raffle regularbonus [1-10] - Sets the bonus luck for regulars.
              */
             if (action.equalsIgnoreCase('regularbonus')) {
-                if (subAction === undefined || isNaN(parseInt(subAction)) || parseInt(subAction) < 1) {
+                if (subAction === undefined || isNaN(parseInt(subAction)) || parseInt(subAction) < 0) {
                     $.say($.whisperPrefix(sender) + $.lang.get('rafflesystem.regbonus.usage'));
                     return;
                 }
