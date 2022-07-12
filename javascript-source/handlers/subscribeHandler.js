@@ -46,7 +46,8 @@
             subPlanPrime = $.getSetIniDbString('subscribeHandler', 'subPlanPrime', 'Prime'),
             announce = false,
             emotes = [],
-            i;
+            i,
+            ticketsPerSub = 5000;
 
     /*
      * @function updateSubscribeConfig
@@ -108,7 +109,7 @@
                 message = $.replace(message, '(name)', subscriber);
             }
             if (message.match(/\(ticketsamount\)/g)) {
-                $.addActiveTickets(500);
+                $.addActiveTickets(ticketsPerSub);
                 message = $.replace(message, '(ticketsamount)', '');
             }
             if (message.match(/\(reward\)/g)) {
@@ -159,7 +160,7 @@
                 message = $.replace(message, '(name)', subscriber);
             }
             if (message.match(/\(ticketsamount\)/g)) {
-                $.addActiveTickets(500);
+                $.addActiveTickets(ticketsPerSub);
                 message = $.replace(message, '(ticketsamount)', '');
             }
             if (message.match(/\(reward\)/g)) {
@@ -213,7 +214,7 @@
                 message = $.replace(message, '(name)', resubscriber);
             }
             if (message.match(/\(ticketsamount\)/g)) {
-                $.addActiveTickets(500);
+                $.addActiveTickets(ticketsPerSub);
                 message = $.replace(message, '(ticketsamount)', '');
             }
             if (message.match(/\(months\)/g)) {
@@ -278,7 +279,7 @@
                 message = $.replace(message, '(name)', gifter);
             }
             if (message.match(/\(ticketsamount\)/g)) {
-                $.addActiveTickets(500);
+                $.addActiveTickets(ticketsPerSub);
                 message = $.replace(message, '(ticketsamount)', '');
             }
             if (message.match(/\(recipient\)/g)) {
@@ -349,7 +350,7 @@
         if (massGiftSubWelcomeToggle === true && announce === true) {
 
             if (message.match(/\(ticketsamount\)/g)) {
-                $.addActiveTickets(amount*500);
+                $.addActiveTickets(amount*ticketsPerSub);
                 message = $.replace(message, '(ticketsamount)', '');
             }
 
@@ -409,7 +410,7 @@
                 message = $.replace(message, '(name)', gifter);
             }
             if (message.match(/\(ticketsamount\)/g)) {
-                $.addActiveTickets(500);
+                $.addActiveTickets(ticketsPerSub);
                 message = $.replace(message, '(ticketsamount)', '');
             }
             if (message.match(/\(recipient\)/g)) {
@@ -470,7 +471,7 @@
 
         if (massAnonGiftSubWelcomeToggle === true && announce === true) {
             if (message.match(/\(ticketsamount\)/g)) {
-                $.addActiveTickets(amount*500);
+                $.addActiveTickets(amount*ticketsPerSub);
                 message = $.replace(message, '(ticketsamount)','');
             }
 

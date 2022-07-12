@@ -253,7 +253,7 @@
         }
 
         searchQuery = searchQuery.trim();
-
+        searchQuery =  encodeURI(searchQuery);
         if (!owner.equals(playlistDJname)) {
             owner = owner.toLowerCase();
         }

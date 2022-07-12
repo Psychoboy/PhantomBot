@@ -60,7 +60,7 @@
             s = $.replace(s, '(amount)', bits);
         }
         if (message.match(/\(ticketsamount\)/g)) {
-            $.addActiveTickets(bits);
+            $.addActiveTickets(bits * 10);
             s = $.replace(s, '(ticketsamount)', '');
         }
         if (s.match(/\(message\)/g)) {
