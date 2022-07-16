@@ -3,11 +3,11 @@
         secondCommand = $.getSetIniDbString('first', 'second', 'second'),
         firstViewers = [],
         secondViewers = [],
-        firstStarting = 2000,
-        firstDecrement = 25,
+        firstStarting = 20000,
+        firstDecrement = 250,
         firstMax = 40,
-        secondStarting = 4000,
-        secondDecrement = 50,
+        secondStarting = 40000,
+        secondDecrement = 500,
         secondMax = 40;
 
     function reset() {
