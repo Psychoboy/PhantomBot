@@ -46,7 +46,7 @@
 
         for (i in keys) {
             if (!$.isBot(keys[i]) && !$.isOwner(keys[i])) {
-                if (ctr++ == (iniName.equals('points') ? amountPoints : amountTime)) {
+                if (ctr++ === (iniName.equals('points') ? amountPoints : amountTime)) {
                     break;
                 }
                 list.push({
@@ -217,12 +217,12 @@
      * @event initReady
      */
     $.bind('initReady', function() {
-        $.registerChatCommand('./commands/topCommand.js', 'top5', 7);
-        $.registerChatCommand('./commands/topCommand.js', 'top10', 7);
-        $.registerChatCommand('./commands/topCommand.js', 'toptime', 7);
-        $.registerChatCommand('./commands/topCommand.js', 'topamount', 1);
-        $.registerChatCommand('./commands/topCommand.js', 'toptimeamount', 1);
-        $.registerChatCommand('./commands/topCommand.js', 'reloadtop', 1);
-        $.registerChatCommand('./commands/topCommand.js', 'reloadtopbots', 1);
+        $.registerChatCommand('./commands/topCommand.js', 'top5', $.PERMISSION.Viewer);
+        $.registerChatCommand('./commands/topCommand.js', 'top10', $.PERMISSION.Viewer);
+        $.registerChatCommand('./commands/topCommand.js', 'toptime', $.PERMISSION.Viewer);
+        $.registerChatCommand('./commands/topCommand.js', 'topamount', $.PERMISSION.Admin);
+        $.registerChatCommand('./commands/topCommand.js', 'toptimeamount', $.PERMISSION.Admin);
+        $.registerChatCommand('./commands/topCommand.js', 'reloadtop', $.PERMISSION.Admin);
+        $.registerChatCommand('./commands/topCommand.js', 'reloadtopbots', $.PERMISSION.Admin);
     });
 })();

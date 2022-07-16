@@ -35,17 +35,17 @@ public class CommandEvent extends Event {
     /**
      * Class constructor for this event without tags. Always send tags if you can.
      *
-     * @param {String} sender
-     * @param {String} command
-     * @param {String} arguments
-     * @param {Map} tags
+     * @param sender
+     * @param command
+     * @param arguments
      */
     public CommandEvent(String sender, String command, String arguments) {
+        super();
         this.sender = sender;
         this.command = command;
         this.arguments = arguments;
         this.args = parse();
-        this.tags = new HashMap<String, String>();
+        this.tags = new HashMap<>();
         this.whisper = false;
     }
 
@@ -54,24 +54,24 @@ public class CommandEvent extends Event {
         this.command = command;
         this.arguments = arguments;
         this.args = parse();
-        this.tags = new HashMap<String, String>();
+        this.tags = new HashMap<>();
         this.whisper = whisper;
     }
 
     /**
      * Class constructor for this event.
      *
-     * @param {String} sender
-     * @param {String} command
-     * @param {String} arguments
-     * @param {Map} tags
+     * @param sender
+     * @param command
+     * @param arguments
+     * @param tags
      */
     public CommandEvent(String sender, String command, String arguments, Map<String, String> tags) {
         this.sender = sender;
         this.command = command;
         this.arguments = arguments;
         this.args = parse();
-        this.tags = (tags == null ? new HashMap<String, String>() : tags);
+        this.tags = (tags == null ? new HashMap<>() : tags);
         this.whisper = false;
     }
 
@@ -80,17 +80,17 @@ public class CommandEvent extends Event {
         this.command = command;
         this.arguments = arguments;
         this.args = parse();
-        this.tags = (tags == null ? new HashMap<String, String>() : tags);
+        this.tags = (tags == null ? new HashMap<>() : tags);
         this.whisper = whisper;
     }
 
     /**
      * Method that parses the command arguments.
      *
-     * @return {String[]}
+     * @return
      */
     private String[] parse() {
-        List<String> tmpArgs = new LinkedList<String>();
+        List<String> tmpArgs = new LinkedList<>();
         boolean inquote = false;
         String tmpStr = "";
 
@@ -111,13 +111,13 @@ public class CommandEvent extends Event {
             tmpArgs.add(tmpStr);
         }
 
-        return tmpArgs.toArray(new String[tmpArgs.size()]);
+        return tmpArgs.toArray(String[]::new);
     }
 
     /**
      * Method that will return the sender of this command.
      *
-     * @return {String} sender
+     * @return sender
      */
     public String getSender() {
         return this.sender;
@@ -126,7 +126,7 @@ public class CommandEvent extends Event {
     /**
      * Method that will return the command name.
      *
-     * @return {String}
+     * @return
      */
     public String getCommand() {
         return this.command.toLowerCase();
@@ -135,7 +135,7 @@ public class CommandEvent extends Event {
     /**
      * Method that will return the string of arguments.
      *
-     * @return {String} arguments
+     * @return arguments
      */
     public String getArguments() {
         return this.arguments;
@@ -144,16 +144,16 @@ public class CommandEvent extends Event {
     /**
      * Method that will return the array of arguments.
      *
-     * @return {String[]} args
+     * @return args
      */
     public String[] getArgs() {
-        return this.args;
+        return this.args.clone();
     }
 
     /**
      * Method that returns the IRCv3 tags in a map.
      *
-     * @return {Map} tags
+     * @return tags
      */
     public Map<String, String> getTags() {
         return this.tags;
@@ -164,7 +164,7 @@ public class CommandEvent extends Event {
     /**
      * Method that returns this object as a string.
      *
-     * @return {String}
+     * @return
      */
     @Override
     public String toString() {

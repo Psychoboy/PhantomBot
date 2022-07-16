@@ -19,7 +19,6 @@ package com.gmt2001.eventsub;
 import com.gmt2001.Reflect;
 import com.gmt2001.httpclient.HttpClient;
 import com.gmt2001.httpclient.HttpClientResponse;
-import com.gmt2001.httpclient.HttpUrl;
 import com.gmt2001.httpwsserver.HttpRequestHandler;
 import com.gmt2001.httpwsserver.HttpServerPageHandler;
 import com.gmt2001.httpwsserver.auth.HttpAuthenticationHandler;
@@ -39,23 +38,24 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import io.netty.util.CharsetUtil;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.SecureRandom;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Base64;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -69,32 +69,49 @@ import tv.phantombot.PhantomBot;
 import tv.phantombot.event.EventBus;
 
 /**
+ * Manages EventSub subscriptions
  *
  * @author gmt2001
  */
 public final class EventSub implements HttpRequestHandler {
 
+    /**
+     * Constructor. Populates the existing subscription list from Twitch after 5 seconds. Schedules a task to remove handled messages from the
+     * anti-duplicate map when they expire.
+     */
     private EventSub() {
-        Mono.delay(Duration.ofSeconds(5), Schedulers.boundedElastic()).doOnNext(l -> this.getSubscriptions(true)).subscribe();
-        Flux.interval(Duration.ofMillis(CLEANUP_INTERVAL), Schedulers.boundedElastic()).doOnNext(l -> this.cleanupDuplicates()).onErrorContinue((e, o) -> com.gmt2001.Console.err.printStackTrace(e)).subscribe();
+        ScheduledExecutorService svc = Executors.newSingleThreadScheduledExecutor();
+        svc.schedule(() -> this.getSubscriptions(true), 5, TimeUnit.SECONDS);
+        svc.scheduleWithFixedDelay(() -> this.cleanupDuplicates(), CLEANUP_INTERVAL.toMillis(), CLEANUP_INTERVAL.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     private static final EventSub INSTANCE = new EventSub();
     private static final String BASE = "https://api.twitch.tv/helix/eventsub/subscriptions";
-    private static final long CLEANUP_INTERVAL = 120000L;
-    private static final int SUBSCRIPTION_RETRIEVE_INTERVAL = 86400;
+    private static final Duration CLEANUP_INTERVAL = Duration.ofMinutes(2);
+    private static final Duration SUBSCRIPTION_RETRIEVE_INTERVAL = Duration.ofDays(1);
     private int subscription_total = 0;
     private int subscription_total_cost = 0;
     private int subscription_max_cost = 0;
     private final HttpEventSubAuthenticationHandler authHandler = new HttpEventSubAuthenticationHandler();
-    private final ConcurrentMap<String, Date> handledMessages = new ConcurrentHashMap<>();
-    private List<EventSubSubscription> subscriptions = Collections.emptyList();
-    private Date lastSubscriptionRetrieval;
+    private final ConcurrentMap<String, ZonedDateTime> handledMessages = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, EventSubSubscription> subscriptions = new ConcurrentHashMap<>();
+    private Instant lastSubscriptionRetrieval;
+    private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
 
+    /**
+     * Singleton instance getter.
+     *
+     * @return
+     */
     public static EventSub instance() {
         return EventSub.INSTANCE;
     }
 
+    /**
+     * Loads subscription types and registers HTTP handling.
+     *
+     * @return
+     */
     @Override
     public HttpRequestHandler register() {
         Reflect.instance().loadPackageRecursive(EventSubSubscriptionType.class.getName().substring(0, EventSubSubscriptionType.class.getName().lastIndexOf('.')));
@@ -131,9 +148,12 @@ public final class EventSub implements HttpRequestHandler {
         } else if (req.headers().get("Twitch-Eventsub-Message-Type").equals("notification")) {
             EventBus.instance().postAsync(new EventSubInternalNotificationEvent(req));
         } else if (req.headers().get("Twitch-Eventsub-Message-Type").equals("revocation")) {
-            EventBus.instance().postAsync(new EventSubInternalRevocationEvent(req));
+            EventSubInternalRevocationEvent event = new EventSubInternalRevocationEvent(req);
+            this.updateSubscription(event.getSubscription());
+            EventBus.instance().postAsync(event);
         } else if (req.headers().get("Twitch-Eventsub-Message-Type").equals("webhook_callback_verification")) {
             EventSubInternalVerificationEvent event = new EventSubInternalVerificationEvent(req);
+            this.updateSubscription(event.getSubscription());
             EventBus.instance().postAsync(event);
             DefaultFullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.OK, Unpooled.buffer());
             ByteBuf buf = Unpooled.copiedBuffer(event.getChallenge(), CharsetUtil.UTF_8);
@@ -145,6 +165,7 @@ public final class EventSub implements HttpRequestHandler {
 
             res.headers().set(CONNECTION, CLOSE);
             ctx.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+            this.updateSubscription(event.getSubscription(), EventSubSubscription.SubscriptionStatus.ENABLED);
             return;
         } else {
             DefaultFullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.NOT_FOUND, Unpooled.buffer());
@@ -174,7 +195,7 @@ public final class EventSub implements HttpRequestHandler {
      *
      * @return
      */
-    public List<EventSubSubscription> getSubscriptions() {
+    public Map<String, EventSubSubscription> getSubscriptions() {
         return this.getSubscriptions(false);
     }
 
@@ -184,19 +205,27 @@ public final class EventSub implements HttpRequestHandler {
      * @param force true to force a retrieval
      * @return
      */
-    public List<EventSubSubscription> getSubscriptions(boolean force) {
+    public Map<String, EventSubSubscription> getSubscriptions(boolean force) {
         this.doGetSubscriptions(force);
-        return this.subscriptions;
+        return Collections.unmodifiableMap(this.subscriptions);
     }
 
+    /**
+     * Actually performs the getSubscriptions action
+     *
+     * @param force true to force a retrieval
+     */
     private synchronized void doGetSubscriptions(boolean force) {
-        Calendar c = Calendar.getInstance(TimeZone.getTimeZone(ZoneOffset.UTC));
-        c.add(Calendar.SECOND, -EventSub.SUBSCRIPTION_RETRIEVE_INTERVAL);
-
-        if (force || this.lastSubscriptionRetrieval.before(c.getTime())) {
-            List<EventSubSubscription> n = new ArrayList<>();
-            this.getSubscriptionsFromAPI().doOnNext(n::add).doOnComplete(() -> {
-                this.subscriptions = Collections.unmodifiableList(n);
+        if (force || this.lastSubscriptionRetrieval.isBefore(Instant.now().minus(SUBSCRIPTION_RETRIEVE_INTERVAL))) {
+            Map<String, EventSubSubscription> n = new HashMap<>();
+            this.getSubscriptionsFromAPI().doOnNext(s -> n.put(s.getId(), s)).doOnComplete(() -> {
+                this.rwl.writeLock().lock();
+                try {
+                    this.subscriptions.clear();
+                    this.subscriptions.putAll(n);
+                } finally {
+                    this.rwl.writeLock().unlock();
+                }
             }).blockLast();
         }
     }
@@ -226,12 +255,17 @@ public final class EventSub implements HttpRequestHandler {
                 } else {
                     JSONArray arr = response.getJSONArray("data");
                     for (int i = 0; i < arr.length(); i++) {
-                        emitter.next(EventSub.JSONToEventSubSubscription(arr.getJSONObject(i)));
+                        emitter.next(EventSubSubscription.fromJSON(arr.getJSONObject(i)));
                     }
 
-                    this.subscription_total = response.getInt("total");
-                    this.subscription_total_cost = response.getInt("total_cost");
-                    this.subscription_max_cost = response.getInt("max_total_cost");
+                    this.rwl.writeLock().lock();
+                    try {
+                        this.subscription_total = response.getInt("total");
+                        this.subscription_total_cost = response.getInt("total_cost");
+                        this.subscription_max_cost = response.getInt("max_total_cost");
+                    } finally {
+                        this.rwl.writeLock().unlock();
+                    }
                     emitter.complete();
                 }
             } catch (URISyntaxException | IOException | JSONException ex) {
@@ -247,7 +281,12 @@ public final class EventSub implements HttpRequestHandler {
      * @return
      */
     public int getTotalSubscriptionCount() {
-        return this.subscription_total;
+        this.rwl.readLock().lock();
+        try {
+            return this.subscription_total;
+        } finally {
+            this.rwl.readLock().unlock();
+        }
     }
 
     /**
@@ -256,7 +295,12 @@ public final class EventSub implements HttpRequestHandler {
      * @return
      */
     public int getTotalSubscriptionCost() {
-        return this.subscription_total_cost;
+        this.rwl.readLock().lock();
+        try {
+            return this.subscription_total_cost;
+        } finally {
+            this.rwl.readLock().unlock();
+        }
     }
 
     /**
@@ -265,7 +309,12 @@ public final class EventSub implements HttpRequestHandler {
      * @return
      */
     public int getSubscriptionCostLimit() {
-        return this.subscription_max_cost;
+        this.rwl.readLock().lock();
+        try {
+            return this.subscription_max_cost;
+        } finally {
+            this.rwl.readLock().unlock();
+        }
     }
 
     /**
@@ -282,6 +331,9 @@ public final class EventSub implements HttpRequestHandler {
                 if (response.has("error")) {
                     emitter.error(new IOException(response.toString()));
                 } else {
+                    if (this.subscriptions.containsKey(id)) {
+                        this.updateSubscription(this.subscriptions.get(id), EventSubSubscription.SubscriptionStatus.API_REMOVED);
+                    }
                     emitter.success();
                 }
             } catch (URISyntaxException | IOException | JSONException ex) {
@@ -291,6 +343,12 @@ public final class EventSub implements HttpRequestHandler {
         }).publishOn(Schedulers.boundedElastic());
     }
 
+    /**
+     * Performs the create action for an {@link EventSubSubscriptionType}
+     *
+     * @param proposedSubscription The {@link EventSubSubscription} spec to create
+     * @return The new subscription
+     */
     Mono<EventSubSubscription> createSubscription(EventSubSubscription proposedSubscription) {
         return Mono.<EventSubSubscription>create(emitter -> {
             try {
@@ -314,17 +372,9 @@ public final class EventSub implements HttpRequestHandler {
                 if (response.has("error")) {
                     emitter.error(new IOException(response.toString()));
                 } else {
-                    JSONArray arr = response.getJSONArray("data");
-                    JSONObject subscription = arr.getJSONObject(0);
-                    Map<String, String> condition = new HashMap<>();
-
-                    subscription.getJSONObject("condition").keySet().forEach(key -> condition.put(key, subscription.getJSONObject("condition").getString(key)));
-
-                    emitter.success(new EventSubSubscription(
-                            subscription.getString("id"), subscription.getString("status"), subscription.getString("type"), subscription.getString("version"),
-                            subscription.getInt("cost"), condition, subscription.getString("created_at"),
-                            new EventSubTransport(subscription.getJSONObject("transport").getString("method"), subscription.getJSONObject("transport").getString("callback"))
-                    ));
+                    EventSubSubscription subscription = EventSubSubscription.fromJSON(response.getJSONArray("data").getJSONObject(0));
+                    this.updateSubscription(subscription);
+                    emitter.success(subscription);
                 }
             } catch (URISyntaxException | IOException | JSONException ex) {
                 emitter.error(ex);
@@ -333,33 +383,36 @@ public final class EventSub implements HttpRequestHandler {
         }).publishOn(Schedulers.boundedElastic());
     }
 
-    static EventSubSubscription JSONToEventSubSubscription(JSONObject subscription) {
-        Map<String, String> condition = new HashMap<>();
-
-        subscription.getJSONObject("condition").keySet().forEach(key -> condition.put(key, subscription.getJSONObject("condition").getString(key)));
-
-        return new EventSubSubscription(
-                subscription.getString("id"), subscription.getString("status"), subscription.getString("type"), subscription.getString("version"),
-                subscription.getInt("cost"), condition, subscription.getString("created_at"),
-                new EventSubTransport(subscription.getJSONObject("transport").getString("method"), subscription.getJSONObject("transport").getString("callback"))
-        );
-    }
-
-    static Date parseDate(String date) {
+    /**
+     * Parses a date from an EventSub message into a {@link ZonedDateTime}
+     *
+     * @param date
+     * @return
+     */
+    static ZonedDateTime parseDate(String date) {
         try {
-            SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-            return fmt.parse(date);
-        } catch (ParseException ex) {
+            return ZonedDateTime.parse(date, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        } catch (DateTimeParseException ex) {
             com.gmt2001.Console.err.printStackTrace(ex);
         }
 
-        return new Date();
+        return ZonedDateTime.now();
     }
 
+    /**
+     * Retrieves the secret used for signature verification
+     *
+     * @return
+     */
     static String getSecret() {
         return CaselessProperties.instance().getProperty("appsecret", EventSub::generateSecret);
     }
 
+    /**
+     * Generates and stores a new secret for signature verification
+     *
+     * @return
+     */
     private static String generateSecret() {
         Transaction transaction = CaselessProperties.instance().startTransaction(Transaction.PRIORITY_NORMAL);
         byte[] secret = new byte[64];
@@ -375,23 +428,67 @@ public final class EventSub implements HttpRequestHandler {
         return ssecret;
     }
 
-    boolean isDuplicate(String messageId, Date timestamp) {
+    /**
+     * Checks if the specified message has already been handled
+     *
+     * @param messageId The message id to check
+     * @param timestamp The timestamp of the message
+     * @return
+     */
+    boolean isDuplicate(String messageId, ZonedDateTime timestamp) {
         return this.handledMessages.putIfAbsent(messageId, timestamp) != null;
     }
 
+    /**
+     * Updates the local {@link EventSubSubscription} object with a new status
+     *
+     * @param subscription The subscription to update
+     * @param newStatus The new status
+     */
+    private void updateSubscription(EventSubSubscription subscription, EventSubSubscription.SubscriptionStatus newStatus) {
+        this.updateSubscription(subscription.clone(newStatus));
+    }
+
+    /**
+     * Adds/updates an {@link EventSubSubscription} in the local cache and updates the subscription total
+     *
+     * @param subscription The subscription to add/update
+     */
+    private void updateSubscription(EventSubSubscription subscription) {
+        this.rwl.writeLock().lock();
+        try {
+            this.subscriptions.put(subscription.getId(), subscription);
+            this.subscription_total = this.subscriptions.size();
+        } finally {
+            this.rwl.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Removes expired message ids from the duplicate list
+     */
     private void cleanupDuplicates() {
-        Calendar c = Calendar.getInstance(TimeZone.getTimeZone(ZoneOffset.UTC));
-        c.add(Calendar.MINUTE, -10);
-        Date expires = c.getTime();
+        ZonedDateTime expires = ZonedDateTime.now();
         this.handledMessages.forEach((id, ts) -> {
-            if (ts.before(expires)) {
+            if (ts.isBefore(expires)) {
                 this.handledMessages.remove(id);
             }
         });
     }
 
+    /**
+     * Sends requests to Helix. Handles 401 responses by attempting to get a new token and trying again
+     *
+     * @param type The method to use
+     * @param queryString The query string
+     * @param post The post data
+     * @return
+     * @throws IOException
+     * @throws JSONException
+     * @throws URISyntaxException
+     */
     private JSONObject doRequest(HttpMethod type, String queryString, String post) throws IOException, JSONException, URISyntaxException {
-        HttpUrl url = HttpUrl.fromUri(BASE, queryString);
+        URI url = URI.create(BASE + queryString);
         HttpHeaders headers = HttpClient.createHeaders(type, true);
         HttpClientResponse response = HttpClient.request(type, url, headers, post);
         JSONObject jso = response.json();

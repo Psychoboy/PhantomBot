@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* global Packages */
+
 (function() {
     var isOpened = false,
         info = {},
@@ -95,14 +97,14 @@
     function join(username, action, command) {
         if (queue[username] !== undefined) {
             $.say($.whisperPrefix(username) + $.lang.get('queuesystem.join.error.joined'));
-            $.returnCommandCost(username, command, $.isMod(username));
+            $.returnCommandCost(username, command, $.checkUserPermission(username, undefined, $.PERMISSION.Mod));
             return;
         } else if (info.size !== 0 && (info.size <= Object.keys(queue).length)) {
             $.say($.whisperPrefix(username) + $.lang.get('queuesystem.join.error.full'));
-            $.returnCommandCost(username, command, $.isMod(username));
+            $.returnCommandCost(username, command, $.checkUserPermission(username, undefined, $.PERMISSION.Mod));
             return;
         } else if (isOpened === false) {
-            $.returnCommandCost(username, command, $.isMod(username));
+            $.returnCommandCost(username, command, $.checkUserPermission(username, undefined, $.PERMISSION.Mod));
             return;
         }
 
@@ -161,16 +163,15 @@
      * @return {String}
      */
     function date(time, simple) {
-        var date = new Date(time),
-            format = new java.text.SimpleDateFormat('HH:mm:ss z'),
-            seconds = Math.floor((new Date() - time) / 1000),
-            string = $.getTimeString(seconds);
+        var zone = $.inidb.exists('settings', 'timezone') ? $.inidb.get('settings', 'timezone') : 'GMT';
+        var ldate = Packages.java.time.ZonedDateTime.ofInstant(Packages.java.time.Instant.ofEpochMilli(time), Packages.java.time.ZoneId.of(zone));
+        var date = ldate.format(Packages.java.time.format.DateTimeFormatter.ofPattern('HH:mm:ss z'));
+        var string = $.getTimeString(Packages.java.time.Duration.between(date, Packages.java.time.ZonedDateTime.now()).toSeconds());
 
-        format.setTimeZone(java.util.TimeZone.getTimeZone(($.inidb.exists('settings', 'timezone') ? $.inidb.get('settings', 'timezone') : 'GMT')));
         if (simple === undefined) {
-            return format.format(date) + ' ' + $.lang.get('queuesystem.time.info', string);
+            return date + ' ' + $.lang.get('queuesystem.time.info', string);
         } else {
-            return format.format(date);
+            return date;
         }
     }
 
@@ -412,19 +413,19 @@
     });
 
     $.bind('initReady', function() {
-        $.registerChatCommand('./systems/queueSystem.js', 'joinqueue', 7);
-        $.registerChatCommand('./systems/queueSystem.js', 'queue', 7);
+        $.registerChatCommand('./systems/queueSystem.js', 'joinqueue', $.PERMISSION.Viewer);
+        $.registerChatCommand('./systems/queueSystem.js', 'queue', $.PERMISSION.Viewer);
 
-        $.registerChatSubcommand('queue', 'open', 1);
-        $.registerChatSubcommand('queue', 'close', 1);
-        $.registerChatSubcommand('queue', 'clear', 1);
-        $.registerChatSubcommand('queue', 'remove', 1);
-        $.registerChatSubcommand('queue', 'pick', 1);
-        $.registerChatSubcommand('queue', 'random', 1);
-        $.registerChatSubcommand('queue', 'list', 7);
-        $.registerChatSubcommand('queue', 'next', 7);
-        $.registerChatSubcommand('queue', 'info', 7);
-        $.registerChatSubcommand('queue', 'position', 7);
+        $.registerChatSubcommand('queue', 'open', $.PERMISSION.Admin);
+        $.registerChatSubcommand('queue', 'close', $.PERMISSION.Admin);
+        $.registerChatSubcommand('queue', 'clear', $.PERMISSION.Admin);
+        $.registerChatSubcommand('queue', 'remove', $.PERMISSION.Admin);
+        $.registerChatSubcommand('queue', 'pick', $.PERMISSION.Admin);
+        $.registerChatSubcommand('queue', 'random', $.PERMISSION.Admin);
+        $.registerChatSubcommand('queue', 'list', $.PERMISSION.Viewer);
+        $.registerChatSubcommand('queue', 'next', $.PERMISSION.Viewer);
+        $.registerChatSubcommand('queue', 'info', $.PERMISSION.Viewer);
+        $.registerChatSubcommand('queue', 'position', $.PERMISSION.Viewer);
 
         $.inidb.set('queueSettings', 'isActive', 'false');
     });

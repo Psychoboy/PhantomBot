@@ -32,7 +32,6 @@ import com.gmt2001.datastore.MySQLStore;
 import com.gmt2001.datastore.SqliteStore;
 import com.gmt2001.eventsub.EventSub;
 import com.gmt2001.httpclient.HttpClient;
-import com.gmt2001.httpclient.HttpUrl;
 import com.gmt2001.httpwsserver.HTTPWSServer;
 import com.illusionaryone.GitHubAPIv3;
 import com.illusionaryone.TwitchAlertsAPIv1;
@@ -40,10 +39,13 @@ import com.illusionaryone.TwitterAPI;
 import com.scaniatv.CustomAPI;
 import com.scaniatv.StreamElementsAPIv2;
 import com.scaniatv.TipeeeStreamAPIv1;
+import io.netty.util.internal.logging.InternalLoggerFactory;
+import io.netty.util.internal.logging.JdkLoggerFactory;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -51,12 +53,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TimeZone;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -99,7 +101,6 @@ import tv.phantombot.script.Script;
 import tv.phantombot.script.ScriptEventManager;
 import tv.phantombot.script.ScriptFileWatcher;
 import tv.phantombot.script.ScriptManager;
-import tv.phantombot.scripts.core.Moderation;
 import tv.phantombot.twitch.api.Helix;
 import tv.phantombot.twitch.api.TwitchValidate;
 import tv.phantombot.twitch.irc.TwitchSession;
@@ -232,7 +233,7 @@ public final class PhantomBot implements Listener {
     /**
      * Prints a message in the bot console.
      *
-     * @param {Object} message
+     * @param message
      */
     private void print(String message) {
         com.gmt2001.Console.out.println(message);
@@ -276,6 +277,15 @@ public final class PhantomBot implements Listener {
         return CaselessProperties.instance().getProperty("youtubekey", "").isEmpty();
     }
 
+    public static void setLevel(java.util.logging.Level targetLevel) {
+        java.util.logging.Logger root = java.util.logging.Logger.getLogger("");
+        root.setLevel(targetLevel);
+        for (java.util.logging.Handler handler : root.getHandlers()) {
+            handler.setLevel(targetLevel);
+        }
+        System.out.println("level set: " + targetLevel.getName());
+    }
+
     /**
      * Constructor for PhantomBot object.
      *
@@ -283,6 +293,10 @@ public final class PhantomBot implements Listener {
     public PhantomBot() {
         if (CaselessProperties.instance().getPropertyAsBoolean("reactordebug", false)) {
             Loggers.useVerboseConsoleLoggers();
+        }
+        if (CaselessProperties.instance().getPropertyAsBoolean("internaldebug", false)) {
+            setLevel(java.util.logging.Level.ALL);
+            InternalLoggerFactory.setDefaultFactory(JdkLoggerFactory.INSTANCE);
         }
 
         /* Set the default bot variables */
@@ -390,7 +404,7 @@ public final class PhantomBot implements Listener {
             /* Validate the chat OAUTH token. */
             TwitchValidate.instance().validateChat(CaselessProperties.instance().getProperty("oauth"), "CHAT (oauth)");
 
-            TwitchValidate.instance().checkOAuthInconsistencies(this.getBotName());
+            TwitchValidate.instance().checkOAuthInconsistencies(this.getBotName(), this.getChannelName());
         }
     }
 
@@ -429,7 +443,7 @@ public final class PhantomBot implements Listener {
      * @return
      */
     public boolean isNightly() {
-        return RepoVersion.getNightlyBuild();
+        return RepoVersion.isNightlyBuild();
     }
 
     /**
@@ -438,7 +452,7 @@ public final class PhantomBot implements Listener {
      * @return
      */
     public boolean isPrerelease() {
-        return RepoVersion.getPrereleaseBuild();
+        return RepoVersion.isPrereleaseBuild();
     }
 
     public TwitchAuthorizationCodeFlow getAuthFlow() {
@@ -651,7 +665,9 @@ public final class PhantomBot implements Listener {
      * Method that gets the PhantomBot properties.
      *
      * @return
+     * @deprecated
      */
+    @Deprecated
     public CaselessProperties getProperties() {
         return CaselessProperties.instance();
     }
@@ -897,7 +913,6 @@ public final class PhantomBot implements Listener {
         Script.global.defineProperty("hasDiscordToken", hasDiscordToken(), 0);
         Script.global.defineProperty("customAPI", CustomAPI.instance(), 0);
         Script.global.defineProperty("streamLabsAPI", TwitchAlertsAPIv1.instance(), 0);
-        Script.global.defineProperty("moderation", Moderation.instance(), 0);
         Script.global.defineProperty("streamelements", StreamElementsAPIv2.instance(), 0);
 
         /* And finally try to load init, that will then load the scripts */
@@ -980,7 +995,7 @@ public final class PhantomBot implements Listener {
         }
 
         this.print("Terminating all script modules...");
-        HashMap<String, Script> scripts = ScriptManager.getScripts();
+        Map<String, Script> scripts = ScriptManager.getScripts();
         scripts.entrySet().forEach((script) -> {
             script.getValue().kill();
         });
@@ -1311,8 +1326,8 @@ public final class PhantomBot implements Listener {
                 try {
                     Thread.currentThread().setName("tv.phantombot.PhantomBot::doCheckPhantomBotUpdate");
 
-                    if (RepoVersion.getNightlyBuild()) {
-                        String latestNightly = HttpClient.get(HttpUrl.fromUri("https://raw.githubusercontent.com/PhantomBot/nightly-build/master/last_repo_version")).responseBody().trim();
+                    if (RepoVersion.isNightlyBuild()) {
+                        String latestNightly = HttpClient.get(URI.create("https://raw.githubusercontent.com/PhantomBot/nightly-build/master/last_repo_version")).responseBody().trim();
                         if (latestNightly.equalsIgnoreCase(RepoVersion.getRepoVersion().trim())) {
                             this.dataStore.del("settings", "newrelease_info");
                         } else {
@@ -1353,7 +1368,7 @@ public final class PhantomBot implements Listener {
                             this.dataStore.del("settings", "newrelease_info");
                         }
                     }
-                } catch (URISyntaxException | JSONException ex) {
+                } catch (JSONException ex) {
                     com.gmt2001.Console.err.logStackTrace(ex);
                 }
             }
@@ -1389,9 +1404,7 @@ public final class PhantomBot implements Listener {
         service.scheduleAtFixedRate(() -> {
             Thread.currentThread().setName("tv.phantombot.PhantomBot::doBackupDB");
 
-            SimpleDateFormat datefmt = new SimpleDateFormat("ddMMyyyy.hhmmss");
-            datefmt.setTimeZone(TimeZone.getTimeZone(CaselessProperties.instance().getProperty("logtimezone", "GMT")));
-            String timestamp = datefmt.format(new Date());
+            String timestamp = LocalDateTime.now(getTimeZoneId()).format(DateTimeFormatter.ofPattern("ddMMyyyy.hhmmss"));
 
             this.dataStore.backupDB("phantombot.auto.backup." + timestamp + ".db");
 
@@ -1490,11 +1503,31 @@ public final class PhantomBot implements Listener {
     }
 
     public static String getTimeZone() {
-        return CaselessProperties.instance().getProperty("logtimezone", "GMT");
+        String tz = CaselessProperties.instance().getProperty("logtimezone", "GMT");
+
+        if (tz == null || tz.isBlank()) {
+            return "GMT";
+        }
+
+        return tz;
+    }
+
+    public static ZoneId getTimeZoneId() {
+        ZoneId zoneId = ZoneId.of(getTimeZone());
+
+        if (zoneId == null) {
+            return ZoneId.systemDefault();
+        }
+
+        return zoneId;
     }
 
     public static boolean isInExitState() {
         return isInExitState;
+    }
+
+    public TwitchPubSub getPubSub() {
+        return this.pubSubEdge;
     }
 
     public void setPubSub(TwitchPubSub pubSub) {

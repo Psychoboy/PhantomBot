@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* global java, Packages */
+
 /**
  * timeSystem.js
  *
@@ -27,7 +29,6 @@
             timeLevelWarning = $.getSetIniDbBoolean('timeSettings', 'timeLevelWarning', true),
             keepTimeWhenOffline = $.getSetIniDbBoolean('timeSettings', 'keepTimeWhenOffline', true),
             hoursForLevelUp = $.getSetIniDbNumber('timeSettings', 'timePromoteHours', 50),
-            regularsGroupId = 6,
             interval,
             inter;
 
@@ -47,7 +48,7 @@
      * @param {String} timeformat
      * @returns {String}
      *
-     * timeformat = java.text.SimpleDateFormat allowed formats:
+     * timeformat = java.time.format.DateTimeFormatter allowed formats:
      *   Letter   Date or Time Component   Presentation        Examples
      *   G        Era designator           Text                AD
      *   y        Year                     Year                1996; 96
@@ -75,9 +76,8 @@
      *     getCurLocalTimeString("MMMM dd', 'yyyy hh:mm:ss zzz '('Z')'");
      */
     function getCurLocalTimeString(format) {
-        var dateFormat = new java.text.SimpleDateFormat(format);
-        dateFormat.setTimeZone(java.util.TimeZone.getTimeZone(($.inidb.exists('settings', 'timezone') ? $.inidb.get('settings', 'timezone') : "GMT")));
-        return dateFormat.format(new java.util.Date());
+        var zone = $.inidb.exists('settings', 'timezone') ? $.inidb.get('settings', 'timezone') : "GMT";
+        return Packages.java.time.ZonedDateTime.now(Packages.java.time.ZoneId.of(zone)).format(Packages.java.time.format.DateTimeFormatter.ofPattern(format));
     }
 
     /**
@@ -88,9 +88,8 @@
      * @return {String}
      */
     function getLocalTimeString(format, utc_secs) {
-        var dateFormat = new java.text.SimpleDateFormat(format);
-        dateFormat.setTimeZone(java.util.TimeZone.getTimeZone(($.inidb.exists('settings', 'timezone') ? $.inidb.get('settings', 'timezone') : "GMT")));
-        return dateFormat.format(new java.util.Date(utc_secs));
+        var zone = $.inidb.exists('settings', 'timezone') ? $.inidb.get('settings', 'timezone') : "GMT";
+        return Packages.java.time.ZonedDateTime.ofInstant(Packages.java.time.Instant.ofEpochMilli(utc_secs), Packages.java.time.ZoneId.of(zone)).format(Packages.java.time.format.DateTimeFormatter.ofPattern(format));
     }
 
     /**
@@ -101,9 +100,7 @@
      * @return {String}
      */
     function getCurrentLocalTimeString(format, timeZone) {
-        var dateFormat = new java.text.SimpleDateFormat(format);
-        dateFormat.setTimeZone(java.util.TimeZone.getTimeZone(timeZone));
-        return dateFormat.format(new java.util.Date());
+        return Packages.java.time.ZonedDateTime.now(Packages.java.time.ZoneId.of(timeZone)).format(Packages.java.time.format.DateTimeFormatter.ofPattern(format));
     }
 
     /**
@@ -114,9 +111,8 @@
      * @return {String}
      */
     function getLocalTime() {
-        var dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-        dateFormat.setTimeZone(java.util.TimeZone.getTimeZone(($.inidb.exists('settings', 'timezone') ? $.inidb.get('settings', 'timezone') : "GMT")));
-        return dateFormat.format(new java.util.Date());
+        var zone = $.inidb.exists('settings', 'timezone') ? $.inidb.get('settings', 'timezone') : "GMT";
+        return Packages.java.time.ZonedDateTime.now(Packages.java.time.ZoneId.of(zone)).format(Packages.java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"));
     }
 
     /**
@@ -276,7 +272,7 @@
                 cHours = time / 3600,
                 cMins = cHours % 1 * 60;
 
-        if (cHours == 0 || cHours < 1) {
+        if (cHours === 0 || cHours < 1) {
             return (floor(~~cMins) + $.lang.get('common.minutes2'));
         } else {
             return (floor(cHours) + $.lang.get('common.hours2') + floor(~~cMins) + $.lang.get('common.minutes2'));
@@ -381,7 +377,7 @@
                     }
 
                     $.inidb.decr('time', subject, timeArg);
-                    $.say($.whisperPrefix(sender) + $.lang.get('timesystem.take.success', $.getTimeString(timeArg), $.username.resolve(subject), getUserTimeString(subject)))
+                    $.say($.whisperPrefix(sender) + $.lang.get('timesystem.take.success', $.getTimeString(timeArg), $.username.resolve(subject), getUserTimeString(subject)));
                 }
 
                 if (action.equalsIgnoreCase('set')) {
@@ -415,13 +411,13 @@
                     }
 
                     if (subject < 0) {
-                        $.say($.whisperPrefix(sender) + $.lang.get('timesystem.set.promotehours.error.negative', $.getGroupNameById(regularsGroupId)));
+                        $.say($.whisperPrefix(sender) + $.lang.get('timesystem.set.promotehours.error.negative', $.getGroupNameById($.PERMISSION.Regular)));
                         return;
                     }
 
                     hoursForLevelUp = parseInt(subject);
                     $.inidb.set('timeSettings', 'timePromoteHours', hoursForLevelUp);
-                    $.say($.whisperPrefix(sender) + $.lang.get('timesystem.set.promotehours.success', $.getGroupNameById(regularsGroupId), hoursForLevelUp));
+                    $.say($.whisperPrefix(sender) + $.lang.get('timesystem.set.promotehours.success', $.getGroupNameById($.PERMISSION.Regular), hoursForLevelUp));
                 }
 
                 /**
@@ -430,7 +426,7 @@
                 if (action.equalsIgnoreCase('autolevel')) {
                     levelWithTime = !levelWithTime;
                     $.setIniDbBoolean('timeSettings', 'timeLevel', levelWithTime);
-                    $.say($.whisperPrefix(sender) + (levelWithTime ? $.lang.get('timesystem.autolevel.enabled', $.getGroupNameById(regularsGroupId), hoursForLevelUp) : $.lang.get('timesystem.autolevel.disabled', $.getGroupNameById(regularsGroupId), hoursForLevelUp)));
+                    $.say($.whisperPrefix(sender) + (levelWithTime ? $.lang.get('timesystem.autolevel.enabled', $.getGroupNameById($.PERMISSION.Regular), hoursForLevelUp) : $.lang.get('timesystem.autolevel.disabled', $.getGroupNameById($.PERMISSION.Regular), hoursForLevelUp)));
                 }
 
                 /**
@@ -501,14 +497,20 @@
             for (i in $.users) {
                 if ($.users[i] !== null) {
                     username = $.users[i].toLowerCase();
-                    if (!$.isMod(username) && !$.isAdmin(username) && !$.isSub(username) && !$.isVIP(username) && $.inidb.exists('time', username) && Math.floor(parseInt($.inidb.get('time', username)) / 3600) >= hoursForLevelUp && parseInt($.getUserGroupId(username)) > regularsGroupId) {
+                    if (!$.checkUserPermission(username, undefined, $.PERMISSION.Mod)
+                        && !$.checkUserPermission(username, undefined, $.PERMISSION.Admin)
+                        && !$.checkUserPermission(username, undefined, $.PERMISSION.Sub)
+                        && !$.checkUserPermission(username, undefined, $.PERMISSION.VIP)
+                        && $.inidb.exists('time', username)
+                        && Math.floor(parseInt($.inidb.get('time', username)) / 3600) >= hoursForLevelUp
+                        && $.checkUserPermission(username, undefined, $.getLowestIDSubVIP())) {
                         if (!$.hasModList(username)) { // Added a second check here to be 100% sure the user is not a mod.
-                            $.setUserGroupById(username, regularsGroupId);
+                            $.setUserGroupById(username, $.PERMISSION.Regular);
                             if (timeLevelWarning) {
                                 $.say($.lang.get(
                                         'timesystem.autolevel.promoted',
                                         $.username.resolve(username),
-                                        $.getGroupNameById(regularsGroupId).toLowerCase(),
+                                        $.getGroupNameById($.PERMISSION.Regular).toLowerCase(),
                                         hoursForLevelUp
                                         )); //No whisper mode needed here.
                             }
@@ -524,15 +526,15 @@
      */
     $.bind('initReady', function () {
         $.registerChatCommand('./core/timeSystem.js', 'streamertime');
-        $.registerChatCommand('./core/timeSystem.js', 'timezone', 1);
+        $.registerChatCommand('./core/timeSystem.js', 'timezone', $.PERMISSION.Admin);
         $.registerChatCommand('./core/timeSystem.js', 'time');
 
-        $.registerChatSubcommand('time', 'add', 1);
-        $.registerChatSubcommand('time', 'take', 1);
-        $.registerChatSubcommand('time', 'set', 1);
-        $.registerChatSubcommand('time', 'autolevel', 1);
-        $.registerChatSubcommand('time', 'promotehours', 1);
-        $.registerChatSubcommand('time', 'autolevelnotification', 1);
+        $.registerChatSubcommand('time', 'add', $.PERMISSION.Admin);
+        $.registerChatSubcommand('time', 'take', $.PERMISSION.Admin);
+        $.registerChatSubcommand('time', 'set', $.PERMISSION.Admin);
+        $.registerChatSubcommand('time', 'autolevel', $.PERMISSION.Admin);
+        $.registerChatSubcommand('time', 'promotehours', $.PERMISSION.Admin);
+        $.registerChatSubcommand('time', 'autolevelnotification', $.PERMISSION.Admin);
     });
 
     /** Export functions to API */

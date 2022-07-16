@@ -26,10 +26,10 @@ import java.net.URL;
 import com.gmt2001.HttpRequest;
 import com.gmt2001.httpclient.HttpClient;
 import com.gmt2001.httpclient.HttpClientResponse;
-import com.gmt2001.httpclient.HttpUrl;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import java.net.URI;
 import java.net.URISyntaxException;
 import org.json.JSONObject;
 
@@ -125,7 +125,7 @@ public class StreamElementsAPIv2 {
         JSONObject jsonResult = new JSONObject("{}");
         HttpHeaders headers = HttpClient.createHeaders(HttpMethod.GET, true);
         headers.add(HttpHeaderNames.AUTHORIZATION, "Bearer " + jwtToken);
-        HttpClientResponse response = HttpClient.get(HttpUrl.fromUri(URL, endpoint), headers);
+        HttpClientResponse response = HttpClient.get(URI.create(URL + endpoint), headers);
 
         if (response.hasJson()) {
             jsonResult = response.json();
@@ -141,7 +141,7 @@ public class StreamElementsAPIv2 {
     /*
      * Sets the jwt token to access the api
      *
-     * @param {String}  jwtToken  jwt key that the user added in the bot login.
+     * @param  jwtToken  jwt key that the user added in the bot login.
      */
     public void SetJWT(String token) {
         jwtToken = token;
@@ -150,7 +150,7 @@ public class StreamElementsAPIv2 {
     /*
      * Sets the streamelements user account id
      *
-     * @param {String}  id
+     * @param  id
      */
     public void SetID(String id) {
         this.id = id;
@@ -159,7 +159,7 @@ public class StreamElementsAPIv2 {
     /*
      * Sets the api pull limit.
      *
-     * @param {Int}  pullLimit  Amount of donations to pull, default is 5.
+     * @param  pullLimit  Amount of donations to pull, default is 5.
      */
     public void SetLimit(int pullLimit) {
         this.pullLimit = pullLimit;
@@ -168,7 +168,7 @@ public class StreamElementsAPIv2 {
     /*
      * Pulls the 5 last donations from the API.
      *
-     * @return {JSONObject}  The last 5 donations from the api.
+     * @return  The last 5 donations from the api.
      */
     public JSONObject GetDonations() throws URISyntaxException {
         return readJsonFromUrl("/tips/" + this.id + "?limit=" + this.pullLimit);

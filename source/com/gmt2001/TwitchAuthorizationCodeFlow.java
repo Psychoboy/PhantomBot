@@ -18,11 +18,11 @@ package com.gmt2001;
 
 import com.gmt2001.httpclient.HttpClient;
 import com.gmt2001.httpclient.HttpClientResponse;
-import com.gmt2001.httpclient.HttpUrl;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.time.ZoneOffset;
 import java.util.Calendar;
@@ -86,7 +86,7 @@ public class TwitchAuthorizationCodeFlow {
         return this.refreshTokens(refreshTransaction, bot, api);
     }
 
-    private boolean refreshTokens(Transaction refreshTransaction, boolean bot, boolean api) {
+    private synchronized boolean refreshTokens(Transaction refreshTransaction, boolean bot, boolean api) {
         boolean changed = false;
         if (bot) {
             boolean botchanged = this.refreshBotOAuth(refreshTransaction);
@@ -300,7 +300,7 @@ public class TwitchAuthorizationCodeFlow {
 
     private static JSONObject doRequest(String path, Map<String, String> query) {
         try {
-            HttpUrl url = HttpUrl.fromUri(BASE_URL, path).withQuery(query);
+            URI url = URI.create(BASE_URL + path + HttpClient.createQuery(query));
             HttpHeaders headers = HttpClient.createHeaders(HttpMethod.POST, true);
 
             HttpClientResponse response = HttpClient.post(url, headers, "");
@@ -308,7 +308,7 @@ public class TwitchAuthorizationCodeFlow {
             com.gmt2001.Console.debug.println(response.responseCode());
 
             return response.jsonOrThrow();
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             com.gmt2001.Console.debug.printStackTrace(ex);
             return new JSONObject("{\"error\": \"Internal\",\"message\":\"" + ex.toString() + "\",\"status\":0}");
         }

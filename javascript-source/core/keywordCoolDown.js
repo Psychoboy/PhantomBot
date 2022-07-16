@@ -33,8 +33,8 @@
      * @return boolean
      */
     function permCheck(username) {
-        return (!modCooldown && $.isMod(username)) || $.isAdmin(username);
-    };
+        return (!modCooldown && $.checkUserPermission(username, undefined, $.PERMISSION.Mod)) || $.checkUserPermission(username, undefined, $.PERMISSION.Admin);
+    }
 
     /**
      * @function getCooldown
@@ -47,7 +47,7 @@
         } else {
             return 0;
         }
-    };
+    }
 
     /**
      * @function set
@@ -57,7 +57,7 @@
      * @param username
      */
     function set(keyword, hasCooldown, time, username) {
-        if (time == null || time == 0 || time == 1 || isNaN(time)) {
+        if (time === null || time === 0 || time === 1 || isNaN(time)) {
             return;
         }
 
@@ -126,6 +126,6 @@
     $.coolDownKeywords = {
         set: set,
         get: get,
-        clear: clear,
+        clear: clear
     };
 })();

@@ -1076,7 +1076,7 @@ public final class SqliteStore extends DataStore {
 
                 StringBuilder sb = new StringBuilder(keys.length * 2);
 
-                for (String key : keys) {
+                for (String unused : keys) {
                     sb.append("?,");
                 }
 
@@ -1092,7 +1092,7 @@ public final class SqliteStore extends DataStore {
 
                 sb = new StringBuilder(keys.length * 10);
 
-                for (String key : keys) {
+                for (String unused : keys) {
                     sb.append("(?, ?, ?),");
                 }
 
@@ -1166,7 +1166,7 @@ public final class SqliteStore extends DataStore {
                         try {
                             statement.execute("CREATE UNIQUE INDEX IF NOT EXISTS " + tableName + "_idx on phantombot_" + tableName + " (section, variable);");
                         } catch (SQLiteException ex) {
-                            if (ex.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT) {
+                            if (ex.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT || ex.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE) {
                                 statement.execute("DELETE FROM phantombot_" + tableName + " WHERE rowid NOT IN (SELECT MIN(rowid) FROM phantombot_" + tableName + " GROUP BY section, variable);");
                                 statement.execute("CREATE UNIQUE INDEX IF NOT EXISTS " + tableName + "_idx on phantombot_" + tableName + " (section, variable);");
                             } else {

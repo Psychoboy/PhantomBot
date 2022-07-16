@@ -16,12 +16,14 @@
  */
 package com.gmt2001.eventsub;
 
+import org.json.JSONObject;
+
 /**
  * EventSub Transport Data
  *
  * @author gmt2001
  */
-public class EventSubTransport {
+public final class EventSubTransport {
 
     private final String method;
     private final String callback;
@@ -37,6 +39,17 @@ public class EventSubTransport {
         this.method = method;
         this.callback = callback;
         this.secret = secret;
+    }
+
+    /**
+     * Creates a new transport from a JSONObject
+     *
+     * @param transportJson The JSOn object to process
+     * @return
+     */
+    static EventSubTransport fromJSON(JSONObject transportJson) {
+        return new EventSubTransport(transportJson.getString("method"),
+                transportJson.getString("callback"));
     }
 
     /**
@@ -57,6 +70,11 @@ public class EventSubTransport {
         return this.callback;
     }
 
+    /**
+     * Returns the secret used in this transport
+     *
+     * @return
+     */
     String getSecret() {
         return this.secret;
     }

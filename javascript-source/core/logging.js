@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* global java, Packages */
+
 /**
  * logging.js
  *
@@ -58,12 +60,7 @@
      * @return {String}
      */
     function getLogDateString(timeStamp) {
-        var now = (timeStamp ? new Date(timeStamp) : new Date()),
-                pad = function (i) {
-                    return (i < 10 ? '0' + i : i);
-                };
-
-        return pad(now.getDate()) + '-' + pad(now.getMonth() + 1) + '-' + now.getFullYear();
+        return Packages.com.gmt2001.Logger.instance().logFileTimestamp();
     }
 
     /*
@@ -88,10 +85,7 @@
      * @return {String}
      */
     function getLogEntryTimeDateString() {
-        var dateFormat = new java.text.SimpleDateFormat("MM-dd-yyyy @ HH:mm:ss.SSS z");
-
-        dateFormat.setTimeZone(java.util.TimeZone.getTimeZone(($.inidb.exists('settings', 'timezone') ? $.inidb.get('settings', 'timezone') : 'GMT')));
-        return dateFormat.format(new Date());
+        return Packages.com.gmt2001.Logger.instance().logTimestamp();
     }
 
     /*
@@ -239,24 +233,28 @@
                     'whispers'
                 ],
                 logDirIdx,
-                datefmt = new java.text.SimpleDateFormat('dd-MM-yyyy'),
+                match,
                 date,
-                rotateDays = $.getIniDbNumber('settings', 'log_rotate_days') * 24 * 60 * 6e4,
-                checkDate = $.systemTime() - rotateDays;
+                rotateDays = $.getIniDbNumber('settings', 'log_rotate_days', 0) * 24 * 60 * 6e4;
 
         if (rotateDays === 0) {
             return;
         }
 
+        var checkDate = Packages.java.time.LocalDate.now().minusDays(rotateDays);
+
         $.log.event('Starting Log Rotation');
         for (logDirIdx = 0; logDirIdx < logDirs.length; logDirIdx++) {
             logFiles = $.findFiles('./logs/' + logDirs[logDirIdx], 'txt');
             for (idx = 0; idx < logFiles.length; idx++) {
-                logFileDate = logFiles[idx].match(/(\d{2}-\d{2}-\d{4})/)[1];
-                date = datefmt.parse(logFileDate);
-                if (date.getTime() < checkDate) {
-                    $.log.event('Log Rotate: Deleted ./logs/' + logDirs[logDirIdx] + '/' + logFiles[idx]);
-                    $.deleteFile('./logs/' + logDirs[logDirIdx] + '/' + logFiles[idx], true);
+                match = logFiles[idx].match(/(\d{4}-\d{2}-\d{2})/);
+                if (match !== undefined && match !== null && match[1] !== undefined && match[1] !== null) {
+                    logFileDate = match[1];
+                    date = Packages.java.time.LocalDate.parse(logFileDate);
+                    if (date.isBefore(checkDate)) {
+                        $.log.event('Log Rotate: Deleted ./logs/' + logDirs[logDirIdx] + '/' + logFiles[idx]);
+                        $.deleteFile('./logs/' + logDirs[logDirIdx] + '/' + logFiles[idx], true);
+                    }
                 }
             }
         }
@@ -393,7 +391,7 @@
      * @event initReady
      */
     $.bind('initReady', function () {
-        $.registerChatCommand('./core/logging.js', 'log', 1);
+        $.registerChatCommand('./core/logging.js', 'log', $.PERMISSION.Admin);
 
         logRotate();
     });

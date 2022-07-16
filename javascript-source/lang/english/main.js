@@ -308,6 +308,9 @@ $.lang.register('cooldown.coolcom.err', 'The minimum cooldown that can be set is
 $.lang.register('cooldown.coolcom.setGlobal', 'Cooldown for command !$1 has globally been set to $2 seconds.');
 $.lang.register('cooldown.coolcom.setUser', 'Cooldown for command !$1 has been set to $2 seconds individually for each user.');
 $.lang.register('cooldown.coolcom.setCombo', 'Cooldown for command !$1 has globally been set to $2 seconds and to $3 seconds individually for each user.');
+$.lang.register('cooldown.coolcom.setGlobalModsSkip', 'Cooldown for command !$1 has globally been set to $2 seconds. Moderators will skip the cooldown for this command.');
+$.lang.register('cooldown.coolcom.setUserModsSkip', 'Cooldown for command !$1 has been set to $2 seconds individually for each user. Moderators will skip the cooldown for this command.');
+$.lang.register('cooldown.coolcom.setComboModsSkip', 'Cooldown for command !$1 has globally been set to $2 seconds and to $3 seconds individually for each user. Moderators will skip the cooldown for this command.');
 $.lang.register('cooldown.coolcom.remove', 'Cooldown for command !$1 has been removed.');
 $.lang.register('cooldown.cooldown.usage', 'Usage: !cooldown [togglemoderators / setdefault]');
 $.lang.register('cooldown.default.set', 'The default cooldown for commands without one has been set to $1 seconds.');
@@ -391,9 +394,9 @@ $.lang.register('permissions.grouppoints.showgroup.online', '$1 gains $2 $3 onli
 $.lang.register('permissions.grouppoints.showgroup.offline', '$1 gains $2 $3 offline.');
 $.lang.register('permissions.grouppoints.set.online', 'Set permission $1 to gain $2 $3 online.');
 $.lang.register('permissions.grouppoints.set.offline', 'Set permission $1 to gain $2 $3 offline.');
-$.lang.register('permissions.grouppoints.set.sub.error', 'You cannot promote anyone to Subscriber, this status is from Twitch.'); 
-$.lang.register('permissions.swapsubscribervip.normal', 'Subscribers are now set as higher than VIPs (default).'); 
-$.lang.register('permissions.swapsubscribervip.swapped', 'VIPs are now set as higher than Subscribers.'); 
+$.lang.register('permissions.grouppoints.set.sub.error', 'You cannot promote anyone to Subscriber, this status is from Twitch.');
+$.lang.register('permissions.swapsubscribervip.normal', 'Subscribers are now set as higher than VIPs (default).');
+$.lang.register('permissions.swapsubscribervip.swapped', 'VIPs are now set as higher than Subscribers.');
 $.lang.register('ignorelist', 'Current Ignored Bots: $1');
 $.lang.register('ignorelist.listtoolong', 'There are over $1 to list, I suggest checking the ./addons/ignorebots.txt');
 $.lang.register('ignoreadd.usage', 'Usage: !ignoreadd [username], to add a channel to the ignore list.');

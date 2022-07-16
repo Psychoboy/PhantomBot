@@ -16,7 +16,6 @@
  */
 package com.gmt2001.eventsub.subscriptions.channel;
 
-import com.gmt2001.eventsub.EventSub;
 import com.gmt2001.eventsub.EventSubInternalNotificationEvent;
 import com.gmt2001.eventsub.EventSubSubscription;
 import com.gmt2001.eventsub.EventSubSubscriptionType;
@@ -31,10 +30,10 @@ import tv.phantombot.event.eventsub.channel.EventSubChannelUpdateEvent;
  *
  * @author gmt2001
  */
-public class ChannelUpdate extends EventSubSubscriptionType {
+public final class ChannelUpdate extends EventSubSubscriptionType {
 
     public static final String TYPE = "channel.update";
-    protected String broadcaster_user_id;
+    private String broadcaster_user_id;
     private String broadcaster_user_login;
     private String broadcaster_user_name;
     private String title;
@@ -43,10 +42,19 @@ public class ChannelUpdate extends EventSubSubscriptionType {
     private String category_name;
     private boolean is_mature;
 
-    protected ChannelUpdate() {
+    /**
+     * Only used by EventBus for handler registration
+     */
+    public ChannelUpdate() {
+        super();
     }
 
-    protected ChannelUpdate(EventSubInternalNotificationEvent e) {
+    /**
+     * Used by {@link onEventSubInternalNotificationEvent} to construct an object from an incoming notification
+     *
+     * @param e The event
+     */
+    public ChannelUpdate(EventSubInternalNotificationEvent e) {
         super(e.getSubscription(), e.getMessageId(), e.getMessageTimestamp());
         this.broadcaster_user_id = e.getEvent().getString("broadcaster_user_id");
         this.broadcaster_user_login = e.getEvent().getString("broadcaster_user_login");
@@ -58,19 +66,25 @@ public class ChannelUpdate extends EventSubSubscriptionType {
         this.is_mature = e.getEvent().getBoolean("is_mature");
     }
 
+    /**
+     * Constructor
+     *
+     * @param broadcaster_user_id The user id of the broadcaster
+     */
     public ChannelUpdate(String broadcaster_user_id) {
+        super();
         this.broadcaster_user_id = broadcaster_user_id;
     }
 
     @Override
-    protected EventSubSubscription proposeSubscription() {
+    public EventSubSubscription proposeSubscription() {
         Map<String, String> condition = new HashMap<>();
         condition.put("broadcaster_user_id", this.broadcaster_user_id);
         return this.proposeSubscriptionInternal(ChannelUpdate.TYPE, condition);
     }
 
     @Override
-    protected void validateParameters() throws IllegalArgumentException {
+    public void validateParameters() throws IllegalArgumentException {
         if (this.broadcaster_user_id == null || this.broadcaster_user_id.isBlank() || !this.broadcaster_user_id.matches("[0-9]+")
                 || this.broadcaster_user_id.startsWith("-") || this.broadcaster_user_id.startsWith("0")) {
             throw new IllegalArgumentException("broadcaster_user_id must be a valid id");
@@ -85,23 +99,9 @@ public class ChannelUpdate extends EventSubSubscriptionType {
     }
 
     @Override
-    public boolean isAlreadySubscribed() {
-        return EventSub.instance().getSubscriptions().stream().anyMatch(possibleSubscription -> {
-            return possibleSubscription.getType().equals(ChannelUpdate.TYPE)
-                    && possibleSubscription.getCondition().get("broadcaster_user_id").equals(this.broadcaster_user_id)
-                    && (possibleSubscription.getStatus() == EventSubSubscription.SubscriptionStatus.ENABLED
-                    || possibleSubscription.getStatus() == EventSubSubscription.SubscriptionStatus.WEBHOOK_CALLBACK_VERIFICATION_PENDING);
-        });
-    }
-
-    @Override
-    public String findMatchingSubscriptionId() {
-        return EventSub.instance().getSubscriptions().stream().filter(possibleSubscription -> {
-            return possibleSubscription.getType().equals(ChannelUpdate.TYPE)
-                    && possibleSubscription.getCondition().get("broadcaster_user_id").equals(this.broadcaster_user_id)
-                    && (possibleSubscription.getStatus() == EventSubSubscription.SubscriptionStatus.ENABLED
-                    || possibleSubscription.getStatus() == EventSubSubscription.SubscriptionStatus.WEBHOOK_CALLBACK_VERIFICATION_PENDING);
-        }).findFirst().map(EventSubSubscription::getId).orElse(null);
+    protected boolean isMatch(EventSubSubscription subscription) {
+        return subscription.getType().equals(ChannelUpdate.TYPE)
+                && subscription.getCondition().get("broadcaster_user_id").equals(this.broadcaster_user_id);
     }
 
     /**
@@ -172,7 +172,7 @@ public class ChannelUpdate extends EventSubSubscriptionType {
      *
      * @return
      */
-    public boolean getIsMature() {
+    public boolean isMature() {
         return this.is_mature;
     }
 }

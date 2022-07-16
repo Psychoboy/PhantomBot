@@ -16,16 +16,17 @@
  */
 package com.gmt2001.eventsub;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import org.json.JSONObject;
 
 /**
  * EventSub Subscription Data
  *
  * @author gmt2001
  */
-public class EventSubSubscription {
+public final class EventSubSubscription {
 
     private final String id;
     private final SubscriptionStatus status;
@@ -33,7 +34,7 @@ public class EventSubSubscription {
     private final String version;
     private final int cost;
     private final Map<String, String> condition;
-    private final Date created_at;
+    private final ZonedDateTime created_at;
     private final EventSubTransport transport;
 
     /**
@@ -65,6 +66,10 @@ public class EventSubSubscription {
          */
         USER_REMOVED,
         /**
+         * The subscription was removed via API request, probably by a script on the bot.
+         */
+        API_REMOVED,
+        /**
          * Subscription proposal that has not been submitted to the EventSub endpoint for creation yet.
          */
         NOT_CREATED_YET
@@ -92,7 +97,7 @@ public class EventSubSubscription {
         this.transport = transport;
     }
 
-    EventSubSubscription(String id, String status, String type, String version, int cost, Map<String, String> condition, Date created_at, EventSubTransport transport) {
+    EventSubSubscription(String id, String status, String type, String version, int cost, Map<String, String> condition, ZonedDateTime created_at, EventSubTransport transport) {
         this.id = id;
         this.status = SubscriptionStatus.valueOf(status.toUpperCase());
         this.type = type;
@@ -103,7 +108,7 @@ public class EventSubSubscription {
         this.transport = transport;
     }
 
-    EventSubSubscription(String id, SubscriptionStatus status, String type, String version, int cost, Map<String, String> condition, Date created_at, EventSubTransport transport) {
+    EventSubSubscription(String id, SubscriptionStatus status, String type, String version, int cost, Map<String, String> condition, ZonedDateTime created_at, EventSubTransport transport) {
         this.id = id;
         this.status = status;
         this.type = type;
@@ -121,8 +126,66 @@ public class EventSubSubscription {
         this.version = version;
         this.cost = -1;
         this.condition = new HashMap<>(condition);
-        this.created_at = new Date();
+        this.created_at = ZonedDateTime.now();
         this.transport = transport;
+    }
+
+    /**
+     * Creates a new subscription from a JSONObject
+     *
+     * @param subscriptionJson The JSON object to process
+     * @return
+     */
+    static EventSubSubscription fromJSON(JSONObject subscriptionJson) {
+        Map<String, String> condition = new HashMap<>();
+
+        subscriptionJson.getJSONObject("condition").keySet().forEach(key -> condition.put(key, subscriptionJson.getJSONObject("condition").getString(key)));
+
+        return new EventSubSubscription(
+                subscriptionJson.getString("id"), subscriptionJson.getString("status"), subscriptionJson.getString("type"),
+                subscriptionJson.getString("version"), subscriptionJson.getInt("cost"), condition, subscriptionJson.getString("created_at"),
+                EventSubTransport.fromJSON(subscriptionJson.getJSONObject("transport"))
+        );
+    }
+
+    /**
+     * Clones the subscription with a new status
+     *
+     * @param newStatus The new status to apply to the clone
+     * @return
+     */
+    EventSubSubscription clone(SubscriptionStatus newStatus) {
+        return new EventSubSubscription(this.getId(), newStatus, this.getType(), this.getVersion(), this.getCost(), this.getCondition(),
+                this.getCreatedAt(), this.getTransport());
+    }
+
+    /**
+     * Indicates if the subscription is enabled and valid.
+     *
+     * @return
+     */
+    public boolean isEnabled() {
+        return this.status == SubscriptionStatus.ENABLED;
+    }
+
+    /**
+     * Indicates if the subscription has been revoked for any reason.
+     *
+     * @return
+     */
+    public boolean isRevoked() {
+        return this.status == SubscriptionStatus.API_REMOVED || this.status == SubscriptionStatus.AUTHORIZATION_REVOKED
+                || this.status == SubscriptionStatus.NOTIFICATION_FAILURES_EXCEEDED || this.status == SubscriptionStatus.USER_REMOVED
+                || this.status == SubscriptionStatus.WEBHOOK_CALLBACK_VERIFICATION_FAILED;
+    }
+
+    /**
+     * Indicates if the subscription is pending.
+     *
+     * @return
+     */
+    public boolean isPending() {
+        return this.status == SubscriptionStatus.NOT_CREATED_YET || this.status == SubscriptionStatus.WEBHOOK_CALLBACK_VERIFICATION_PENDING;
     }
 
     /**
@@ -184,7 +247,7 @@ public class EventSubSubscription {
      *
      * @return
      */
-    public Date getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return this.created_at;
     }
 

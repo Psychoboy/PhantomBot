@@ -79,8 +79,8 @@
          * @commandpath pausecommands clear - Unpause commands 
          */
         if (command.equalsIgnoreCase('pausecommands')) {
-            if (args[0] != undefined || args[0] != null) {
-                if (args[0] == 'clear') {
+            if (args[0] !== undefined || args[0] !== null) {
+                if ($.jsString(args[0]) === 'clear') {
                     unPause();
                     return;
                 }
@@ -101,7 +101,7 @@
      */
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./core/commandPause.js')) {
-            $.registerChatCommand('./core/commandPause.js', 'pausecommands', 2);
+            $.registerChatCommand('./core/commandPause.js', 'pausecommands', $.PERMISSION.Mod);
         }
     });
 
@@ -109,6 +109,6 @@
     $.commandPause = {
         pause: pause,
         isPaused: isPaused,
-        unPause: unPause,
+        unPause: unPause
     };
 })();

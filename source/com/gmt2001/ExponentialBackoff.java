@@ -16,7 +16,8 @@
  */
 package com.gmt2001;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +32,8 @@ public class ExponentialBackoff {
     private final long minIntervalMS;
     private final long maxIntervalMS;
     private final long resetIntervalMS;
-    private Date lastBackoff = new Date();
+    private Instant lastBackoff = Instant.now();
+    private Instant resetTime = null;
     private long lastIntervalMS;
     private int totalIterations = 0;
     private boolean isNextIntervalDetermined = true;
@@ -79,7 +81,7 @@ public class ExponentialBackoff {
         } catch (InterruptedException ex) {
             com.gmt2001.Console.err.logStackTrace(ex);
         } finally {
-            this.lastBackoff = new Date();
+            this.lastBackoff = Instant.now();
             this.setIsBackingOff(false);
             com.gmt2001.Console.debug.println("Unlocked backoff...");
             this.setIsNextIntervalDetermined(false);
@@ -104,7 +106,7 @@ public class ExponentialBackoff {
         com.gmt2001.Console.debug.println("Scheduling...");
         ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
         service.schedule(() -> {
-            this.lastBackoff = new Date();
+            this.lastBackoff = Instant.now();
             this.setIsBackingOff(false);
             com.gmt2001.Console.debug.println("Unlocked backoff...");
             this.setIsNextIntervalDetermined(false);
@@ -118,10 +120,35 @@ public class ExponentialBackoff {
     /**
      * Resets the backoff to use the minimum values on the next call
      */
-    public void Reset() {
+    public synchronized void Reset() {
+        this.resetTime = null;
         this.lastIntervalMS = this.minIntervalMS;
         this.totalIterations = 0;
         this.setIsNextIntervalDetermined(true);
+    }
+
+    /**
+     * Resets the backoff to use the minimum values on the next call, but only if duration expires without CancelReset being called
+     *
+     * @param duration the duration to wait before resetting this ExponentialBackoff
+     */
+    public synchronized void ResetIn(Duration duration) {
+        Instant lresetTime = Instant.now().plus(duration);
+        this.resetTime = lresetTime;
+
+        ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+        service.schedule(() -> {
+            if (this.resetTime == lresetTime) {
+                this.Reset();
+            }
+        }, duration.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Cancels a scheduled reset initiated by a call to ResetIn
+     */
+    public synchronized void CancelReset() {
+        this.resetTime = null;
     }
 
     /**
@@ -169,7 +196,7 @@ public class ExponentialBackoff {
             return;
         }
 
-        if (this.resetIntervalMS >= 0 && new Date().getTime() >= this.lastBackoff.getTime() + this.resetIntervalMS) {
+        if (this.resetIntervalMS >= 0 && this.lastBackoff.plusMillis(this.resetIntervalMS).isBefore(Instant.now())) {
             com.gmt2001.Console.debug.println("Reset interval has expired, resetting to " + this.minIntervalMS + "...");
             this.lastIntervalMS = this.minIntervalMS;
             this.totalIterations = 0;

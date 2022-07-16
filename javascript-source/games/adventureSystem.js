@@ -595,12 +595,12 @@
      * @event initReady
      */
     $.bind('initReady', function() {
-        $.registerChatCommand('./games/adventureSystem.js', 'adventure', 7);
-        $.registerChatCommand('./games/adventureSystem.js', 'heisttop', 7);
-        $.registerChatCommand('./games/adventureSystem.js', 'heistbottom', 7);
-        $.registerChatCommand('./games/adventureSystem.js', 'resetheist', 1);
-        $.registerChatSubcommand('adventure', 'set', 1);
-        $.registerChatSubcommand('adventure', 'top5', 3);
+        $.registerChatCommand('./games/adventureSystem.js', 'adventure', $.PERMISSION.Viewer);
+        $.registerChatCommand('./games/adventureSystem.js', 'heisttop', $.PERMISSION.Viewer);
+        $.registerChatCommand('./games/adventureSystem.js', 'heistbottom', $.PERMISSION.Viewer);
+        $.registerChatCommand('./games/adventureSystem.js', 'resetheist', $.PERMISSION.Admin);
+        $.registerChatSubcommand('adventure', 'set', $.PERMISSION.Admin);
+        $.registerChatSubcommand('adventure', 'top5', $.getHighestIDSubVIP());
 
         loadStories();
     });

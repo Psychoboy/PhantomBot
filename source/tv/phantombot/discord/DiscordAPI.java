@@ -16,6 +16,7 @@
  */
 package tv.phantombot.discord;
 
+import discord4j.common.ReactorResources;
 import discord4j.common.sinks.EmissionStrategy;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
@@ -43,10 +44,15 @@ import discord4j.core.object.entity.channel.GuildMessageChannel;
 import discord4j.core.object.entity.channel.PrivateChannel;
 import discord4j.gateway.DefaultGatewayClient;
 import discord4j.gateway.GatewayOptions;
+import discord4j.gateway.GatewayReactorResources;
 import discord4j.gateway.intent.Intent;
 import discord4j.gateway.intent.IntentSet;
 import discord4j.rest.request.RequestQueueFactory;
+import discord4j.rest.request.RouteMatcher;
 import discord4j.rest.request.RouterOptions;
+import discord4j.rest.response.ResponseFunction;
+import io.netty.resolver.DefaultAddressResolverGroup;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -58,7 +64,9 @@ import java.util.concurrent.TimeUnit;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.retry.Retry;
 import reactor.util.concurrent.Queues;
+import tv.phantombot.CaselessProperties;
 import tv.phantombot.PhantomBot;
 import tv.phantombot.discord.util.DiscordUtil;
 import tv.phantombot.event.EventBus;
@@ -99,7 +107,7 @@ public class DiscordAPI extends DiscordUtil {
     /**
      * Method to return this class object.
      *
-     * @return {Object}
+     * @return
      */
     public static synchronized DiscordAPI instance() {
         if (DiscordAPI.instance == null) {
@@ -135,7 +143,12 @@ public class DiscordAPI extends DiscordUtil {
      */
     public void connect(String token) {
         if (DiscordAPI.builder == null) {
-            DiscordAPI.builder = DiscordClientBuilder.create(token);
+            DiscordAPI.builder = (DiscordClientBuilder<DiscordClient, RouterOptions>) DiscordClientBuilder.create(token).onClientResponse(ResponseFunction.retryWhen(RouteMatcher.any(), Retry.anyOf(IOException.class).exponentialBackoffWithJitter(Duration.ofSeconds(1), Duration.ofMinutes(15)).retryMax(10)));
+
+            if (CaselessProperties.instance().getPropertyAsBoolean("usedefaultdnsresolver", false)) {
+                DiscordAPI.builder = (DiscordClientBuilder<DiscordClient, RouterOptions>) DiscordAPI.builder.setReactorResources(ReactorResources.builder().httpClient(ReactorResources.DEFAULT_HTTP_CLIENT.get().resolver(DefaultAddressResolverGroup.INSTANCE)).build());
+            }
+
             DiscordAPI.client = DiscordAPI.builder.setRequestQueueFactory(RequestQueueFactory.createFromSink(spec -> spec.multicast().onBackpressureBuffer(Queues.SMALL_BUFFER_SIZE, false), EmissionStrategy.timeoutError(Duration.ofSeconds(5L)))).build();
         }
 
@@ -263,7 +276,7 @@ public class DiscordAPI extends DiscordUtil {
     /**
      * Method that will return the current guild.
      *
-     * @return {Guild}
+     * @return
      */
     public static Guild getGuild() {
         return DiscordAPI.gateway.getGuildById(DiscordAPI.guildId).block(Duration.ofSeconds(5L));
@@ -276,7 +289,7 @@ public class DiscordAPI extends DiscordUtil {
     /**
      * Method that will return the current client
      *
-     * @return {DiscordClient}
+     * @return
      */
     public static DiscordClient getClient() {
         return DiscordAPI.client;
@@ -285,7 +298,7 @@ public class DiscordAPI extends DiscordUtil {
     /**
      * Method that will return the current gateway
      *
-     * @return {GatewayDiscordClient}
+     * @return
      */
     public static GatewayDiscordClient getGateway() {
         return DiscordAPI.gateway;
@@ -294,7 +307,7 @@ public class DiscordAPI extends DiscordUtil {
     /**
      * Method to parse commands.
      *
-     * @param {String} message
+     * @param message
      */
     private void parseCommand(User user, Channel channel, Message message, boolean isAdmin) {
         if (message.getContent().isEmpty()) {
@@ -320,9 +333,6 @@ public class DiscordAPI extends DiscordUtil {
 
         private static final List<Long> processedMessages = new CopyOnWriteArrayList<>();
         private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
-        private DiscordEventListener() {
-        }
 
         public static void onDiscordDisconnectEvent(DisconnectEvent event) {
             synchronized (DiscordAPI.instance().mutex) {
@@ -414,7 +424,7 @@ public class DiscordAPI extends DiscordUtil {
                     return;
                 }
 
-                if (DiscordAPI.selfId != null && iUser.getId().equals(DiscordAPI.selfId)) {
+                if (DiscordAPI.selfId != null && DiscordAPI.selfId.equals(iUser.getId())) {
                     com.gmt2001.Console.debug.println("Ignored message " + iMessage.getId().asString() + " due to iUser.getId().equals(DiscordAPI.selfId)");
                     return;
                 }
@@ -506,7 +516,12 @@ public class DiscordAPI extends DiscordUtil {
     public final class DiscordGatewayOptions extends GatewayOptions {
 
         public DiscordGatewayOptions(GatewayOptions parent) {
-            super(parent.getToken(), parent.getReactorResources(), parent.getPayloadReader(),
+            super(parent.getToken(),
+                    CaselessProperties.instance().getPropertyAsBoolean("usedefaultdnsresolver", false)
+                    ? GatewayReactorResources.builder().httpClient(GatewayReactorResources.DEFAULT_HTTP_CLIENT.get()
+                            .resolver(DefaultAddressResolverGroup.INSTANCE)).build()
+                    : parent.getReactorResources(),
+                    parent.getPayloadReader(),
                     parent.getPayloadWriter(), parent.getReconnectOptions(), parent.getIdentifyOptions(),
                     parent.getInitialObserver(), parent.getIdentifyLimiter(), parent.getMaxMissedHeartbeatAck(),
                     parent.isUnpooled(), EmissionStrategy.timeoutError(Duration.ofSeconds(5L)));

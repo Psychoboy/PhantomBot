@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* global Packages */
+
 /**
  * fileSystem.js
  *
@@ -85,6 +87,25 @@
             Packages.com.gmt2001.JSFileSystem.MoveFileToDirectory($.javaString(file), $.javaString(path));
         } catch (ex) {
             $.log.error("moveFile(" + file + ", " + path + ") failed: " + ex);
+        }
+    }
+
+    /**
+     * @function moveRenameFile
+     * @export $
+     * @param {string} file
+     * @param {string} path
+     */
+    function moveRenameFile(file, path) {
+        if (invalidLocation(file) || invalidLocation(path)) {
+            $.consoleLn('Blocked moveRenameFile() source or target outside of validPaths:' + file + ' to ' + path);
+            return;
+        }
+
+        try {
+            Packages.com.gmt2001.JSFileSystem.MoveFile($.javaString(file), $.javaString(path));
+        } catch (ex) {
+            $.log.error("moveRenameFile(" + file + ", " + path + ") failed: " + ex);
         }
     }
 
@@ -252,6 +273,7 @@
     $.isDirectory = isDirectory;
     $.mkDir = mkDir;
     $.moveFile = moveFile;
+    $.moveRenameFile = moveRenameFile;
     $.readFile = readFile;
     $.saveArray = saveArray;
     $.touchFile = touchFile;

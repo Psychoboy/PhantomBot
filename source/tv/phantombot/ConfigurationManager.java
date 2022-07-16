@@ -35,7 +35,6 @@ public class ConfigurationManager {
     public static final String PROP_WEBENABLE = "webenable";
     public static final String PROP_MSGLIMIT30 = "msglimit30";
     public static final String PROP_MUSICENABLE = "musicenable";
-    public static final String PROP_WHISPERLIMIT60 = "whisperlimit60";
     public static final String PROP_OAUTH = "oauth";
     public static final String PROP_CHANNEL = "channel";
     public static final String PROP_OWNER = "owner";
@@ -79,17 +78,6 @@ public class ConfigurationManager {
                 try ( FileInputStream inputStream = new FileInputStream(BOTLOGIN_TXT_LOCATION)) {
                     startProperties.load(inputStream);
                 }
-            } else {
-                /*
-                 * Fill in the Properties object with some default values. Note that some values
-                 * are left unset to be caught in the upcoming logic to enforce settings.
-                 */
-                startProperties.setProperty(PROP_BASEPORT, "25000");
-                startProperties.setProperty(PROP_USEHTTPS, "true");
-                startProperties.setProperty(PROP_WEBENABLE, "true");
-                startProperties.setProperty(PROP_MSGLIMIT30, "19.0");
-                startProperties.setProperty(PROP_MUSICENABLE, "true");
-                startProperties.setProperty(PROP_WHISPERLIMIT60, "60.0");
             }
         } catch (IOException ex) {
             com.gmt2001.Console.err.printStackTrace(ex);
@@ -168,6 +156,12 @@ public class ConfigurationManager {
     private static boolean generateDefaultValues(CaselessProperties startProperties) {
         boolean changed = false;
 
+        changed |= setDefaultIfMissing(startProperties, PROP_BASEPORT, "25000", "Set default baseport");
+        changed |= setDefaultIfMissing(startProperties, PROP_USEHTTPS, "true", "Set default usehttps");
+        changed |= setDefaultIfMissing(startProperties, PROP_WEBENABLE, "true", "Set default webenable");
+        changed |= setDefaultIfMissing(startProperties, PROP_MSGLIMIT30, "19.0", "Set default msglimit30");
+        changed |= setDefaultIfMissing(startProperties, PROP_MUSICENABLE, "true", "Set default musicenable");
+
         changed |= setDefaultIfMissing(startProperties, PROP_USEROLLBAR, "true", "Enabled Rollbar");
 
         /* Check to see if there's a webOauth set */
@@ -220,7 +214,7 @@ public class ConfigurationManager {
      * @param propertyName the name of the property, which should be set if null
      * @param defaultValue the default value, to which the property is set, if the property is missing in the properties object
      * @param setMessage the message which will be printed if the value is set to the given default value
-     * @return {@code true} if the value has been set to default, {@code false} if the value is already present in the properties object
+     * @return if the value is already present in the properties object
      */
     private static boolean setDefaultIfMissing(CaselessProperties properties, String propertyName, String defaultValue, String generatedMessage) {
         return setDefaultIfMissing(properties, propertyName, () -> defaultValue, generatedMessage);
@@ -233,8 +227,7 @@ public class ConfigurationManager {
      * @param propertyName the name of the property, which should be generated if null
      * @param defaultValueGenerator the generating function, which generates the default value, if the property is missing in the properties object
      * @param generatedMessage the message which will be printed if the value is generated
-     * @return {@code true} if the value has been generated, {@code false} if the value is already present in the properties object and does not have
-     * to be generated
+     * @return if the value is already present in the properties object and does not have to be generated
      */
     private static boolean setDefaultIfMissing(CaselessProperties properties, String propertyName, Supplier<String> defaultValueGenerator, String generatedMessage) {
         boolean changed = false;

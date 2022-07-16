@@ -19,6 +19,8 @@
  * init.js
  * This scripts handles all events and most things for the scripts.
  */
+/* global $api, Packages, java, $script */
+
 (function () {
     var isReady = false,
             modules = [],
@@ -137,7 +139,7 @@
                     var enabled,
                             script;
 
-                    if ($api.getScript($script, scriptName) != null) {
+                    if ($api.getScript($script, scriptName) !== null) {
                         script = $api.reloadScriptR($script, scriptName);
                     } else {
                         script = $api.loadScriptR($script, scriptName);
@@ -165,6 +167,9 @@
      * @param {Boolean} force
      */
     function loadScriptRecursive(path, silent, force) {
+        if (path === undefined || path === null) {
+            return;
+        }
         var files = $.findFiles('./scripts/' + path, ''),
                 i;
 
@@ -260,7 +265,7 @@
         var scriptName = $.replace($.replace($script.getPath(), '\\', '/'), './scripts/', ''),
                 i = getHookIndex(scriptName, hookName);
 
-        if (hookName !== 'initReady' && $api.exists(hookName) == false) {
+        if (hookName !== 'initReady' && $api.exists(hookName) === false) {
             Packages.com.gmt2001.Console.err.printlnRhino('[addHook()@init.js:254] Failed to register hook "' + hookName + '" since there is no such event.');
         } else if (i !== -1) {
             hooks[hookName].handlers[i].handler = handler;
@@ -334,7 +339,7 @@
                     } catch (ex) {
                         var errmsg;
                         try {
-                            errmsg = 'Error with Event Handler [' + hookName + '] Script [' + hook.handlers[i].scriptPath + '] Stacktrace [' + ex.stack.trim().replace(/\r/g, '').split('\n').join(' > ').replace(/anonymous\(\)@|callHook\(\)@/g, '') + '] Exception [' + ex + ']'
+                            errmsg = 'Error with Event Handler [' + hookName + '] Script [' + hook.handlers[i].scriptPath + '] Stacktrace [' + ex.stack.trim().replace(/\r/g, '').split('\n').join(' > ').replace(/anonymous\(\)@|callHook\(\)@/g, '') + '] Exception [' + ex + ']';
                         } catch (ex2) {
                             errmsg = 'Error with Event Handler [' + hookName + '] Script [' + hook.handlers[i].scriptPath + ']';
                         }
@@ -372,20 +377,20 @@
 
         // Load all core modules.
         loadScript('./core/misc.js', false, silentScriptsLoad);
-        loadScript('./core/jsTimers.js', false, silentScriptsLoad);
-        loadScript('./core/updates.js', false, silentScriptsLoad);
-        loadScript('./core/commandTags.js', false, silentScriptsLoad);
-        loadScript('./core/chatModerator.js', false, silentScriptsLoad);
         loadScript('./core/fileSystem.js', false, silentScriptsLoad);
         loadScript('./core/lang.js', false, silentScriptsLoad);
+        loadScript('./core/jsTimers.js', false, silentScriptsLoad);
+        loadScript('./core/updates.js', false, silentScriptsLoad);
+        loadScript('./core/permissions.js', false, silentScriptsLoad);
+        loadScript('./core/commandRegister.js', false, silentScriptsLoad);
+        loadScript('./core/commandTags.js', false, silentScriptsLoad);
+        loadScript('./core/chatModerator.js', false, silentScriptsLoad);
         loadScript('./core/commandPause.js', false, silentScriptsLoad);
         loadScript('./core/logging.js', false, silentScriptsLoad);
-        loadScript('./core/commandRegister.js', false, silentScriptsLoad);
         loadScript('./core/whisper.js', false, silentScriptsLoad);
         loadScript('./core/commandCoolDown.js', false, silentScriptsLoad);
         loadScript('./core/keywordCoolDown.js', false, silentScriptsLoad);
         loadScript('./core/patternDetector.js', false, silentScriptsLoad);
-        loadScript('./core/permissions.js', false, silentScriptsLoad);
 
         // Load all the other modules.
         loadScriptRecursive('.', silentScriptsLoad);
@@ -473,10 +478,10 @@
          */
         $api.on($script, 'command', function (event) {
             var sender = event.getSender(),
-                    command = event.getCommand(),
-                    args = event.getArgs(),
-                    subCommand = $.getSubCommandFromArguments(command, args),
-                    isMod = $.isModv3(sender, event.getTags());
+                command = event.getCommand(),
+                args = event.getArgs(),
+                subCommand = $.getSubCommandFromArguments(command, args),
+                isMod = $.checkUserPermission(sender, event.getTags(), $.PERMISSION.Mod);
 
             if (isReady === false && command.equalsIgnoreCase($.botName) && args[0].equalsIgnoreCase('moderate')) {
                 Packages.tv.phantombot.PhantomBot.instance().getSession().getModerationStatus();
@@ -490,10 +495,10 @@
             // Check if the command has an alias.
             if ($.aliasExists(command)) {
                 var alias = $.getIniDbString('aliases', command),
-                        aliasCommand,
-                        aliasArguments,
-                        subcmd,
-                        parts;
+                    aliasCommand,
+                    aliasArguments,
+                    subcmd,
+                    parts;
 
                 if (alias.indexOf(';') === -1) {
                     parts = alias.split(' ');
@@ -518,6 +523,7 @@
             // Check the command permission.
             if ($.permCom(sender, command, subCommand, event.getTags()) !== 0) {
                 $.sayWithTimeout($.whisperPrefix(sender) + $.lang.get('cmd.perm.404', (!$.subCommandExists(command, subCommand) ? $.getCommandGroupName(command) : $.getSubCommandGroupName(command, subCommand))), $.getIniDbBoolean('settings', 'permComMsgEnabled', false));
+                //consoleDebug('Command !' + command + ' was not sent due to the user not having permission for it.');
                 consoleDebug('Command !' + command + ' was not sent due to the user not having permission for it.');
                 return;
             }
@@ -600,13 +606,13 @@
             var hasPerms = false;
 
             // If more permissions are added, we'll have to use a loop here.
-            if (perm.permissions.length > 0 && perm.permissions[0].selected.equals('true') && isAdmin == true) {
+            if (perm.permissions.length > 0 && perm.permissions[0].selected.equals('true') && isAdmin === true) {
                 hasPerms = true;
             } else if (perm.roles.length > 0 && (perm.roles[0].indexOf('0') !== -1 || perm.roles[0].indexOf($.discordAPI.getGuild().getId().asString()) !== -1)) {
                 hasPerms = true;
             } else {
                 for (var i = 0; i < perm.roles.length; i++) {
-                    if (user.getRoleIds().contains($.discordAPI.getRoleByID(perm.roles[i]).getId()) == true) {
+                    if (user.getRoleIds().contains($.discordAPI.getRoleByID(perm.roles[i]).getId()) === true) {
                         hasPerms = true;
                         break;
                     }

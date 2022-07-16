@@ -26,14 +26,14 @@
  */
 (function() {
     var data = [],
-        curLang = ($.inidb.exists('settings', 'lang') ? $.inidb.get('settings', 'lang') : 'english');
+        curLang = $.jsString($.inidb.exists('settings', 'lang') ? $.inidb.get('settings', 'lang') : 'english');
 
     /**
      * @function load
      */
     function load(force) {
         $.bot.loadScriptRecursive('./lang/english', true, (force ? force : false));
-        if (curLang != 'english') {
+        if (curLang !== 'english') {
             $.bot.loadScriptRecursive('./lang/' + curLang, true, (force ? force : false));
         }
 
@@ -77,7 +77,7 @@
             return '';
         }
 
-        if (string == '<<EMPTY_PLACEHOLDER>>') {
+        if (string === '<<EMPTY_PLACEHOLDER>>') {
             return '';
         }
 
@@ -180,9 +180,9 @@
      * @event initReady
      */
     $.bind('initReady', function() {
-        $.registerChatCommand('./core/lang.js', 'lang', 1);
-        $.registerChatCommand('./core/lang.js', 'mute', 1);
-        $.registerChatCommand('./core/lang.js', 'toggleme', 1);
+        $.registerChatCommand('./core/lang.js', 'lang', $.PERMISSION.Admin);
+        $.registerChatCommand('./core/lang.js', 'mute', $.PERMISSION.Admin);
+        $.registerChatCommand('./core/lang.js', 'toggleme', $.PERMISSION.Admin);
     });
 
     /** Export functions to API */
