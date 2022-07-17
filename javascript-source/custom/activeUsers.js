@@ -67,6 +67,11 @@
         userCache[event.getSender().toLowerCase()] = $.systemTime();
     });
 
+    $.bind('pubSubChannelPoints', function (event) {
+        var username = event.getUsername()    
+        userCache[username.toLowerCase()] = $.systemTime();
+    });
+
     $.bind('command', function(event) {
         var sender = event.getSender().toLowerCase(),
             command = event.getCommand(),
