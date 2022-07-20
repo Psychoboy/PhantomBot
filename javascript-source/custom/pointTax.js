@@ -5,7 +5,6 @@
         delay = 300000;
 
     function runTimeEvent() {
-        $.log.event('runTimeEvent ' + ranPostStream);
         if ($.twitchcache.isStreamOnline()) {
             streamLastLive = $.systemTime();
             ranPostStream = false;
