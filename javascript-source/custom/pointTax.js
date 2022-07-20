@@ -77,8 +77,4 @@
     var interval = setInterval(function() {
         runTimeEvent();
     }, delay);
-    setTimeout(function() {
-        runTimeEvent();
-    }, 30000)
-    
 })();
