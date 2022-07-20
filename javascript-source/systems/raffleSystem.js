@@ -289,7 +289,7 @@
 
         status = false;
 
-        $.say($.lang.get('rafflesystem.close.success'));
+        $.say($.lang.get('rafflesystem.close.success') + ' ' + String(Object.keys(entered).length) + ' entered.');
 
         // Mark the raffle as off for the panel.
         $.inidb.set('raffleSettings', 'isActive', 'false');
@@ -374,7 +374,8 @@
 
         if (winners.length === 1) {
             var followMsg = ($.user.isFollower(winners[0].toLowerCase()) ? $.lang.get('rafflesystem.isfollowing') : $.lang.get('rafflesystem.isnotfollowing'));
-            $.say($.lang.get('rafflesystem.winner.single', $.username.resolve(winners[0]), followMsg));
+            var subMsg = ($.isSub(winners[0]) ? $.lang.get('rafflesystem.issub') : '');
+            $.say($.lang.get('rafflesystem.winner.single', $.username.resolve(winners[0]), subMsg.length > 0 ? subMsg : followMsg));
             return;
         }
 

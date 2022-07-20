@@ -21,7 +21,7 @@ $.lang.register('rafflesystem.open.time', 'A raffle is now opened! Type $1 to en
 $.lang.register('rafflesystem.open.points', 'A raffle is now opened! Type $1 to enter. Entering cost $2! $3');
 $.lang.register('rafflesystem.open', 'A raffle is now opened! Type $1 to enter$2! $3');
 $.lang.register('rafflesystem.close.error.closed', 'There is no raffle in progress.');
-$.lang.register('rafflesystem.close.success', 'The raffle is now closed! No more entries will be counted. Use "!raffle draw" to pick a winner!');
+$.lang.register('rafflesystem.close.success', 'The raffle is now closed! No more entries will be counted.');
 $.lang.register('rafflesystem.winner.single', 'The winner of this raffle is $1! $2');
 $.lang.register('rafflesystem.winner.multiple', 'The winners of this raffle are $1!');
 $.lang.register('rafflesystem.winner.single.award', 'The winner has been awarded: $1!');
@@ -56,4 +56,6 @@ $.lang.register('rafflesystem.winner.404', 'Could not pick a winner. No one ente
 $.lang.register('rafflesystem.winner.none', 'No data about the last raffle found.');
 $.lang.register('rafflesystem.isfollowing', '[Follower]');
 $.lang.register('rafflesystem.isnotfollowing', '[Not a follower]');
+$.lang.register('rafflesystem.issub', '[Subscriber]');
+$.lang.register('rafflesystem.isnotsub', '');
 $.lang.register('rafflesystem.reset', 'The raffle has been reset.');
