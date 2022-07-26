@@ -15,57 +15,52 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* global java */
+
 /**
  * greetingSystem.js
  *
  * Tags in greetings:
  * - (name) The username corresponding to the target user
  */
-(function() {
-    var autoGreetEnabled = $.getSetIniDbBoolean('greeting', 'autoGreetEnabled', false),
-        defaultJoinMessage = $.getSetIniDbString('greeting', 'defaultJoin', '(name) joined!'),
-        greetingCooldown = $.getSetIniDbNumber('greeting', 'cooldown', (6 * 36e5)),
-        greetOnSay = $.getSetIniDbBoolean('greeting', 'greetOnSay', false),
-        /* 6 Hours */
-        greetingQueue = new java.util.concurrent.ConcurrentLinkedQueue,
-        onJoin = $.getSetIniDbBoolean('greetingSettings', 'onJoin', true),
-        userSelfService = $.getSetIniDbBoolean('greetingSettings', 'userSelfService', false);
+ (function () {
+    var autoGreetEnabled = $.getSetIniDbBoolean('greetingSettings', 'autoGreetEnabled', false),
+            defaultJoinMessage = $.getSetIniDbString('greetingSettings', 'defaultJoin', '(name) joined!'),
+            greetingCooldown = $.getSetIniDbNumber('greetingSettings', 'cooldown', (6 * 36e5)),
+            /* 6 Hours */
+            greetingQueue = new java.util.concurrent.ConcurrentLinkedQueue,
+            onJoin = $.getSetIniDbBoolean('greetingSettings', 'onJoin', true),
+            userSelfService = $.getSetIniDbBoolean('greetingSettings', 'userSelfService', false);
 
     /**
      * @event ircChannelJoin
      */
     $.bind('ircChannelJoin', function (event) {
         if ($.isOnline($.channelName) && autoGreetEnabled && onJoin) {
-            addToQueue(event.getUser().toLowerCase());
+            addToQueue(event.getUser());
         }
     });
 
-    $.bind('ircChannelMessage', function(event) {
-        if($.isOnline($.channelName) && greetOnSay) {
-            var sender = event.getSender().toLowerCase();
-            var username = event.getSender();
-            var message = $.getIniDbString('greeting', sender, '');
-            if(message) {
-                var lastUserGreeting = $.getIniDbNumber('greetingCoolDown', sender, 0),
-                now = $.systemTime();
-                if (lastUserGreeting + greetingCooldown < now) {
-                    message = $.replace(message,'(name)', username);
-                    message = $.replace(message,'(game)', $.javaString($.getGame(username)));
-                    greetingQueue.add(message);
-                    $.inidb.set('greetingCoolDown', sender, now);
-                }
-            }
+    /**
+     * @event ircChannelJoin
+     */
+    $.bind('ircChannelMessage', function (event) {
+        if ($.isOnline($.channelName) && autoGreetEnabled && !onJoin) {
+            addToQueue(event.getSender());
         }
     });
 
-    function addToQueue(sender){
-        var rankStr = $.resolveRank(sender),
-            message = $.getIniDbString('greeting', sender, undefined),
-            lastUserGreeting = $.getIniDbNumber('greetingCoolDown', sender, 0),
+    function addToQueue(sender) {
+        var sender = sender.toLowerCase();
+        var username = sender;
+        var message = $.getIniDbString('greeting', sender, '');
+        if(message) {
+            var lastUserGreeting = $.getIniDbNumber('greetingCoolDown', sender, 0),
             now = $.systemTime();
-        if (lastUserGreeting + greetingCooldown < now) {
-            if (message !== undefined) {
-                greetingQueue.add(message.replace('(name)', rankStr));
+            if (lastUserGreeting + greetingCooldown < now) {
+                message = $.replace(message,'(name)', username);
+                message = $.replace(message,'(game)', $.javaString($.getGame(username)));
+                greetingQueue.add(message);
                 $.inidb.set('greetingCoolDown', sender, now);
             }
         }
@@ -81,12 +76,12 @@
         setInterval(function () {
 
             /* Send a greeting out into chat. */
-            if (!greetingQueue.isEmpty() && (autoGreetEnabled || greetOnSay)) {
+            if (!greetingQueue.isEmpty() && autoGreetEnabled) {
                 $.say(greetingQueue.poll());
             }
 
             /* There are greetings, however, autoGreet has been disabled, so destroy the queue. */
-            if (!greetingQueue.isEmpty() && !autoGreetEnabled && !greetOnSay) {
+            if (!greetingQueue.isEmpty() && !autoGreetEnabled) {
                 greetingQueue = new java.util.concurrent.ConcurrentLinkedQueue;
             }
 
@@ -107,13 +102,13 @@
      */
     $.bind('command', function (event) {
         var sender = event.getSender().toLowerCase(),
-            command = event.getCommand(),
-            args = event.getArgs(),
-            action = args[0],
-            cooldown,
-            message,
-            username,
-            isSilent;
+                command = event.getCommand(),
+                args = event.getArgs(),
+                action = args[0],
+                cooldown,
+                message,
+                username,
+                isSilent;
 
         /**
          * @commandpath greeting - Base command for controlling greetings.
@@ -161,16 +156,6 @@
                     $.say($.whisperPrefix(sender) + $.lang.get('greetingsystem.set.autogreet.disabled', $.username.resolve($.botName)));
                 }
                 return;
-            }
-
-            if (action.equalsIgnoreCase('togglesay')) {
-                greetOnSay = !greetOnSay;
-                $.setIniDbBoolean('greeting', 'greetOnSay', greetOnSay);
-                if(greetOnSay) {
-                    $.say($.whisperPrefix(sender) + " Enabled greet on say.");
-                } else {
-                    $.say($.whisperPrefix(sender) + " Disabled greet on say.");
-                }
             }
 
             /**
@@ -303,7 +288,7 @@
     /**
      * @event initReady
      */
-    $.bind('initReady', function() {
+    $.bind('initReady', function () {
         $.registerChatCommand('./systems/greetingSystem.js', 'greeting', $.PERMISSION.Regular);
         $.registerChatSubcommand('greeting', 'cooldown', $.PERMISSION.Admin);
         $.registerChatSubcommand('greeting', 'toggle', $.PERMISSION.Admin);
