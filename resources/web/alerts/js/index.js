@@ -286,23 +286,6 @@ $(function () {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    //https://stackoverflow.com/a/57380742
-    promisePoll = (promiseFunction, { pollIntervalMs = 2000 } = {}) => {
-        const startPoll = async resolve => {
-            const startTime = new Date();
-            const result = await promiseFunction();
-
-            if (result) {
-                return resolve();
-            }
-
-            const timeUntilNext = Math.max(pollIntervalMs - (new Date() - startTime), 0);
-            setTimeout(() => startPoll(resolve), timeUntilNext);
-        };
-
-        return new Promise(startPoll);
-    };
-
     /*
      * @function Handles GIF alerts.
      *
@@ -375,7 +358,6 @@ $(function () {
                     'style': gifCss,
                     'alt': "Video"
                 });
-                await htmlObj[0].decode();
             }
 
             let audioPath = getAudioFile(gifFile.slice(0, gifFile.indexOf('.')), defaultPath);
@@ -402,37 +384,7 @@ $(function () {
                     });
 
             // Append a new the image.
-            $('#alert').append(htmlObj).fadeIn(1e2, async function () {// Set the volume.
-                if (isVideo) {
-                    let isReady = false;
-                    htmlObj[0].oncanplay = (event) => {
-                        isReady = true;
-                    };
-                    htmlObj[0].oncanplaythrough = (event) => {
-                        isReady = true;
-                    };
-                    const videoIsReady = () => {
-                        return isReady;
-                    };
-                    htmlObj[0].load();
-                    await promisePoll(() => videoIsReady(), { pollIntervalMs = 250 });
-                }
-                if (hasAudio) {
-                    let isReady = false;
-                    audio.oncanplay = (event) => {
-                        isReady = true;
-                    };
-                    audio.oncanplaythrough = (event) => {
-                        isReady = true;
-                    };
-                    const audioIsReady = () => {
-                        return isReady;
-                    };
-
-                    audio.load();
-                    await promisePoll(() => audioIsReady(), { pollIntervalMs = 250 });
-                    audio.volume = gifVolume;
-                }
+            $('#alert').append(htmlObj).fadeIn(1e2, function () {// Set the volume.
                 if (isVideo) {
                     // Play the sound.
                     htmlObj[0].play().catch(function () {
@@ -440,6 +392,7 @@ $(function () {
                     });
                 }
                 if (hasAudio) {
+                    audio.volume = gifVolume;
                     audio.play().catch(function () {
                         // Ignore.
                     });
