@@ -127,7 +127,8 @@
 
     }
 
-    $.bind('initReady', function(){
-        $.addTagTransformer('multicounter', multicounter);
-    });
+    var transformers = [
+        new $.transformers.transformer('multicounter', ['twitch', 'discord', 'noevent', 'alerts'], multicounter)
+    ];
+    $.transformers.addTransformers(transformers);
 })();
