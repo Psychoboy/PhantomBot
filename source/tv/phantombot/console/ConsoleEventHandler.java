@@ -429,7 +429,7 @@ public final class ConsoleEventHandler implements Listener {
         }
 
         /**
-         * @consolecommand massanongiftsubtest (amount) (tier) - Test a mass anonymous gift subscription.
+         * @consolecommand massanonsubgifttest (amount) (tier) - Test a mass anonymous gift subscription.
          */
         if (message.equalsIgnoreCase("massanonsubgifttest")) {
             String amount = "10";

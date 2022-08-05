@@ -214,7 +214,7 @@
          */
         function customemote(args, event) {
             var emotes = [];
-            var emote = customEmote[event.getPlan()];
+            var emote = $.jsString(customEmote[event.getPlan()]);
             var num = null;
 
             try {
@@ -233,12 +233,14 @@
                 num = 1;
             }
 
+            num = Math.max(1, Math.min(12, num));
+
             for (var i = 0; i < num; i++) {
                 emotes.push(emote);
             }
 
             return {
-                result: $.jsString(emotes).join(' ').trim(),
+                result: emotes.join(' ').trim(),
                 cache: true
             };
         }
@@ -633,7 +635,7 @@
             planId = tierToPlan(args[0]);
             argsString = args.splice(1).join(' ');
             if (planId === null) {
-                subMessage = createSingleJson(argsString);
+                subMessage = JSON.parse(createSingleJson(argsString));
             } else {
                 subMessage[planId] = argsString;
             }
@@ -653,11 +655,11 @@
             planId = tierToPlan(args[0]);
             argsString = args.splice(1).join(' ');
             if (planId === null) {
-                reSubMessage = createSingleJson(argsString);
+                reSubMessage = JSON.parse(createSingleJson(argsString));
             } else {
                 reSubMessage[planId] = argsString;
             }
-            $.setIniDbString('subscribeHandler', 'reSubscribeMessage', reSubMessage);
+            $.setIniDbString('subscribeHandler', 'reSubscribeMessage', JSON.stringify(reSubMessage));
             $.say($.whisperPrefix(sender) + $.lang.get('subscribehandler.resub.msg.set', planId === null ? 'all tiers' : planId));
         }
 
@@ -673,11 +675,11 @@
             planId = tierToPlan(args[0], false);
             argsString = args.splice(1).join(' ');
             if (planId === null) {
-                giftSubMessage = createSingleNPJson(argsString);
+                giftSubMessage = JSON.parse(createSingleNPJson(argsString));
             } else {
                 giftSubMessage[planId] = argsString;
             }
-            $.setIniDbString('subscribeHandler', 'giftSubMessage', giftSubMessage);
+            $.setIniDbString('subscribeHandler', 'giftSubMessage', JSON.stringify(giftSubMessage));
             $.say($.whisperPrefix(sender) + $.lang.get('subscribehandler.giftsub.msg.set', planId === null ? 'all tiers' : planId));
         }
 
@@ -693,11 +695,11 @@
             planId = tierToPlan(args[0], false);
             argsString = args.splice(1).join(' ');
             if (planId === null) {
-                giftAnonSubMessage = createSingleNPJson(argsString);
+                giftAnonSubMessage = JSON.parse(createSingleNPJson(argsString));
             } else {
                 giftAnonSubMessage[planId] = argsString;
             }
-            $.setIniDbString('subscribeHandler', 'giftAnonSubMessage', giftAnonSubMessage);
+            $.setIniDbString('subscribeHandler', 'giftAnonSubMessage', JSON.stringify(giftAnonSubMessage));
             $.say($.whisperPrefix(sender) + $.lang.get('subscribehandler.giftanonsub.msg.set', planId === null ? 'all tiers' : planId));
         }
 
@@ -713,11 +715,11 @@
             planId = tierToPlan(args[0], false);
             argsString = args.splice(1).join(' ');
             if (planId === null) {
-                massGiftSubMessage = createSingleNPJson(argsString);
+                massGiftSubMessage = JSON.parse(createSingleNPJson(argsString));
             } else {
                 massGiftSubMessage[planId] = argsString;
             }
-            $.setIniDbString('subscribeHandler', 'massGiftSubMessage', massGiftSubMessage);
+            $.setIniDbString('subscribeHandler', 'massGiftSubMessage', JSON.stringify(massGiftSubMessage));
             $.say($.whisperPrefix(sender) + $.lang.get('subscribehandler.massgiftsub.msg.set', planId === null ? 'all tiers' : planId));
         }
 
@@ -733,11 +735,11 @@
             planId = tierToPlan(args[0], false);
             argsString = args.splice(1).join(' ');
             if (planId === null) {
-                massAnonGiftSubMessage = createSingleNPJson(argsString);
+                massAnonGiftSubMessage = JSON.parse(createSingleNPJson(argsString));
             } else {
                 massAnonGiftSubMessage[planId] = argsString;
             }
-            $.setIniDbString('subscribeHandler', 'massAnonGiftSubMessage', massAnonGiftSubMessage);
+            $.setIniDbString('subscribeHandler', 'massAnonGiftSubMessage', JSON.stringify(massAnonGiftSubMessage));
             $.say($.whisperPrefix(sender) + $.lang.get('subscribehandler.anonmassgiftsub.msg.set', planId === null ? 'all tiers' : planId));
         }
 
@@ -753,7 +755,7 @@
             planId = tierToPlan(args[0]);
             argsString = parseInt(args[1]);
             if (planId === null) {
-                subReward = createSingleJson(argsString);
+                subReward = JSON.parse(createSingleJson(argsString));
             } else {
                 subReward[planId] = argsString;
             }
@@ -773,7 +775,7 @@
             planId = tierToPlan(args[0]);
             argsString = parseInt(args[1]);
             if (planId === null) {
-                reSubReward = createSingleJson(argsString);
+                reSubReward = JSON.parse(createSingleJson(argsString));
             } else {
                 reSubReward[planId] = argsString;
             }
@@ -793,7 +795,7 @@
             planId = tierToPlan(args[0], false);
             argsString = parseInt(args[1]);
             if (planId === null) {
-                giftSubReward = createSingleNPJson(argsString);
+                giftSubReward = JSON.parse(createSingleNPJson(argsString));
             } else {
                 giftSubReward[planId] = argsString;
             }
@@ -813,7 +815,7 @@
             planId = tierToPlan(args[0], false);
             argsString = parseInt(args[1]);
             if (planId === null) {
-                massGiftSubReward = createSingleNPJson(argsString);
+                massGiftSubReward = JSON.parse(createSingleNPJson(argsString));
             } else {
                 massGiftSubReward[planId] = argsString;
             }
@@ -833,11 +835,11 @@
             planId = tierToPlan(args[0]);
             argsString = args.splice(1).join(' ');
             if (planId === null) {
-                customEmote = createSingleJson(argsString);
+                customEmote = JSON.parse(createSingleJson(argsString));
             } else {
                 customEmote[planId] = argsString;
             }
-            $.setIniDbString('subscribeHandler', 'resubEmote', JSON.stringify(customEmote));
+            $.setIniDbString('subscribeHandler', 'subEmote', JSON.stringify(customEmote));
             $.say($.whisperPrefix(sender) + $.lang.get('subscribehandler.resubemote.set', planId === null ? 'all tiers' : planId));
         }
 
