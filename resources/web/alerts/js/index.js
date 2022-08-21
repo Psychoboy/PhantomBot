@@ -341,7 +341,6 @@ $(function () {
             if (gifFile.match(/\.(webm|mp4|ogg|ogv)$/) !== null) {
                 htmlObj = $('<video/>', {
                     'src': defaultPath + gifFile,
-                    'autoplay': 'false',
                     'style': gifCss,
                     'preload': 'auto'
                 });
@@ -372,7 +371,40 @@ $(function () {
                 'style': gifCss
             }).html(gifText);
 
-            await sleep(1000);
+            await sleep(500);
+
+            if (isVideo) {
+                let isReady = false;
+                htmlObj[0].oncanplay = (event) => {
+                    isReady = true;
+                };
+                htmlObj[0].oncanplaythrough = (event) => {
+                    isReady = true;
+                };
+                const videoIsReady = () => {
+                    return isReady;
+                };
+                htmlObj[0].load();
+                await promisePoll(() => videoIsReady(), {pollIntervalMs: 250});
+            }
+            if (hasAudio) {
+                let isReady = false;
+                audio.oncanplay = (event) => {
+                    isReady = true;
+                };
+                audio.oncanplaythrough = (event) => {
+                    isReady = true;
+                };
+                const audioIsReady = () => {
+                    return isReady;
+                };
+
+                audio.load();
+                await promisePoll(() => audioIsReady(), {pollIntervalMs: 250});
+                audio.volume = gifVolume;
+            }
+
+            await sleep(500);
 
             // Append the custom text object to the page
             $('#alert-text').append(textObj).fadeIn(1e2).delay(gifDuration)
