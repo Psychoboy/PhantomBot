@@ -198,6 +198,7 @@
         }
 
         keyword = $.inidb.get('raffleState', 'keyword');
+
         entryFee = parseInt($.inidb.get('raffleState', 'entryFee'));
         timerTime = parseInt($.inidb.get('raffleState', 'timerTime'));
         startTime = parseInt($.inidb.get('raffleState', 'startTime'));
@@ -355,7 +356,7 @@
             }
         }
 
-        close(undefined);
+        //close(undefined);
         hasDrawn = true;
         saveState();
     }
