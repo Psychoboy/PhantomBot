@@ -20,8 +20,8 @@
             $.say($.whisperPrefix(sender) + $.lang.get('first.offline'));
             return;
         }
-
-        if(firstViewers.length >= firstMax) {
+        var awardPoints = firstStarting - (firstViewers.length * firstDecrement);
+        if(awardPoints <= 0) {
             $.say($.whisperPrefix(sender) + $.lang.get('first.late'));
             return;
         }
@@ -30,7 +30,6 @@
             return;
         }
 
-        var awardPoints = firstStarting - (firstViewers.length * firstDecrement);
         firstViewers.push(sender);
         $.streamelements.AddTicketsToUsers([sender],awardPoints);
         $.say($.whisperPrefix(sender) + $.lang.get('first.reward', firstViewers.length, awardPoints));
