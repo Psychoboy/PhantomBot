@@ -286,6 +286,23 @@ $(function () {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    //https://stackoverflow.com/a/57380742
+    promisePoll = (promiseFunction, { pollIntervalMs = 2000 } = {}) => {
+        const startPoll = async resolve => {
+            const startTime = new Date();
+            const result = await promiseFunction();
+
+            if (result) {
+                return resolve();
+            }
+
+            const timeUntilNext = Math.max(pollIntervalMs - (new Date() - startTime), 0);
+            setTimeout(() => startPoll(resolve), timeUntilNext);
+        };
+
+        return new Promise(startPoll);
+    };
+
     /*
      * @function Handles GIF alerts.
      *
@@ -357,6 +374,7 @@ $(function () {
                     'style': gifCss,
                     'alt': "Video"
                 });
+                await htmlObj[0].decode();
             }
 
             let audioPath = getAudioFile(gifFile.slice(0, gifFile.indexOf('.')), defaultPath);
@@ -416,7 +434,7 @@ $(function () {
                     });
 
             // Append a new the image.
-            $('#alert').append(htmlObj).fadeIn(1e2, function () {// Set the volume.
+            $('#alert').append(htmlObj).fadeIn(1e2, async function () {// Set the volume.
                 if (isVideo) {
                     // Play the sound.
                     htmlObj[0].play().catch(function () {
@@ -424,7 +442,6 @@ $(function () {
                     });
                 }
                 if (hasAudio) {
-                    audio.volume = gifVolume;
                     audio.play().catch(function () {
                         // Ignore.
                     });
