@@ -64,7 +64,7 @@
         } else if (range <= winRange) {
             $.say($.lang.get('gambling.lost', $.resolveRank(sender), range, $.getPointsString(amount), $.getPointsString($.getUserPoints(sender) - amount), $.gameMessages.getLose(sender, 'gamble')));
             $.inidb.decr('points', sender, amount);
-            updateJackpot(amount / 2);
+            updateJackpot(amount * 0.10);
         } else {
             winnings = Math.floor(amount + (amount * gain));
             $.say($.lang.get('gambling.won', $.resolveRank(sender), range, $.getPointsString(winnings - amount), $.getPointsString($.getUserPoints(sender) + (winnings - amount)), $.gameMessages.getWin(sender, 'gamble')));
@@ -77,7 +77,7 @@
         if (reset) {
             jackpot = amount;
         } else {
-            jackpot += Math.floor(amount);
+            jackpot += Math.ceil(amount);
         }
         $.inidb.set('gambling', 'jackpot', jackpot);
     }
@@ -118,7 +118,7 @@
         }
 
         if(command.equalsIgnoreCase('jackpot')) {
-            $.say($.whisperPrefix(sender) + $.lang.get('gambingling.jackpot', jackpot));
+            $.say($.whisperPrefix(sender) + $.lang.get('gambingling.jackpot', $.getPointsString(jackpot)));
         }
 
         if(command.equalsIgnoreCase('gamblesetjackpotspot')) {
