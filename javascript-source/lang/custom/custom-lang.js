@@ -10,6 +10,8 @@ $.lang.register('raffle.timeleft', '$1 seconds left to type $2 for a chance of e
 $.lang.register('raffle.notenough', 'Nobody joined the $1 so no body wins.');
 $.lang.register('raffle.winners', '$1 are the winners of the $2! They each get $3 tickets. $4 $4 $4');
 $.lang.register('raffle.alreadyjoined', 'You already joined the $1');
-$.lang.register('first.offline', 'Nice try, the stream is currently offline.')
-$.lang.register('first.late', 'Sorry, You were to slow today. FeelsBadMan')
-$.lang.register('first.reward', 'Whooohooo! You came in position $1 and get $2 tickets!! PogChamp')
+$.lang.register('first.offline', 'Nice try, the stream is currently offline.');
+$.lang.register('first.late', 'Sorry, You were to slow today. FeelsBadMan');
+$.lang.register('first.reward', 'Whooohooo! You came in position $1 and get $2 tickets!! PogChamp');
+$.lang.register('bonus.offline', 'Nice try, the stream is currently offline.');
+$.lang.register('bonus.prize','$1 rolls the dice and wins $2 tickets');
