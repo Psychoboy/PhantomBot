@@ -41,6 +41,6 @@
 
     $.bind('initReady', function () {
         $.registerChatCommand('./custom/bonus.js', bonusCommand, $.PERMISSION.Viewer)
-        $.registerChatCommand('./custom/bonus.js', 'reset', $.PERMISSION.Admin)
+        $.registerChatCommand('./custom/bonus.js', 'resetbonus', $.PERMISSION.Admin)
     })
 })()
