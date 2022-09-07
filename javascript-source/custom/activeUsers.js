@@ -64,7 +64,9 @@
     }
 
     $.bind('ircChannelMessage', function(event) {
-        userCache[event.getSender().toLowerCase()] = $.systemTime();
+        var sender = event.getSender().toLowerCase();
+        userCache[sender] = $.systemTime();
+        $.restoreSubscriberStatus(sender);
     });
 
     $.bind('pubSubChannelPoints', function (event) {

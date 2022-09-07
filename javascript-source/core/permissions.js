@@ -266,7 +266,7 @@
      * @returns {boolean}
      */
     function isSubNoTags(username) {
-        return subUsers.contains(java.util.Objects.toString(username.toLowerCase())) || queryDBPermission(username.toLowerCase()) === PERMISSION.Sub;
+        return subUsers.contains(java.util.Objects.toString(username.toLowerCase()));
     }
 
     /**
