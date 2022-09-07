@@ -22,9 +22,7 @@
  *
  * Export general file management to th $ API
  */
-(function () {
-    var JFile = java.io.File,
-            JFileInputStream = java.io.FileInputStream
+ (function () {
     /**
      * @function readFile
      * @export $
@@ -44,12 +42,10 @@
         }
 
         try {
-            var fis = new JFileInputStream(path),
-                    scan = new java.util.Scanner(fis);
-            for (var i = 0; scan.hasNextLine(); ++i) {
-                lines[i] = scan.nextLine();
+            var jlines = Packages.com.gmt2001.JSFileSystem.ReadFileAsLines($.javaString(path));
+            for (var i = 0; i < jlines.size(); ++i) {
+                lines.push($.jsString(jlines.get(i)));
             }
-            fis.close();
         } catch (e) {
             $.log.error('Failed to open \'' + path + '\': ' + e);
         }
