@@ -279,6 +279,7 @@ $.lang.register('commandlist.nocommands', 'There are currently no commands avail
 $.lang.register('commandlist.nopage', 'page $1 does not exist!');
 $.lang.register('commandlist.progress', 'Exporting commands... $1%');
 $.lang.register('commandpause.ended', 'All commands are enabled again.');
+$.lang.register('commandpause.notactive', 'All commands are already enabled.');
 $.lang.register('commandpause.initiated', 'All commands are disabled for $1.');
 $.lang.register('commandpause.isactive', 'All commands are currently disabled.');
 $.lang.register('common.disabled', 'disabled');
@@ -290,10 +291,7 @@ $.lang.register('common.communities.change', 'Communities have been updated!');
 $.lang.register('common.title.change', 'Changed the current title to: $1');
 $.lang.register('common.twitch.no.status', 'not sure, neither is Twitch');
 $.lang.register('common.twitch.no.game', 'not sure, neither is Twitch');
-$.lang.register('console.channel.ishosting', '$1 is currently hosting $2.');
 $.lang.register('console.received.clearchat', 'Received a clear chat notification from jtv');
-$.lang.register('console.received.host.end', 'Received an end host mode notification from jtv');
-$.lang.register('console.received.host.start', 'Received a start host mode notification on user $1 from jtv');
 $.lang.register('console.received.irsprivmsg', 'Received a PM from $1: $2');
 $.lang.register('console.received.purgetimeoutban', 'Received a purge/timeout/ban notification on user $1 from jtv');
 $.lang.register('console.received.r9k.end', 'Received an end r9k mode notification from jtv');
@@ -337,7 +335,7 @@ $.lang.register('init.module.reload.usage', 'Usage: !module reload [all / module
 $.lang.register('init.module.reload.all', 'All modules reloaded!');
 $.lang.register('init.module.reload', 'Module $1 reloaded!');
 $.lang.register('init.module.reload.404', 'Module not found in DB: $1');
-$.lang.register('init.reconnect', 'Reconnecting to TMI, Host TMI, and PubSub');
+$.lang.register('init.reconnect', 'Reconnecting to TMI and PubSub');
 $.lang.register('init.disconnect', 'Shutting down');
 $.lang.register('init.usage', '!$1 [reconnect / disconnect]');
 $.lang.register('init.forceonline', 'Forcing status to online');
