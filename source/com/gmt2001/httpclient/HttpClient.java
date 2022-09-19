@@ -16,6 +16,7 @@
  */
 package com.gmt2001.httpclient;
 
+import com.gmt2001.dns.CompositeAddressResolverGroup;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
@@ -68,8 +69,13 @@ public final class HttpClient {
             client = client.secure();
         }
 
+        /**
+         * @botproperty usedefaultdnsresolver - If `true`, only the default Java/System DNS resolver is used. Default `false`
+         */
         if (CaselessProperties.instance().getPropertyAsBoolean("usedefaultdnsresolver", false)) {
             client = client.resolver(DefaultAddressResolverGroup.INSTANCE);
+        } else {
+            client = client.resolver(CompositeAddressResolverGroup.INSTANCE);
         }
 
         client = client.headers(h -> {
@@ -97,6 +103,9 @@ public final class HttpClient {
         RequestSender sender = client.request(method).uri(url);
 
         try {
+            /**
+             * @botproperty httpclienttimeout - The timeout, in seconds, for an HTTP request to complete. Default `10`
+             */
             return sender.send(ByteBufFlux.fromString(Mono.just(_requestBody)))
                     .responseSingle((res, buf) -> buf.asByteArray().map(content -> new HttpClientResponse(null, requestBody, content, url, res))
                     .defaultIfEmpty(new HttpClientResponse(null, requestBody, new byte[0], url, res)))
