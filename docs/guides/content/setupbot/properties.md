@@ -208,7 +208,7 @@ logtimezone - The timezone for timestamps in the log. Must be a valid IANA Time 
 
 Data Type: _Boolean_
 
-musicenable - If `true`, enables the websocket handler for the Son Request/YouTube player. Default `true`
+musicenable - If `true`, enables the websocket handler for the Song Request/YouTube player. Default `true`
 
 &nbsp;
 
@@ -264,7 +264,7 @@ offlinedelay - The delay, in seconds, before the `channel` is confirmed to be of
 
 Data Type: _Int_
 
-offlinetimeout - The timeout, in seconds, after `channel` goes offline before it can be online. Default `300`
+offlinetimeout - The timeout, in seconds, after `channel` goes offline before it can be online.
 
 &nbsp;
 
