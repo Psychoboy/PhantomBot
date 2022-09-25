@@ -14,19 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package tv.phantombot.event.webpanel.websocket;
 
 /**
- * Health check script
- * 
- * Saves the last time selected message types were received as an indicator that the TMI connection is alive and the bot is working
+ *
+ * @author gmt2001
  */
-(function() {
-    /**
-     * Logs timestamp for @msg-id=unrecognized_cmd :tmi.twitch.tv NOTICE, including the fake message triggered by .ping
-     */
-    $.bind('ircPrivateMessage', function (event) {
-        if ($.jsString(event.getTags().getOrDefault('msg-id', '')) === 'unrecognized_cmd') {
-            $.writeToFile($.systemTime(), './addons/healthcheck.txt', false);
-        }
-    });
-})();
+public class WebPanelSocketConnectEvent extends WebPanelSocketEvent {
+}
