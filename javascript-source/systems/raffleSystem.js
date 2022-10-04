@@ -483,16 +483,16 @@
         /* Push the user into the array */
         entered[username] = true;
         entries.push(username);
-        var i;
-        if (subscriberBonus > 0 && $.checkUserPermission(username, tags, $.PERMISSION.Sub)) {
-            for (i = 0; i < subscriberBonus; i++) {
-                entries.push(username);
-            }
-        } else if (regularBonus > 0 && $.checkUserPermission(username, tags, $.PERMISSION.Regular)) {
-            for (i = 0; i < regularBonus; i++) {
-                entries.push(username);
-            }
-        }
+        // var i;
+        // if (subscriberBonus > 0 && $.checkUserPermission(username, tags, $.PERMISSION.Sub)) {
+        //     for (i = 0; i < subscriberBonus; i++) {
+        //         entries.push(username);
+        //     }
+        // } else if (regularBonus > 0 && $.checkUserPermission(username, tags, $.PERMISSION.Regular)) {
+        //     for (i = 0; i < regularBonus; i++) {
+        //         entries.push(username);
+        //     }
+        // }
 
         /* Push the panel stats */
         $.inidb.set('raffleList', username, true);

@@ -52,19 +52,19 @@
 
         if(range == jackpotSpot) {
             jackpotWinning = Math.floor(jackpot * (amount / max));
-            winnings = Math.floor(amount + (amount * gain)) + jackpotWinning;
+            winnings = Math.floor(amount + (amount * gain));
             jackpot = jackpotWinning - jackpot;
             if(jackpot <= jackpotDefault) {
                 jackpot = jackpotDefault
             }
-            updateJackpot(jackpot, reset);
-            $.say($.lang.get('gambling.jackpot.won', $.resolveRank(sender), range, $.getPointsString(winnings - amount), $.getPointsString($.getUserPoints(sender) + (winnings - amount)), $.gameMessages.getWin(sender, 'gamble')));
+            updateJackpot(jackpot, true);
+            $.say($.lang.get('gambling.jackpot.won', $.resolveRank(sender), range, $.getPointsString(jackpotWinning), $.getPointsString($.getUserPoints(sender) + (winnings - amount)), $.gameMessages.getWin(sender, 'gamble')));
             $.inidb.decr('points', sender, amount);
-            $.inidb.incr('points', sender, winnings);
+            $.inidb.incr('points', sender, winnings + jackpotWinning);
         } else if (range <= winRange) {
             $.say($.lang.get('gambling.lost', $.resolveRank(sender), range, $.getPointsString(amount), $.getPointsString($.getUserPoints(sender) - amount), $.gameMessages.getLose(sender, 'gamble')));
             $.inidb.decr('points', sender, amount);
-            updateJackpot(amount * 0.10);
+            updateJackpot(amount * 0.10, false);
         } else {
             winnings = Math.floor(amount + (amount * gain));
             $.say($.lang.get('gambling.won', $.resolveRank(sender), range, $.getPointsString(winnings - amount), $.getPointsString($.getUserPoints(sender) + (winnings - amount)), $.gameMessages.getWin(sender, 'gamble')));
