@@ -53,7 +53,7 @@
         if(range == jackpotSpot) {
             jackpotWinning = Math.floor(jackpot * (amount / max));
             winnings = Math.floor(amount + (amount * gain));
-            jackpot = jackpotWinning - jackpot;
+            jackpot = jackpot - jackpotWinning;
             if(jackpot <= jackpotDefault) {
                 jackpot = jackpotDefault
             }
