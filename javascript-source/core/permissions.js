@@ -25,19 +25,19 @@
  * Provide an usergroups API
  * Use the $ API
  */
-(function() {
+(function () {
     var userGroups = [],
-        modeOUsers = [],
-        subUsers = new java.util.concurrent.CopyOnWriteArrayList(),
-        vipUsers = [],
-        modListUsers = [],
-        users = [],
-        moderatorsCache = [],
-        botList = [],
-        lastJoinPart = $.systemTime(),
-        firstRun = true,
-        isUpdatingUsers = false,
-        _isSwappedSubscriberVIP = $.inidb.GetBoolean('settings', '', 'isSwappedSubscriberVIP');
+            modeOUsers = [],
+            subUsers = new java.util.concurrent.CopyOnWriteArrayList(),
+            vipUsers = [],
+            modListUsers = [],
+            users = [],
+            moderatorsCache = [],
+            botList = [],
+            lastJoinPart = $.systemTime(),
+            isUpdatingUsers = false,
+            _isSwappedSubscriberVIP = $.inidb.GetBoolean('settings', '', 'isSwappedSubscriberVIP'),
+            _lock = new java.util.concurrent.locks.ReentrantLock();
 
     /**
      * @export $
@@ -147,16 +147,21 @@
     function updateUsersObject(newUsers) {
         var i;
 
-        for (i in newUsers) {
-            if (!userExists(newUsers[i])) {
-                users.push(newUsers[i]);
+        _lock.lock();
+        try {
+            for (i in newUsers) {
+                if (!userExists(newUsers[i])) {
+                    users.push(newUsers[i]);
+                }
             }
-        }
 
-        for (i = users.length - 1; i >= 0; i--) {
-            if (!hasKey(newUsers, users[i])) {
-                users.splice(i, 1);
+            for (i = users.length - 1; i >= 0; i--) {
+                if (!hasKey(newUsers, users[i])) {
+                    users.splice(i, 1);
+                }
             }
+        } finally {
+            _lock.unlock();
         }
     }
 
@@ -423,7 +428,7 @@
         if (id > PERMISSION.Mod && isMod(username, tags)) {
             id = PERMISSION.Mod;
         }
-        if (id > PERMISSION.Sub && isSub(username, tags)){
+        if (id > PERMISSION.Sub && isSub(username, tags)) {
             id = PERMISSION.Sub;
         }
         if (id > PERMISSION.Donator && isDonator(username)) {
@@ -523,7 +528,7 @@
      */
     function getGroupIdByName(inGroupName) {
         var groupName = $.javaString(inGroupName),
-            userGroupName;
+                userGroupName;
 
         for (var i = 0; i < userGroups.length; i++) {
             userGroupName = $.javaString(userGroups[i]);
@@ -719,9 +724,9 @@
 
     function getGroupList() {
         var keys = $.inidb.GetKeyList('groups', ''),
-            groups = [],
-            temp = [],
-            i;
+                groups = [],
+                temp = [],
+                i;
 
         for (i in keys) {
             groups.push({
@@ -802,15 +807,15 @@
 
     function swapSubscriberVIP() {
         var oldSubL = userGroups[PERMISSION.Sub],
-            oldSubD = $.inidb.get('groups', PERMISSION.Sub.toString()),
-            oldSubU = $.inidb.GetKeysByLikeValues('group', '', PERMISSION.Sub.toString()),
-            newSubU = [],
-            oldVIPL = userGroups[PERMISSION.VIP],
-            oldVIPD = $.inidb.get('groups', PERMISSION.VIP.toString()),
-            oldVIPU = $.inidb.GetKeysByLikeValues('group', '', PERMISSION.VIP.toString()),
-            newVIPU = [],
-            temp = PERMISSION.VIP,
-            i;
+                oldSubD = $.inidb.get('groups', PERMISSION.Sub.toString()),
+                oldSubU = $.inidb.GetKeysByLikeValues('group', '', PERMISSION.Sub.toString()),
+                newSubU = [],
+                oldVIPL = userGroups[PERMISSION.VIP],
+                oldVIPD = $.inidb.get('groups', PERMISSION.VIP.toString()),
+                oldVIPU = $.inidb.GetKeysByLikeValues('group', '', PERMISSION.VIP.toString()),
+                newVIPU = [],
+                temp = PERMISSION.VIP,
+                i;
         PERMISSION.VIP = PERMISSION.Sub;
         PERMISSION.Sub = temp;
         for (i in oldSubU) {
@@ -884,15 +889,15 @@
      *
      * @info Event that is sent when a large amount of people join/leave. This is done on a new thread.
      */
-    $.bind('ircChannelUsersUpdate', function(event) {
-        setTimeout(function() {
+    $.bind('ircChannelUsersUpdate', function (event) {
+        setTimeout(function () {
             // Don't allow other events to add or remove users.
             isUpdatingUsers = true;
 
             var joins = event.getJoins(),
-                parts = event.getParts(),
-                values = [],
-                i;
+                    parts = event.getParts(),
+                    values = [],
+                    i;
 
             // Handle parts
             for (i = 0; i < parts.length; i++) {
@@ -901,7 +906,12 @@
                 // Remove the user from the users array.
                 var t = getKeyIndex($.users, parts[i]);
                 if (t >= 0) {
-                    $.users.splice(t, 1);
+                    _lock.lock();
+                    try {
+                        $.users.splice(t, 1);
+                    } finally {
+                        _lock.unlock();
+                    }
                 }
 
                 $.restoreSubscriberStatus(parts[i]);
@@ -918,11 +928,11 @@
                     continue;
                 }
 
-                // Since the user's array gets so big, let's skip it on first run in case the bot ever gets shutdown and restarted mid stream.
-                if (!firstRun && !userExists(joins[i])) {
+                _lock.lock();
+                try {
                     $.users.push(joins[i]);
-                } else {
-                    $.users.push(joins[i]);
+                } finally {
+                    _lock.unlock();
                 }
             }
 
@@ -936,7 +946,7 @@
     /**
      * @event ircChannelJoin
      */
-    $.bind('ircChannelJoin', function(event) {
+    $.bind('ircChannelJoin', function (event) {
         var username = event.getUser().toLowerCase();
 
         if (isTwitchBot(username)) {
@@ -950,14 +960,19 @@
 
             lastJoinPart = $.systemTime();
 
-            users.push(username);
+            _lock.lock();
+            try {
+                users.push(username);
+            } finally {
+                _lock.unlock();
+            }
         }
     });
 
     /**
      * @event ircChannelMessage
      */
-    $.bind('ircChannelMessage', function(event) {
+    $.bind('ircChannelMessage', function (event) {
         var username = event.getSender().toLowerCase();
 
         if (isTwitchBot(username)) {
@@ -969,22 +984,32 @@
                 $.setIniDbBoolean('visited', username, true);
             }
 
-            users.push(username);
+            _lock.lock();
+            try {
+                users.push(username);
+            } finally {
+                _lock.unlock();
+            }
         }
     });
 
     /**
      * @event ircChannelLeave
      */
-    $.bind('ircChannelLeave', function(event) {
+    $.bind('ircChannelLeave', function (event) {
         var username = event.getUser().toLowerCase(),
-            i;
+                i;
 
         if (!isUpdatingUsers) {
             i = getKeyIndex(users, username);
 
             if (i >= 0) {
-                users.splice(i, 1);
+                _lock.lock();
+                try {
+                    users.splice(i, 1);
+                } finally {
+                    _lock.unlock();
+                }
                 restoreSubscriberStatus(username.toLowerCase());
                 $.username.removeUser(username);
             }
@@ -994,7 +1019,7 @@
     /**
      * @event ircChannelUserMode
      */
-    $.bind('ircChannelUserMode', function(event) {
+    $.bind('ircChannelUserMode', function (event) {
         var username = event.getUser().toLowerCase();
 
         if (event.getMode().equalsIgnoreCase('o')) {
@@ -1047,12 +1072,12 @@
     /**
      * @event ircPrivateMessage
      */
-    $.bind('ircPrivateMessage', function(event) {
+    $.bind('ircPrivateMessage', function (event) {
         var sender = event.getSender().toLowerCase(),
-            message = event.getMessage().toLowerCase().trim(),
-            subsTxtList = [],
-            spl,
-            i;
+                message = event.getMessage().toLowerCase().trim(),
+                subsTxtList = [],
+                spl,
+                i;
 
         if (sender.equalsIgnoreCase('jtv')) {
             if (message.indexOf('specialuser') > -1) {
@@ -1076,11 +1101,11 @@
     /**
      * @event command
      */
-    $.bind('command', function(event) {
+    $.bind('command', function (event) {
         var sender = event.getSender().toLowerCase(),
-            command = event.getCommand(),
-            args = event.getArgs(),
-            actionValue = args[0];
+                command = event.getCommand(),
+                args = event.getArgs(),
+                actionValue = args[0];
 
         /*
          * @commandpath reloadbots - Reload the list of bots and users to ignore. They will not gain points or time.
@@ -1175,7 +1200,7 @@
             }
 
             var username = $.user.sanitize(args[0]),
-                groupId = parseInt(args[1]);
+                    groupId = parseInt(args[1]);
 
             if (!$.user.isKnown(username)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('common.user.404', username));
@@ -1220,8 +1245,8 @@
          */
         if (command.equalsIgnoreCase('permissionpoints')) {
             var groupId,
-                channelStatus,
-                points;
+                    channelStatus,
+                    points;
 
             if (!args[0]) {
                 $.say($.whisperPrefix(sender) + $.lang.get('permissions.grouppoints.usage'));
@@ -1236,10 +1261,10 @@
 
             if (!args[1]) {
                 $.say($.whisperPrefix(sender) + $.lang.get('permissions.grouppoints.showgroup', getGroupNameById(groupId),
-                    ($.inidb.exists('grouppoints', getGroupNameById(groupId)) ? $.inidb.get('grouppoints', getGroupNameById(groupId)) : '(undefined)'),
-                    $.pointNameMultiple,
-                    ($.inidb.exists('grouppointsoffline', getGroupNameById(groupId)) ? $.inidb.get('grouppointsoffline', getGroupNameById(groupId)) : '(undefined)'),
-                    $.pointNameMultiple));
+                        ($.inidb.exists('grouppoints', getGroupNameById(groupId)) ? $.inidb.get('grouppoints', getGroupNameById(groupId)) : '(undefined)'),
+                        $.pointNameMultiple,
+                        ($.inidb.exists('grouppointsoffline', getGroupNameById(groupId)) ? $.inidb.get('grouppointsoffline', getGroupNameById(groupId)) : '(undefined)'),
+                        $.pointNameMultiple));
                 return;
             }
 
@@ -1252,12 +1277,12 @@
             if (!args[2]) {
                 if (channelStatus.equalsIgnoreCase('online')) {
                     $.say($.whisperPrefix(sender) + $.lang.get('permissions.grouppoints.showgroup.online', getGroupNameById(groupId),
-                        ($.inidb.exists('grouppoints', getGroupNameById(groupId)) ? $.inidb.get('grouppoints', getGroupNameById(groupId)) : '(undefined)'),
-                        $.pointNameMultiple));
+                            ($.inidb.exists('grouppoints', getGroupNameById(groupId)) ? $.inidb.get('grouppoints', getGroupNameById(groupId)) : '(undefined)'),
+                            $.pointNameMultiple));
                 } else if (channelStatus.equalsIgnoreCase('offline')) {
                     $.say($.whisperPrefix(sender) + $.lang.get('permissions.grouppoints.showgroup.offline', getGroupNameById(groupId),
-                        ($.inidb.exists('grouppointsoffline', getGroupNameById(groupId)) ? $.inidb.get('grouppointsoffline', getGroupNameById(groupId)) : '(undefined)'),
-                        $.pointNameMultiple));
+                            ($.inidb.exists('grouppointsoffline', getGroupNameById(groupId)) ? $.inidb.get('grouppointsoffline', getGroupNameById(groupId)) : '(undefined)'),
+                            $.pointNameMultiple));
                 }
                 return;
             }
@@ -1305,7 +1330,7 @@
     /**
      * @event initReady
      */
-    $.bind('initReady', function() {
+    $.bind('initReady', function () {
         $.registerChatCommand('./core/permissions.js', 'permission', $.PERMISSION.Admin);
         $.registerChatCommand('./core/permissions.js', 'permissions', $.PERMISSION.Admin);
         $.registerChatCommand('./core/permissions.js', 'permissionslist', $.PERMISSION.Admin);

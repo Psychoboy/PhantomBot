@@ -66,17 +66,37 @@
 
     /*
      * @transformer count
-     * @formula (count) increases the count of how often this command has been called and output new count
+     * @formula (count) increases the count of how often this command has been called and outputs new count
+     * @formula (count amount:int) increases the count of how often this command has been called by the specified amount and outputs new count
+     * @formula (count amount:int name:str) increases the count of how often the named counter has been called by the specified amount and outputs new count
+     * @formula (count reset name:str) zeroes the named counter and outputs new count
      * @labels twitch commandevent commands
-     * @example Caster:  !addcom !spam Chat has been spammed (count) times
+     * @example Caster: !addcom !spam Chat has been spammed (count) times
      * User: !spam
      * Bot: Chat has been spammed 5050 times.
+     * @notes Specify an amount of `0` to display the count without changing it.
+     * Specify a negative amount to subtract from it.
+     * The default counter name is the command name, without the `!`
      */
     function count(args, event) {
-        if (!args) {
-            $.inidb.incr('commandCount', event.getCommand(), 1);
-            return {result: $.inidb.get('commandCount', event.getCommand())};
+        match = $.parseArgs(args, ' ', 2, true);
+        var incr = 1;
+        var counter = event.getCommand();
+
+        if (match !== null && match.length > 1 && match[1].length > 0) {
+            counter = match[1];
         }
+
+        if (match !== null && match.length > 0) {
+            if (!isNaN(match[0])) {
+                incr = parseInt(match[0]);
+            } else if (match[0].toLowerCase() === 'reset') {
+                incr = - $.inidb.GetInteger('commandCount', '', counter);
+            }
+        }
+
+        $.inidb.incr('commandCount', counter, incr);
+        return {result: $.inidb.get('commandCount', counter)};
     }
 
     /*
