@@ -138,3 +138,5 @@ $.lang.register('ytplayer.command.skip.delay', 'Skip is not allowed for a moment
 $.lang.register('ytplayer.command.votecount.set', 'Minimum votes now needed for viewers to skip songs: $1');
 $.lang.register('ytplayer.command.votecount.negative', 'The number of votes needed must be positive!');
 $.lang.register('ytplayer.command.votecount.usage', '!ytp votecount [amount]  ---  Current setting: $1');
+
+$.lang.register('ytplayer.error.skip.cannotplay', 'The song $1 was automatically skipped due to an error which prevents the ability to play it. Code: $2')

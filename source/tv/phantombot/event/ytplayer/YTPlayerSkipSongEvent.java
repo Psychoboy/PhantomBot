@@ -18,10 +18,26 @@ package tv.phantombot.event.ytplayer;
 
 public class YTPlayerSkipSongEvent extends YTPlayerEvent {
 
+    boolean skipForError = false;
+    int errorCode = 0;
+
     /**
      * Class constructor.
      */
     public YTPlayerSkipSongEvent() {
 
+    }
+
+    public YTPlayerSkipSongEvent(int errorCode) {
+        this.skipForError = true;
+        this.errorCode = errorCode;
+    }
+
+    public boolean getHasError() {
+        return this.skipForError;
+    }
+
+    public int getErrorCode() {
+        return this.errorCode;
     }
 }

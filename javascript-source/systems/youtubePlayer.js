@@ -1305,6 +1305,14 @@
      * @event ytPlayerSkipSong
      */
     $.bind('yTPlayerSkipSong', function(event) {
+
+        if(event.getHasError()) {
+            owner = currentPlaylist.getCurrentVideo().getOwner();
+            song = currentPlaylist.getCurrentVideo().getVideoTitle();
+            code = event.getErrorCode();
+            $.say($.userPrefix(owner, true) + $.lang.get('ytplayer.error.skip.cannotplay', song, code));
+        }
+
         currentPlaylist.nextVideo();
         connectedPlayerClient.pushSongList();
     });

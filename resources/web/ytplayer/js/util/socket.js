@@ -18,11 +18,21 @@
  */
 
 $(function() {
-    var socket = new WebSocket((getProtocol() === 'https://' || window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws/ytplayer'),
+    var socket = getWebSocket(),
         listeners = [],
         player = {},
         hasAPIKey = true,
         secondConnection = false;
+
+
+        function getWebSocket() {
+            let socketUri = ((window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws/ytplayer'), // URI of the socket.
+                    reconnectInterval = 5000; // How often in milliseconds we should try reconnecting.
+    
+            return new ReconnectingWebSocket(socketUri, null, {
+                reconnectInterval: reconnectInterval
+            });
+        }
 
     /*
      * @function sends data to the socket, this should only be used in this script.
@@ -327,9 +337,9 @@ $(function() {
         console.error('Connection lost with the websocket.');
 
         if (secondConnection) {
-            toastr.error('PhantomBot has closed the WebSocket.', '', {timeOut: 0});
+            toastr.error('PhantomBot has closed the WebSocket.', '', {timeOut: 5000});
         } else {
-            toastr.error('Connection with WebSocket was lost. Refresh once reestablished.', '', {timeOut: 0});
+            toastr.error('Connection with WebSocket was lost. Refresh once reestablished.', '', {timeOut: 5000});
         }
     };
 
