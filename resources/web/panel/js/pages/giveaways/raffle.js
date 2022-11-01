@@ -40,12 +40,18 @@ $(run = function () {
         helpers.temp.loadRaffleList = function () {
             socket.getDBTableValues('get_raffle_list', 'raffleList', function (results) {
                 socket.getDBValues('get_raffle_hasDrawn', {
-                    tables: ['raffleState', 'raffleState', 'raffleresults', 'raffleSettings'],
-                    keys: ['hasDrawn', 'isActive', 'winner', 'noRepickSame']
+                    tables: ['raffleState', 'raffleState', 'raffleresults', 'raffleSettings', 'raffleState', 'raffleState'],
+                    keys: ['hasDrawn', 'isActive', 'winner', 'noRepickSame','startTime', 'timerTime']
                 }, true, function(e) {
                     const table = $('#raffle-table');
                     var hasDrawn = false,
                         length = results.length;
+
+                    var timerMs = parseInt(e['timerTime']) * 60000;
+                    var timerEnd = parseInt(e['startTime']) + timerMs;
+                    var timeLeft = timerEnd - Date.now();
+                    if(timeLeft < 0) timeLeft = 0;
+                    $('#time-left').html(helpers.convertMsToTime(timeLeft))
 
                     if (length === 0) {
                         // No entries disallow drawing winners

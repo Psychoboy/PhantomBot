@@ -875,6 +875,23 @@ $(function () {
         return str;
     };
 
+    helpers.padTo2Digits = function(num) {
+        return num.toString().padStart(2, '0');
+    }
+
+    helpers.convertMsToTime = function(milliseconds) {
+        let seconds = Math.floor(milliseconds / 1000);
+        let minutes = Math.floor(seconds / 60);
+        let hours = Math.floor(minutes / 60);
+
+        seconds = seconds % 60;
+        minutes = minutes % 60;
+
+        return `${helpers.padTo2Digits(hours)}:${helpers.padTo2Digits(minutes)}:${helpers.padTo2Digits(
+            seconds,
+        )}`;
+    }
+
     /*
      * @function Creates a new timer interval.
      *

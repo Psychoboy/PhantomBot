@@ -19,7 +19,7 @@
  * raffleSystem.js made for giveaways on Twitch
  *
  */
-(function() {
+ (function() {
     var entries = [],
         entered = [],
         keyword = '',
@@ -37,7 +37,7 @@
         messageInterval = $.getSetIniDbNumber('raffleSettings', 'raffleMessageInterval', 0),
         subscriberBonus = $.getSetIniDbNumber('raffleSettings', 'subscriberBonusRaffle', 1),
         regularBonus = $.getSetIniDbNumber('raffleSettings', 'regularBonusRaffle', 1),
-        interval, timeout, followMessage = '',
+        interval, timeout, updatetimer, followMessage = '',
         saveStateInterval,
         timerMessage = '',
         lastWinners = [],
@@ -174,11 +174,34 @@
             saveState();
         }, 5 * 6e4);
 
+        updatetimer = setInterval(function(){
+            updateTimeLeft();
+        }, 500);
+
         /* Mark the raffle as opened */
         $.raffleCommand = keyword;
         status = true;
 
         saveState();
+    }
+
+    function updateTimeLeft() {
+        currentTime = $.systemTime();
+        endTime = startTime + (timerTime * 60000);
+        timeLeft = endTime - currentTime;
+        if(timeLeft < 0) {
+            timeText = '';
+            
+        } else {
+            var seconds = Math.floor(timeLeft / 1000);
+            var minutes = Math.floor(seconds / 60);
+            seconds = seconds % 60;
+            minutes = minutes % 60;
+            if(seconds < 10) seconds = "0" + seconds;
+            if (minutes < 10) minutes = "0" + minutes;
+            timeText = minutes + ":" + seconds
+        }
+        $.writeToFile(timeText, './addons/wheelTimer.txt', false)
     }
 
     function reopen() {
@@ -263,6 +286,7 @@
         $.inidb.SetBoolean('raffleState', '', 'isActive', status);
         $.inidb.SetBoolean('raffleState', '', 'isFollowersOnly', followers);
         $.inidb.SetBoolean('raffleState', '', 'isSubscribersOnly', subscribers);
+        if(usePoints == null) usePoints = false;
         $.inidb.SetBoolean('raffleState', '', 'usePoints', usePoints);
         $.inidb.SetBoolean('raffleState', '', 'hasDrawn', hasDrawn);
         if (lastWinners.length >= 0){
@@ -283,6 +307,7 @@
         clearInterval(timeout);
         clearInterval(interval);
         clearInterval(saveStateInterval);
+        clearInterval(updatetimer);
 
         /* Check if there's a raffle opened */
         if (!status && username !== undefined) {
@@ -508,6 +533,7 @@
         clearInterval(timeout);
         clearInterval(interval);
         clearInterval(saveStateInterval);
+        clearInterval(updatetimer);
         keyword = '';
         followMessage = '';
         timerMessage = '';
