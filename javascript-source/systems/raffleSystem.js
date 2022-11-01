@@ -308,6 +308,7 @@
         clearInterval(interval);
         clearInterval(saveStateInterval);
         clearInterval(updatetimer);
+        $.writeToFile('', './addons/wheelTimer.txt', false);
 
         /* Check if there's a raffle opened */
         if (!status && username !== undefined) {
@@ -403,6 +404,7 @@
             var followMsg = ($.user.isFollower(winners[0].toLowerCase()) ? $.lang.get('rafflesystem.isfollowing') : $.lang.get('rafflesystem.isnotfollowing'));
             var subMsg = ($.isSub(winners[0]) ? $.lang.get('rafflesystem.issub') : '');
             $.say($.lang.get('rafflesystem.winner.single', $.username.resolve(winners[0]), subMsg.length > 0 ? subMsg : followMsg));
+            $.writeToFile('Last Winner: ' + $.username.resolve(winners[0]), './addons/wheelLastWinner.txt', false)
             return;
         }
 
