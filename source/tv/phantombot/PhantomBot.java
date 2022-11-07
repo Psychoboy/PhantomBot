@@ -24,7 +24,6 @@ import com.gmt2001.RestartRunner;
 import com.gmt2001.RollbarProvider;
 import com.gmt2001.TwitchAPIv5;
 import com.gmt2001.TwitterAPI;
-import com.gmt2001.YouTubeAPIv3;
 import com.gmt2001.datastore.DataStore;
 import com.gmt2001.datastore.DataStoreConverter;
 import com.gmt2001.datastore.H2Store;
@@ -39,6 +38,7 @@ import com.gmt2001.twitch.TwitchClientCredentialsFlow;
 import com.gmt2001.twitch.tmi.TwitchMessageInterface;
 import com.illusionaryone.GitHubAPIv3;
 import com.illusionaryone.TwitchAlertsAPIv1;
+import com.illusionaryone.YouTubeAPIv3;
 import com.scaniatv.CustomAPI;
 import com.scaniatv.StreamElementsAPIv2;
 import com.scaniatv.TipeeeStreamAPIv1;
@@ -48,7 +48,6 @@ import io.netty.util.internal.logging.JdkLoggerFactory;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -239,35 +238,6 @@ public final class PhantomBot implements Listener {
     }
 
     /**
-     * Checks port availability.
-     *
-     * @param port
-     */
-    public void checkPortAvailabity(int port) {
-        ServerSocket serverSocket = null;
-        try {
-            serverSocket = CaselessProperties.instance().getProperty("bindIP", "").isEmpty() ? new ServerSocket(port) : new ServerSocket(port, 1, java.net.InetAddress.getByName(CaselessProperties.instance().getProperty("bindIP", "")));
-            serverSocket.setReuseAddress(true);
-        } catch (IOException e) {
-            com.gmt2001.Console.err.println("Port is already in use: " + port);
-            com.gmt2001.Console.err.println("Ensure that another copy of PhantomBot is not running.");
-            com.gmt2001.Console.err.println("If another copy is not running, try to change baseport in ./config/botlogin.txt");
-            com.gmt2001.Console.err.println("PhantomBot will now exit.");
-            PhantomBot.exitError();
-        } finally {
-            if (serverSocket != null) {
-                try {
-                    serverSocket.close();
-                } catch (IOException e) {
-                    com.gmt2001.Console.err.println("Unable to close port for testing: " + port);
-                    com.gmt2001.Console.err.println("PhantomBot will now exit.");
-                    PhantomBot.exitError();
-                }
-            }
-        }
-    }
-
-    /**
      * Check to see if YouTube Key is configured.
      *
      * @return
@@ -404,9 +374,6 @@ public final class PhantomBot implements Listener {
         /* Set the oauth key in the Twitch api and perform a validation. */
         this.validateOAuth();
 
-        /* Start things and start loading the scripts. */
-        this.init();
-
         /* Check if the OS is Linux. */
         if (SystemUtils.IS_OS_LINUX && System.getProperty("interactive") == null) {
             try {
@@ -419,7 +386,8 @@ public final class PhantomBot implements Listener {
             }
         }
 
-        this.initChat();
+        /* Start things and start loading the scripts. */
+        ExecutorService.schedule(this::init, 250, TimeUnit.MILLISECONDS);
     }
 
     public void validateOAuth() {
@@ -547,7 +515,7 @@ public final class PhantomBot implements Listener {
         /**
          * @botproperty user - The username the bot will login as to send chat messages
          */
-        return CaselessProperties.instance().getProperty("user").toLowerCase();
+        return CaselessProperties.instance().getProperty("user", "A PhantomBot").toLowerCase();
     }
 
     public HTTPOAuthHandler getHTTPOAuthHandler() {
@@ -699,25 +667,7 @@ public final class PhantomBot implements Listener {
          * @botproperty webenable - If `true`, the bots webserver is started. Default `true`
          */
         if (CaselessProperties.instance().getPropertyAsBoolean("webenable", true)) {
-            /**
-             * @botproperty bindip - The IP address the bots webserver runs on. Default all
-             */
-            /**
-             * @botproperty baseport - The port the bots webserver runs on. Default `25000`
-             */
-            /**
-             * @botproperty usehttps - If `true`, the bots webserver uses HTTPS to secure the connection. Default `true`
-             */
-            /**
-             * @botproperty httpsFileName - If set, the certificate in this file is used for HTTPS. Default is to generate a self-signed certificate
-             */
-            /**
-             * @botproperty httpsPassword - The password, if any, to _httpsFileName_
-             */
-            checkPortAvailabity(CaselessProperties.instance().getPropertyAsInt("baseport", 25000));
-            HTTPWSServer.instance(CaselessProperties.instance().getProperty("bindIP", ""), CaselessProperties.instance().getPropertyAsInt("baseport", 25000),
-                    CaselessProperties.instance().getPropertyAsBoolean("usehttps", true), CaselessProperties.instance().getProperty("httpsFileName", ""),
-                    CaselessProperties.instance().getProperty("httpsPassword", ""), this.getBotName());
+            HTTPWSServer.instance();
             new HTTPNoAuthHandler().register();
             this.httpAuthenticatedHandler = new HTTPAuthenticatedHandler(CaselessProperties.instance().getProperty("webauth"), this.getPanelOAuth().replace("oauth:", ""));
             this.httpAuthenticatedHandler.register();
@@ -986,6 +936,7 @@ public final class PhantomBot implements Listener {
 
         this.initConsoleEventBus();
         this.initWeb();
+        this.initChat();
     }
 
     /**

@@ -25,9 +25,11 @@
 
 (function() {
     var defaultCooldownTime = $.getSetIniDbNumber('cooldownSettings', 'defaultCooldownTime', 5),
-        modCooldown = $.getSetIniDbBoolean('cooldownSettings', 'modCooldown', false),
-        defaultCooldowns = {},
-        cooldowns = {};
+            modCooldown = $.getSetIniDbBoolean('cooldownSettings', 'modCooldown', false),
+            defaultCooldowns = {},
+            cooldowns = {},
+            _cooldownsLock = new java.util.concurrent.locks.ReentrantLock(),
+            _defaultCooldownsLock = new java.util.concurrent.locks.ReentrantLock();
 
     $.raffleCommand = null;
 
@@ -46,14 +48,15 @@
      * @param {String}  command
      * @param {Number}  globalSec
      * @param {Number}  userSec
+     * @param {Boolean}  modsSkip
      */
     function Cooldown(command, globalSec, userSec, modsSkip) {
-            this.command = command;
-            this.globalSec = globalSec;
-            this.userSec = userSec;
-            this.userTimes = [];
-            this.globalTime = 0;
-            this.modsSkip = modsSkip;
+        this.command = command;
+        this.globalSec = globalSec;
+        this.userSec = userSec;
+        this.userTimes = [];
+        this.globalTime = 0;
+        this.modsSkip = modsSkip;
     }
 
     /*
@@ -79,9 +82,14 @@
             json,
             i;
 
-        for (i in commands) {
-            json = JSON.parse($.inidb.get('cooldown', commands[i]));
-            cooldowns[commands[i]] = new Cooldown(json.command, json.globalSec, json.userSec, json.modsSkip);
+        _cooldownsLock.lock();
+        try {
+            for (i in commands) {
+                json = JSON.parse($.inidb.get('cooldown', commands[i]));
+                cooldowns[commands[i]] = new Cooldown(json.command, json.globalSec, json.userSec, json.modsSkip);
+            }
+        } finally {
+            _cooldownsLock.unlock();
         }
     }
 
@@ -132,16 +140,32 @@
         var isGlobal = false,
             maxCoolDown = 0;
 
-        if (isSpecial(command)) {
-            if ((command.equalsIgnoreCase('boss') || command.equalsIgnoreCase('adventure') || command.equalsIgnoreCase('ffa') || command.equalsIgnoreCase('wheelspin')) && defaultCooldowns[command] !== undefined && defaultCooldowns[command] > $.systemTime()) {
-                maxCoolDown = getTimeDif(defaultCooldowns[command]);
-                isGlobal = true;
-            }
+
+        if (canIgnore(username, isMod)) {
             return [maxCoolDown, isGlobal];
         }
 
-        var cooldown = cooldowns[command],
-            useDefault = false;
+        if (isSpecial(command)) {
+            _defaultCooldownsLock.lock();
+            try {
+                if ((command.equalsIgnoreCase('boss') || command.equalsIgnoreCase('adventure') || command.equalsIgnoreCase('ffa') || command.equalsIgnoreCase('wheelspin')) && defaultCooldowns[command] !== undefined && defaultCooldowns[command] > $.systemTime()) {
+                    maxCoolDown = getTimeDif(defaultCooldowns[command]);
+                    isGlobal = true;
+                }
+            } finally {
+                _defaultCooldownsLock.unlock();
+            }
+
+            return [maxCoolDown, isGlobal];
+        }
+
+        _cooldownsLock.lock();
+        try {
+            var cooldown = cooldowns[command],
+                useDefault = false;
+        } finally {
+            _cooldownsLock.unlock();
+        }
 
         if(canIgnore(username, isMod)) {
             if (cooldown !== undefined && cooldown.globalSec !== Operation.UnSet) {
@@ -161,7 +185,7 @@
                 isGlobal = true;
                 if (cooldown.globalTime > $.systemTime()) {
                     maxCoolDown = getTimeDif(cooldown.globalTime);
-                } else if(cooldown.userTimes[username] === undefined || (cooldown.userTimes[username] !== undefined && cooldown.userTimes[username] < $.systemTime())){ //Only set a cooldown timer if the user can actually use the command
+                } else if (cooldown.userTimes[username] === undefined || (cooldown.userTimes[username] !== undefined && cooldown.userTimes[username] < $.systemTime())){ //Only set a cooldown timer if the user can actually use the command
                     set(command, useDefault, cooldown.globalSec, undefined);
                 }
             }
@@ -170,7 +194,7 @@
                 hasCooldown = true;
                 if (cooldown.userTimes[username] !== undefined && cooldown.userTimes[username] > $.systemTime()) {
                     var userCoolDown = getTimeDif(cooldown.userTimes[username]);
-                    if(userCoolDown > maxCoolDown) {
+                    if (userCoolDown > maxCoolDown) {
                         isGlobal = false;
                         maxCoolDown = userCoolDown;
                     }
@@ -184,10 +208,17 @@
             }
         }
 
-        if (defaultCooldowns[command] !== undefined && defaultCooldowns[command] > $.systemTime()) {
-            maxCoolDown = getTimeDif(defaultCooldowns[command]);
+        _defaultCooldownsLock.lock();
+        try {
+            var cmdCD = defaultCooldowns[command];
+        } finally {
+            _defaultCooldownsLock.unlock();
+        }
+
+        if (cmdCD !== undefined && cmdCD > $.systemTime()) {
+            maxCoolDown = getTimeDif(cmdCD);
         } else {
-            useDefault  = true;
+            useDefault = true;
             set(command, useDefault, defaultCooldownTime, undefined);
         }
 
@@ -199,7 +230,14 @@
     }
 
     function exists(command) {
-        return defaultCooldowns[command] !== undefined || cooldowns[command] !== undefined;
+        _defaultCooldownsLock.lock();
+        _cooldownsLock.lock();
+        try {
+            return defaultCooldowns[command] !== undefined || cooldowns[command] !== undefined;
+        } finally {
+            _defaultCooldownsLock.unlock();
+            _cooldownsLock.unlock();
+        }
     }
 
     /*
@@ -214,18 +252,28 @@
     function set(command, useDefault, duration, username) {
         var finishTime = (duration > 0 ? ((parseInt(duration) * 1e3) + $.systemTime()) : 0);
         if (useDefault) {
-            defaultCooldowns[command] = finishTime;
-            return;
+            _defaultCooldownsLock.lock();
+            try {
+                defaultCooldowns[command] = finishTime;
+                return;
+            } finally {
+                _defaultCooldownsLock.unlock();
+            }
         }
 
         if (!exists(command)) {
             add(command, Operation.UnChanged, Operation.UnChanged, null);
         }
 
-        if (username === undefined) {
-            cooldowns[command].globalTime = finishTime;
-        } else {
-            cooldowns[command].userTimes[username] = finishTime;
+        _cooldownsLock.lock();
+        try {
+            if (username === undefined) {
+                cooldowns[command].globalTime = finishTime;
+            } else {
+                cooldowns[command].userTimes[username] = finishTime;
+            }
+        } finally {
+            _cooldownsLock.unlock();
         }
     }
 
@@ -236,27 +284,32 @@
      * @param {String}  command
      * @param {Number}  globalSec
      * @param {Number}  userSec
-     * @param {Boolean}  modsSkip
+     * @param {Boolean} modsSkip
      */
     function add(command, globalSec, userSec, modsSkip) {
-        if (cooldowns[command] === undefined) {
-            cooldowns[command] = new Cooldown(command,
-                                             (globalSec === Operation.UnChanged ? Operation.UnSet : globalSec),
-                                             (userSec === Operation.UnChanged ? Operation.UnSet : userSec),
-                                             modsSkip === undefined || modsSkip === null ? false : modsSkip);
-        } else {
-            if (globalSec !== Operation.UnChanged) {
-                cooldowns[command].globalSec = globalSec;
+        _cooldownsLock.lock();
+        try {
+            if (cooldowns[command] === undefined) {
+                cooldowns[command] = new Cooldown(command,
+                                                (globalSec === Operation.UnChanged ? Operation.UnSet : globalSec),
+                                                (userSec === Operation.UnChanged ? Operation.UnSet : userSec),
+                                                modsSkip === undefined || modsSkip === null ? false : modsSkip);
+            } else {
+                if (globalSec !== Operation.UnChanged) {
+                    cooldowns[command].globalSec = globalSec;
+                }
+                if (userSec !== Operation.UnChanged) {
+                    cooldowns[command].userSec = userSec;
+                }
+                if (modsSkip !== undefined && modsSkip !== null) {
+                    cooldowns[command].modsSkip = modsSkip;
+                }
             }
-            if (userSec !== Operation.UnChanged) {
-                cooldowns[command].userSec = userSec;
-            }
-            if (modsSkip !== undefined && modsSkip !== null) {
-                cooldowns[command].modsSkip = modsSkip;
-            }
-        }
 
-        $.inidb.set('cooldown', command, toJSONString(cooldowns[command]));
+            $.inidb.set('cooldown', command, toJSONString(cooldowns[command]));
+        } finally {
+            _cooldownsLock.unlock();
+        }
     }
 
     /*
@@ -267,8 +320,13 @@
      */
     function remove(command) {
         $.inidb.del('cooldown', command);
-        if (cooldowns[command] !== undefined) {
-            delete cooldowns[command];
+        _cooldownsLock.lock();
+        try {
+            if (cooldowns[command] !== undefined) {
+                delete cooldowns[command];
+            }
+        } finally {
+            _cooldownsLock.unlock();
         }
     }
 
@@ -279,9 +337,14 @@
      * @param {String}  command
      */
     function clear(command) {
-        if (cooldowns[command] !== undefined) {
-            cooldowns[command].globalTime = 0;
-            cooldowns[command].userTimes = [];
+        _cooldownsLock.lock();
+        try {
+            if (cooldowns[command] !== undefined) {
+                cooldowns[command].globalTime = 0;
+                cooldowns[command].userTimes = [];
+            }
+        } finally {
+            _cooldownsLock.unlock();
         }
     }
 
@@ -292,6 +355,7 @@
      * @param {String}  command
      * @param {String}  first
      * @param {String}  second
+     * @param {Boolean} modsSkipIn
      */
     function handleCoolCom(sender, command, first, second, modsSkipIn) {
         var action1 = first.split("="),
@@ -309,7 +373,7 @@
             return;
         }
 
-        if(!isNaN(parseInt(type1)) && second === undefined) { //Only assume this is global if no secondary action is present
+        if (!isNaN(parseInt(type1)) && second === undefined) { //Only assume this is global if no secondary action is present
             secsG = parseInt(type1);
             type1 = Type.Global;
         } else if ((!type1.equalsIgnoreCase(Type.Global) && !type1.equalsIgnoreCase(Type.User) && !type1.equalsIgnoreCase('modsskip')) || isNaN(parseInt(action1[1]))) {
@@ -346,10 +410,10 @@
             remove(command);
             $.say($.whisperPrefix(sender) + $.lang.get('cooldown.coolcom.remove', command));
             return;
-        } else {
-            add(command, secsG, secsU, modsSkip);
-            clear(command);
         }
+
+        add(command, secsG, secsU, modsSkip);
+        clear(command);
 
         if (modsSkip) {
             modsSkip = 'ModsSkip';
@@ -381,10 +445,11 @@
          * @commandpath coolcom [command] remove - Removes any command-specific cooldown that was set on the specified command.
          */
         if (command.equalsIgnoreCase('coolcom')) {
-            if(action === undefined) {
+            if (action === undefined) {
                 $.say($.whisperPrefix(sender) + $.lang.get('cooldown.coolcom.usage'));
                 return;
             }
+
             handleCoolCom(sender, action, subAction, actionArgs, args[3]);
             return;
         }
@@ -431,7 +496,6 @@
      */
     $.bind('initReady', function() {
         $.registerChatCommand('./core/commandCoolDown.js', 'coolcom', $.PERMISSION.Admin);
-
         $.registerChatCommand('./core/commandCoolDown.js', 'cooldown', $.PERMISSION.Admin);
         $.registerChatSubcommand('cooldown', 'togglemoderators', $.PERMISSION.Admin);
         $.registerChatSubcommand('cooldown', 'setdefault', $.PERMISSION.Admin);

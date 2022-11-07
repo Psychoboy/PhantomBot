@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.gmt2001;
+package com.illusionaryone;
 
 import java.io.*;
 import java.net.URL;
@@ -38,8 +38,6 @@ import tv.phantombot.StringUtils;
 
 /**
  * Communicates with YouTube via the version 3 API
- *
- * @author gmt2001
  */
 public class YouTubeAPIv3 {
 

@@ -54,7 +54,8 @@
         /* @type {PlayerClientInterface} */
         connectedPlayerClient = null,
         /* @type {BotPlayList} */
-        currentPlaylist = null;
+        currentPlaylist = null,
+        _voteLock = new java.util.concurrent.locks.ReentrantLock();
 
     /**
      * @function reloadyt
@@ -67,7 +68,7 @@
         stealRefund = $.getIniDbBoolean('ytSettings', 'stealRefund', false);
         voteCount = $.getIniDbNumber('ytSettings', 'voteCount', 0);
         playCCOnly = $.getIniDbBoolean('ytSettings', 'playCCOnly', false);
-    };
+    }
 
     /**
      * @function loadPanelPlaylist
@@ -204,7 +205,7 @@
             var videoInfo = $.youtube.GetVideoInfo(videoId);
             license = videoInfo[0];
             embeddable = videoInfo[1];
-        }
+        };
 
         /**
          * @function getVideoLengthMMSS
@@ -328,7 +329,7 @@
 
     /**
      * @class
-     * @description This class loads a playlist and takes care of managing currently playing songs and songrequest.
+     * @description This class loads a playlist and takes care of managing currently playing songs and songrequests.
      * @param {string} playlistName
      * @param {boolean} loadDefaultPlaylist
      * @return {boolean}
@@ -504,7 +505,7 @@
             }
             this.loadPlaylistKeys();
             connectedPlayerClient.pushPlayList();
-        }
+        };
 
         /**
          * @function deletePlaylist
@@ -549,7 +550,7 @@
          */
         this.getReadOnlyPlaylistData = function() {
             return defaultPlaylistReadOnly;
-        }
+        };
 
         /**
          * @function getPreviousVideo
@@ -565,7 +566,7 @@
          */
         this.getRequestList = function() {
             return requests.toArray();
-        }
+        };
 
         /**
          * @function getRequestAtIndex
@@ -577,7 +578,7 @@
                 return null;
             }
             return requestsArray[index];
-        }
+        };
 
         /**
          * @function getRequestsCount
@@ -630,7 +631,12 @@
             }
 
             skipCount = 0;
-            voteArray = [];
+            _voteLock.lock();
+            try {
+                voteArray = [];
+            } finally {
+                _voteLock.unlock();
+            }
             return true;
         };
 
@@ -735,9 +741,14 @@
             }
 
             skipCount = 0;
-            voteArray = [];
+            _voteLock.lock();
+            try {
+                voteArray = [];
+            } finally {
+                _voteLock.unlock();
+            }
             return true;
-        }
+        };
 
 
         /**
@@ -807,7 +818,12 @@
                 $.say($.lang.get('ytplayer.announce.nextsong', currentVideo.getVideoTitle(), currentVideo.getOwner()));
             }
             skipCount = 0;
-            voteArray = [];
+            _voteLock.lock();
+            try {
+                voteArray = [];
+            } finally {
+                _voteLock.unlock();
+            }
             return currentVideo;
         };
 
@@ -1084,7 +1100,7 @@
                 "duration": currentPlaylist.getCurrentVideo().getVideoLengthMMSS() + ''
             };
             client.sendJSONToAll(JSON.stringify(jsonData));
-        }
+        };
 
         /**
          * @function pushPlayList
@@ -1220,7 +1236,7 @@
          */
         this.checkState = function() {
             return parseInt(client.getPlayerState());
-        }
+        };
     }
 
     /**
@@ -1600,7 +1616,12 @@
                     }
                     $.inidb.set('ytSettings', 'voteCount', actionArgs[0]);
                     voteCount = actionArgs[0];
-                    voteArray = [];
+                    _voteLock.lock();
+                    try {
+                        voteArray = [];
+                    } finally {
+                        _voteLock.unlock();
+                    }
                     skipCount = 0;
                     $.say($.whisperPrefix(sender) + $.lang.get('ytplayer.command.votecount.set', actionArgs[0]));
                 } else {
@@ -1864,6 +1885,7 @@
                 if (playlistsList) {
                     $.say($.whisperPrefix(sender) + $.lang.get('ytplayer.command.playlist.listpl', playlistsList.join(', ').replace(/ytPlaylist_/g, '')));
                 }
+                return;
             }
 
             /**
@@ -1960,6 +1982,7 @@
                 }
             }
             $.say(responseString);
+            return;
         }
 
         /**
@@ -1975,6 +1998,7 @@
             if (!currentPlaylist.jumpToSong(args[0])) {
                 $.say($.whisperPrefix(sender) + $.lang.get('ytplayer.command.jumptosong.failed', args[0]));
             }
+            return;
         }
 
         /**
@@ -1989,15 +2013,21 @@
             if (!currentPlaylist.findSongByTitle(args.join(' '))) {
                 $.say($.whisperPrefix(sender) + $.lang.get('ytplayer.command.findsong.failed', args.join(' ')));
             }
+            return;
         }
 
         /**
          * @commandpath skipsong - Skip the current song and proceed to the next video in line
          */
         if (command.equalsIgnoreCase('skipsong')) {
-            var username = $.username.resolve(sender, event.getTags()),
-                check = voteArray.indexOf(username),
-                action = args[0];
+            _voteLock.lock();
+            try {
+                var username = $.username.resolve(sender, event.getTags()),
+                    check = voteArray.indexOf(username),
+                    action = args[0];
+            } finally {
+                _voteLock.unlock();
+            }
 
             if (!action) {
                 if ($.systemTime() - lastSkipTime > 1000) {
@@ -2034,10 +2064,16 @@
                         return;
                     }
                     $.say($.whisperPrefix(sender) + $.lang.get('ytplayer.command.skip.success', voteCount - skipCount));
-                    voteArray.push(username);
+                    _voteLock.lock();
+                    try {
+                        voteArray.push(username);
+                    } finally {
+                        _voteLock.unlock();
+                    }
                     return;
                 }
             }
+            return;
         }
 
 
@@ -2064,6 +2100,7 @@
             } else {
                 $.say($.whisperPrefix(sender) + $.lang.get('ytplayer.command.songrequest.failed', currentPlaylist.getRequestFailReason()));
             }
+            return;
         }
 
         if (command.equalsIgnoreCase('shufflesongs')) {
@@ -2141,6 +2178,7 @@
                     $.say($.whisperPrefix(sender) + $.lang.get('ytplayer.command.wrongsong.usage'));
                 }
             }
+            return;
         }
 
         /**
@@ -2152,6 +2190,7 @@
             } else {
                 $.say($.lang.get('ytplayer.command.previoussong.404'));
             }
+            return;
         }
 
         /**
@@ -2159,6 +2198,7 @@
          */
         if (command.equalsIgnoreCase('currentsong')) {
             $.say($.userPrefix(sender, true) + $.lang.get('ytplayer.command.currentsong', currentPlaylist.getCurrentVideo().getVideoTitle(), currentPlaylist.getCurrentVideo().getOwner(), currentPlaylist.getCurrentVideo().getVideoLink()));
+            return;
         }
 
         /**
@@ -2236,6 +2276,7 @@
                     $.say($.whisperPrefix(sender) + $.lang.get('ytplayer.command.nextsong.range', displayString));
                 }
             }
+            return;
         }
     });
 
