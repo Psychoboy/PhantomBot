@@ -19,7 +19,7 @@
         viewers = [];
         recentJoinedMembers = [];
 
-        $.say($.lang.get('raffle.starting', 'superp64Waffle', winAmount, '!waffle'))
+        $.say($.lang.get('raffle.starting', 'sptvWaffle', winAmount, '!waffle'))
         runRaffle();
     }
 
@@ -58,7 +58,7 @@
             winners.push(winner);
         }
         eachAmount = parseInt(winAmount / winnerCount);
-        $.say($.lang.get('raffle.winners', winners.join(', '), 'waffle', eachAmount, 'superp64Waffle'))
+        $.say($.lang.get('raffle.winners', winners.join(', '), 'waffle', eachAmount, 'sptvWaffle'))
         $.streamelements.AddTicketsToUsers(winners,eachAmount);
         currentState = -1;
     }
@@ -96,7 +96,7 @@
     }
 
     function sendTimeLeft(elapsedTime) {
-        $.say($.lang.get('raffle.timeleft',runTime - elapsedTime, '!waffle', 'superp64Waffle'));
+        $.say($.lang.get('raffle.timeleft',runTime - elapsedTime, '!waffle', 'sptvWaffle'));
     }
 
     function sendJoinedMessage() {

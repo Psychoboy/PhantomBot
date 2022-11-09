@@ -328,7 +328,7 @@
                 bet: parseInt(bet)
             });
         } finally {
-            currentAdventure.unlock();
+            _currentAdventureLock.unlock();
         }
 
         $.inidb.decr('points', username, bet);
