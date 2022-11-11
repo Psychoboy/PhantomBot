@@ -207,46 +207,54 @@ $(function () {
             return;
         }
         queueProcessing = true;
-        // Process the whole queue at once
-        while (queue.length > 0) {
-            let event = queue[0];
-            let ignoreIsPlaying = (event.ignoreIsPlaying !== undefined ? event.ignoreIsPlaying : false);
+        try{
+            // Process the whole queue at once
+            while (queue.length > 0) {
+                let event = queue[0];
+                let ignoreIsPlaying = (event.ignoreIsPlaying !== undefined ? event.ignoreIsPlaying : false);
 
-            if (event === undefined) {
-                console.error('Received event of type undefined. Ignoring.');
-            } else if (event.emoteId !== undefined) {
-                // do not respect isPlaying for emotes
-                handleEmote(event);
-            } else if (event.script !== undefined) {
-                handleMacro(event);
-            } else if (event.stopMedia !== undefined) {
-                handleStopMedia(event);
-            } else if (ignoreIsPlaying || isPlaying === false) {
-                // sleep a bit to reduce the overlap
-                await sleep(100);
-                printDebug('Processing event: ' + JSON.stringify(event));
-                // called method is responsible to reset this
-                isPlaying = true;
-                if (event.type === 'playVideoClip') {
-                    handleVideoClip(event);
-                } else if (event.alert_image !== undefined) {
-                    handleGifAlert(event);
-                } else if (event.audio_panel_hook !== undefined) {
-                    handleAudioHook(event);
+                if (event === undefined) {
+                    console.error('Received event of type undefined. Ignoring.');
+                } else if (event.emoteId !== undefined) {
+                    // do not respect isPlaying for emotes
+                    handleEmote(event);
+                } else if (event.script !== undefined) {
+                    handleMacro(event);
+                } else if (event.stopMedia !== undefined) {
+                    handleStopMedia(event);
+                } else if (ignoreIsPlaying || isPlaying === false) {
+                    // sleep a bit to reduce the overlap
+                    await sleep(100);
+                    printDebug('Processing event: ' + JSON.stringify(event));
+                    // called method is responsible to reset this
+                    isPlaying = true;
+                    if (event.type === 'playVideoClip') {
+                        handleVideoClip(event);
+                    } else if (event.alert_image !== undefined) {
+                        handleGifAlert(event);
+                    } else if (event.audio_panel_hook !== undefined) {
+                        handleAudioHook(event);
+                    } else {
+                        printDebug('Received message and don\'t know what to do about it: ' + event);
+                        isPlaying = false;
+                    }
                 } else {
-                    printDebug('Received message and don\'t know what to do about it: ' + event);
-                    isPlaying = false;
+                    // Event was not processed because something is already playing
+                    // Return to avoid dropping it
+                    printDebug('Event was not processed because something is already playing');
+                    queueProcessing = false;
+                    return;
                 }
-            } else {
-                // Event was not processed because something is already playing
-                // Return to avoid dropping it
-                queueProcessing = false;
-                return;
+                // Remove the event
+                queue.splice(0, 1);
             }
-            // Remove the event
-            queue.splice(0, 1);
+        } catch (err) {
+            console.log(err);
+            isPlaying = false;
+            queue = [];
+        } finally {
+            queueProcessing = false;
         }
-        queueProcessing = false;
     }
 
     function handleStopMedia(json) {
@@ -329,6 +337,7 @@ $(function () {
 
             if (audioFile.length === 0) {
                 printDebug('Failed to find audio file.', true);
+                isPlaying = false;
                 return;
             }
 
