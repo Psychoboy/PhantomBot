@@ -61,6 +61,9 @@
             $.say($.lang.get('gambling.jackpot.won', $.resolveRank(sender), range, $.getPointsString(jackpotWinning), $.getPointsString($.getUserPoints(sender) + (winnings - amount)), $.gameMessages.getWin(sender, 'gamble')));
             $.inidb.decr('points', sender, amount);
             $.inidb.incr('points', sender, winnings + jackpotWinning);
+            try{
+                $.customAPI.post('http://localhost:7474/DoAction','{"action":{"id":"c4a5e3b8-a607-4b34-b8fe-ff7b36c3f3d4","name":"Fireworks - General - 50 fireworks"},"args": {}}');
+            }catch(e){}
         } else if (range <= winRange) {
             $.say($.lang.get('gambling.lost', $.resolveRank(sender), range, $.getPointsString(amount), $.getPointsString($.getUserPoints(sender) - amount), $.gameMessages.getLose(sender, 'gamble')));
             $.inidb.decr('points', sender, amount);
