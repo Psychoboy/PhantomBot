@@ -206,8 +206,9 @@ $(function () {
         if (queueProcessing || queue.length === 0) {
             return;
         }
+
         queueProcessing = true;
-        try{
+        try {
             // Process the whole queue at once
             while (queue.length > 0) {
                 let event = queue[0];
@@ -239,10 +240,7 @@ $(function () {
                         isPlaying = false;
                     }
                 } else {
-                    // Event was not processed because something is already playing
-                    // Return to avoid dropping it
-                    printDebug('Event was not processed because something is already playing');
-                    queueProcessing = false;
+                    printDebug('Still Processing');
                     return;
                 }
                 // Remove the event
@@ -260,26 +258,29 @@ $(function () {
     function handleStopMedia(json) {
         let stopVideo;
         let stopAudio;
-        if (json.stopMedia === 'all') {
-            stopVideo = stopAudio = true;
-        } else {
-            stopVideo = json.stopMedia.indexOf('video') >= 0;
-            stopAudio = json.stopMedia.indexOf('audio') >= 0;
-        }
-        if (stopVideo) {
-            let videoFrame = document.getElementById('main-video-clips');
-            while (videoFrame.children.length > 0) {
-                videoFrame.children[0].remove();
+        try {
+            if (json.stopMedia === 'all') {
+                stopVideo = stopAudio = true;
+            } else {
+                stopVideo = json.stopMedia.indexOf('video') >= 0;
+                stopAudio = json.stopMedia.indexOf('audio') >= 0;
             }
-        }
-        if (stopAudio) {
-            while (playingAudioFiles.length > 0) {
-                playingAudioFiles[0].pause();
-                playingAudioFiles[0].remove();
-                playingAudioFiles.splice(0, 1);
+            if (stopVideo) {
+                let videoFrame = document.getElementById('main-video-clips');
+                while (videoFrame.children.length > 0) {
+                    videoFrame.children[0].remove();
+                }
             }
+            if (stopAudio) {
+                while (playingAudioFiles.length > 0) {
+                    playingAudioFiles[0].pause();
+                    playingAudioFiles[0].remove();
+                    playingAudioFiles.splice(0, 1);
+                }
+            }
+        } finally {
+            isPlaying = false;
         }
-        isPlaying = false;
     }
 
     /*
@@ -376,13 +377,13 @@ $(function () {
         const ignoreSleep = json.ignoreSleep || false;
         for (let i = 0; i < amount; i++) {
             displayEmote(json['emoteId'], json['provider'], animationName, duration);
-            if(!ignoreSleep) {
+            if (!ignoreSleep) {
                 await sleep(getRandomInt(1, 200));
             }
         }
     }
 
-    function displayEmote(emoteId, provider, animationName, duration) {
+    async function displayEmote(emoteId, provider, animationName, duration) {
         if (getOptionSetting(CONF_ENABLE_FLYING_EMOTES, 'false') === 'false') {
             // Feature not enabled, end the function
             return;
@@ -426,6 +427,7 @@ $(function () {
         emote.id = `emote-${browserSafeId}-${uniqueId}`;
         emote.dataset['browserSafeId'] = browserSafeId;
         emote.dataset['uniqueId'] = uniqueId;
+        await emote.decode();
 
         emote = document.getElementById('main-emotes').appendChild(emote);
         if (animationName === 'flyUp') {
@@ -468,41 +470,41 @@ $(function () {
         let emoteAnimation = new Keyframes(emote);
 
         Keyframes.define([{
-            name: keyFrameFly,
-            '0%': {transform: 'translate(' + spawnRange + 'vw, 100vh)'},
-            '100%': {transform: 'translate(' + spawnRange + 'vw, 0vh)'}
-        }]);
+                name: keyFrameFly,
+                '0%': {transform: 'translate(' + spawnRange + 'vw, 100vh)'},
+                '100%': {transform: 'translate(' + spawnRange + 'vw, 0vh)'}
+            }]);
 
         Keyframes.define([{
-            name: keyFrameSideways,
-            '0%': {marginLeft: '0'},
-            '100%': {marginLeft: sideWayDistance + 'vw'}
-        }]);
+                name: keyFrameSideways,
+                '0%': {marginLeft: '0'},
+                '100%': {marginLeft: sideWayDistance + 'vw'}
+            }]);
 
         Keyframes.define([{
-            name: keyFrameOpacity,
-            '0%': {opacity: 0},
-            '40%': {opacity: 1},
-            '80%': {opacity: 1},
-            '90%': {opacity: 0},
-            '100%': {opacity: 0}
-        }]);
+                name: keyFrameOpacity,
+                '0%': {opacity: 0},
+                '40%': {opacity: 1},
+                '80%': {opacity: 1},
+                '90%': {opacity: 0},
+                '100%': {opacity: 0}
+            }]);
 
         emoteAnimation.play([{
-            name: keyFrameFly,
-            duration: displayTime + 's',
-            timingFunction: 'ease-in'
-        }, {
-            name: keyFrameSideways,
-            duration: sideWayDuration + 's',
-            timingFunction: 'ease-in-out',
-            iterationCount: Math.round(displayTime / sideWayDuration),
-            direction: 'alternate' + (getRandomInt(0, 1) === 0 ? '-reverse' : '')
-        }, {
-            name: keyFrameOpacity,
-            duration: displayTime + 's',
-            timingFunction: 'ease-in'
-        }], {
+                name: keyFrameFly,
+                duration: displayTime + 's',
+                timingFunction: 'ease-in'
+            }, {
+                name: keyFrameSideways,
+                duration: sideWayDuration + 's',
+                timingFunction: 'ease-in-out',
+                iterationCount: Math.round(displayTime / sideWayDuration),
+                direction: 'alternate' + (getRandomInt(0, 1) === 0 ? '-reverse' : '')
+            }, {
+                name: keyFrameOpacity,
+                duration: displayTime + 's',
+                timingFunction: 'ease-in'
+            }], {
             onEnd: (event) => {
                 event.target.remove();
             }
@@ -527,6 +529,18 @@ $(function () {
         if (fullscreen) {
             video.className = 'fullscreen';
         }
+        let isReady = false;
+        video.oncanplay = (event) => {
+            isReady = true;
+        };
+        video.oncanplaythrough = (event) => {
+            isReady = true;
+        };
+        const videoIsReady = () => {
+            return isReady;
+        };
+        video.load();
+        await promisePoll(() => videoIsReady(), {pollIntervalMs: 250});
         let frame = document.getElementById('main-video-clips');
         frame.append(video);
 
@@ -554,19 +568,22 @@ $(function () {
 
     //https://stackoverflow.com/a/57380742
     promisePoll = (promiseFunction, { pollIntervalMs = 2000 } = {}) => {
-        const startPoll = async resolve => {
-            const startTime = new Date();
-            const result = await promiseFunction();
-
-            if (result) {
-                return resolve();
-            }
-
-            const timeUntilNext = Math.max(pollIntervalMs - (new Date() - startTime), 0);
-            setTimeout(() => startPoll(resolve), timeUntilNext);
-        };
-
-        return new Promise(startPoll);
+        try{
+            const startPoll = async resolve => {
+                const startTime = new Date();
+                const result = await promiseFunction();
+    
+                if (result) {
+                    return resolve();
+                }
+    
+                const timeUntilNext = Math.max(pollIntervalMs - (new Date() - startTime), 0);
+                setTimeout(() => startPoll(resolve), timeUntilNext);
+            };    
+            return new Promise(startPoll).catch(error => {console.log('Caught Promise Error: ' + error)});
+        } catch (err) {
+            return null;
+        } 
     };
 
     /*
@@ -820,8 +837,8 @@ $(function () {
                         printDebug('Failed to authenticate with the socket.', true);
                     }
                 } else {
-                  // Queue all events and process them one at-a-time.
-                  queue.push(message);
+                    // Queue all events and process them one at-a-time.
+                    queue.push(message);
                 }
             }
         } catch (ex) {
