@@ -120,6 +120,13 @@ public final class TwitchMessageInterface extends SubmissionPublisher<TMIMessage
     }
 
     /**
+     * Forces a PING to be sent
+     */
+    public void sendPing() {
+        this.pinger.sendPing();
+    }
+
+    /**
      * Sends an IRC PRIVMSG command with the {@code /me ACTION} specifier.
      *
      * If there are no tokens left on {@link #rateLimiter}, the message is silently dropped
@@ -286,6 +293,7 @@ public final class TwitchMessageInterface extends SubmissionPublisher<TMIMessage
     public void sendRaw(String message) {
         /**
          * @botproperty ircdebug - If `true`, raw inbound and outbound IRC commands (except PASS) are sent to the debug log. Default `false`
+         * @botpropertycatsort ircdebug 60 900 Debug
          */
         if (CaselessProperties.instance().getPropertyAsBoolean("ircdebug", false)) {
             if (message.startsWith("PASS")) {

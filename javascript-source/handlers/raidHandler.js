@@ -177,7 +177,6 @@
     $.bind('twitchRaid', function (event) {
         var username = event.getUsername(),
             viewers = event.getViewers(),
-            parsedViewers = parseInt(viewers),
             hasRaided = false,
             raidObj,
             message;
@@ -222,9 +221,6 @@
                 var filename = message.match(/\(alert ([,.\w\W]+)\)/)[1];
                 $.alertspollssocket.alertImage(filename);
                 message = (message + '').replace(/\(alert [,.\w\W]+\)/, '');
-                if (message == '') {
-                    return null;
-                }
             }
 
             if (message.match(/\(playsound\s([a-zA-Z1-9_]+)\)/g)) {
@@ -234,12 +230,11 @@
                     $.alertspollssocket.triggerAudioPanel(message.match(/\(playsound\s([a-zA-Z1-9_]+)\)/)[1]);
                 }
                 message = $.replace(message, message.match(/\(playsound\s([a-zA-Z1-9_]+)\)/)[0], '');
-                if (message == '') {
-                    return null;
-                }
             }
 
-            $.say(message);
+            if (message !== '') {
+                $.say(message);
+            }
         }
 
         // Add reward.
@@ -386,7 +381,7 @@
                 }
                 return;
             }
-
+            action = $.user.sanitize(action);
             // Make sure the user exists on Twitch.
             if ($.username.exists(action)) {
                 handleOutRaid(action);

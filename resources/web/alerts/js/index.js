@@ -241,6 +241,7 @@ $(function () {
                     }
                 } else {
                     printDebug('Still Processing');
+
                     return;
                 }
                 // Remove the event

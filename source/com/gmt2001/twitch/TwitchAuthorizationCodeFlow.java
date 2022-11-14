@@ -19,6 +19,7 @@ package com.gmt2001.twitch;
 import com.gmt2001.ExecutorService;
 import com.gmt2001.httpclient.HttpClient;
 import com.gmt2001.httpclient.HttpClientResponse;
+import com.gmt2001.httpclient.URIUtil;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
@@ -185,9 +186,11 @@ public class TwitchAuthorizationCodeFlow {
     public static byte[] handleRequest(FullHttpRequest req, byte[] data, HTTPOAuthHandler handler) {
         /**
          * @botproperty clientid - The Twitch Developer Application Client ID
+         * @botpropertycatsort clientid 20 20 Twitch
          */
         /**
          * @botproperty clientsecret - The Twitch Developer Application Client Secret
+         * @botpropertycatsort clientsecret 30 20 Twitch
          */
         if ((req.uri().startsWith("/oauth/checkidsecret") || req.uri().startsWith("/oauth/broadcaster/checkidsecret")) && req.method() == HttpMethod.GET) {
             if (CaselessProperties.instance().getProperty("clientid") != null && !CaselessProperties.instance().getProperty("clientid").isBlank()
@@ -308,7 +311,7 @@ public class TwitchAuthorizationCodeFlow {
 
     private static JSONObject doRequest(String path, Map<String, String> query) {
         try {
-            URI url = URI.create(BASE_URL + path + HttpClient.createQuery(query));
+            URI url = URIUtil.create(BASE_URL + path + HttpClient.createQuery(query));
             HttpHeaders headers = HttpClient.createHeaders(HttpMethod.POST, true);
 
             HttpClientResponse response = HttpClient.post(url, headers, "");

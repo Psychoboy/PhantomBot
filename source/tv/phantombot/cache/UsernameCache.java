@@ -17,7 +17,6 @@
 package tv.phantombot.cache;
 
 import com.gmt2001.ExecutorService;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -30,6 +29,7 @@ import org.json.JSONObject;
 import reactor.core.publisher.Mono;
 import tv.phantombot.CaselessProperties;
 import tv.phantombot.twitch.api.Helix;
+import tv.phantombot.twitch.api.TwitchValidate;
 
 public class UsernameCache {
 
@@ -43,13 +43,13 @@ public class UsernameCache {
 
     private UsernameCache() {
         Thread.setDefaultUncaughtExceptionHandler(com.gmt2001.UncaughtExceptionHandler.instance());
-        this.lookupUserDataAsync(List.of(CaselessProperties.instance().getProperty("user").toLowerCase(),
+        this.lookupUserDataAsync(List.of(TwitchValidate.instance().getChatLogin(),
                 CaselessProperties.instance().getProperty("channel").toLowerCase())).subscribe();
         ExecutorService.scheduleAtFixedRate(() -> {
             Thread.setDefaultUncaughtExceptionHandler(com.gmt2001.UncaughtExceptionHandler.instance());
             Thread.currentThread().setName("UsernameCache::GC");
             final Instant expiresBefore = Instant.now().minus(1, ChronoUnit.HOURS);
-            final String bot = CaselessProperties.instance().getProperty("user").toLowerCase();
+            final String bot = TwitchValidate.instance().getChatLogin();
             final String broadcaster = CaselessProperties.instance().getProperty("channel").toLowerCase();
             this.cache.forEach((k, v) -> {
                 if (v.lastSeen().isBefore(expiresBefore) && !k.equals(bot) && !k.equals(broadcaster)) {
@@ -61,7 +61,7 @@ public class UsernameCache {
 
     private void lookupUserData(String username) {
         try {
-            this.lookupUserDataAsync(username).block(Duration.ofSeconds(2));
+            this.lookupUserDataAsync(username).block();
         } catch (Exception e) {
         }
     }
@@ -92,7 +92,7 @@ public class UsernameCache {
     }
 
     public String resolveBot() {
-        return resolve(CaselessProperties.instance().getProperty("user").toLowerCase());
+        return resolve(TwitchValidate.instance().getChatLogin());
     }
 
     public String resolveCaster() {
@@ -159,7 +159,7 @@ public class UsernameCache {
     }
 
     public String getIDBot() {
-        return this.getID(CaselessProperties.instance().getProperty("user").toLowerCase());
+        return this.getID(TwitchValidate.instance().getChatLogin());
     }
 
     public String getIDCaster() {

@@ -25,8 +25,8 @@ package tv.phantombot.cache;
 import com.gmt2001.ExecutorService;
 import com.gmt2001.httpclient.HttpClient;
 import com.gmt2001.httpclient.HttpClientResponse;
+import com.gmt2001.httpclient.URIUtil;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -204,9 +204,11 @@ public final class TwitchCache {
      */
     /**
      * @botproperty offlinedelay - The delay, in seconds, before the `channel` is confirmed to be offline. Default `30`
+     * @botpropertycatsort offlinedelay 200 20 Twitch
      */
     /**
      * @botproperty offlinetimeout - The timeout, in seconds, after `channel` goes offline before it can be online. Default `300`
+     * @botpropertycatsort offlinetimeout 210 20 Twitch
      */
     private void updateCache() {
         Helix.instance().getStreamsAsync(1, null, null, List.of(UsernameCache.instance().getIDCaster()), null, null, null)
@@ -303,13 +305,13 @@ public final class TwitchCache {
 
                             if (Instant.now().isAfter(this.nextLogoCheck)) {
                                 this.nextLogoCheck = Instant.now().plus(1, ChronoUnit.HOURS);
-                                HttpClientResponse headResponse = HttpClient.head(URI.create(data.getString("profile_image_url")));
+                                HttpClientResponse headResponse = HttpClient.head(URIUtil.create(data.getString("profile_image_url")));
 
                                 if (headResponse.isSuccess()) {
                                     ZonedDateTime lastModified = ZonedDateTime.parse(headResponse.responseHeaders().get("last-modified"), DateTimeFormatter.RFC_1123_DATE_TIME);
 
                                     if (lastModified.isAfter(this.latestLogo) || !oldLogoLink.equals(data.getString("profile_image_url"))) {
-                                        HttpClientResponse logoResponse = HttpClient.get(URI.create(data.getString("profile_image_url")));
+                                        HttpClientResponse logoResponse = HttpClient.get(URIUtil.create(data.getString("profile_image_url")));
 
                                         if (logoResponse.isSuccess()) {
                                             Path logoPath = Paths.get("./web/panel/img/logo.jpeg");
