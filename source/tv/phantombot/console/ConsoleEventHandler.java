@@ -22,6 +22,7 @@ import com.gmt2001.HttpResponse;
 import com.gmt2001.Reflect;
 import com.gmt2001.TwitchAPIv5;
 import com.gmt2001.TwitterAPI;
+import com.psychoboy.BotImporter;
 import com.twitter.clientlib.ApiException;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -872,6 +873,20 @@ public final class ConsoleEventHandler implements Listener {
         if (message.equalsIgnoreCase("dumpheap")) {
             Reflect.dumpHeap();
             com.gmt2001.Console.out.println("Heap Dump Completed");
+        }
+
+        /**
+         * @consolecommand ankhconvert [CSV file] - Command that imports points from AnkhBot.
+         */
+        if (message.equalsIgnoreCase("ankhconvert")) {
+            com.gmt2001.Console.out.println("[CONSOLE] Executing ankhconvert");
+            if (argument == null) {
+                com.gmt2001.Console.out.println("You must specify the file name you want to convert.");
+                return;
+            }
+
+            BotImporter.ImportAnkh(arguments);
+            return;
         }
 
         // Check to see if any settings have been changed.
