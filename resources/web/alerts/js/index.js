@@ -686,8 +686,10 @@ $(function () {
                 const videoIsReady = () => {
                     return isReady;
                 };
-                htmlObj[0].load();
-                await promisePoll(() => videoIsReady(), {pollIntervalMs: 250});
+                try{
+                    htmlObj[0].load();
+                    await promisePoll(() => videoIsReady(), {pollIntervalMs: 250});
+                } catch(err){}
             }
             if (hasAudio) {
                 let isReady = false;
