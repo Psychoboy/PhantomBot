@@ -20,6 +20,7 @@ $(function () {
     let webSocket = getWebSocket(),
             queryMap = getQueryMap(),
             isPlaying = false,
+            lastPlaying = Date.now(),
             isDebug = localStorage.getItem('phantombot_alerts_debug') === 'true' || false;
     let queue = [];
 
@@ -229,6 +230,7 @@ $(function () {
                     printDebug('Processing event: ' + JSON.stringify(event));
                     // called method is responsible to reset this
                     isPlaying = true;
+                    lastPlaying = Date.now()
                     if (event.type === 'playVideoClip') {
                         handleVideoClip(event);
                     } else if (event.alert_image !== undefined) {
@@ -240,8 +242,11 @@ $(function () {
                         isPlaying = false;
                     }
                 } else {
-                    printDebug('Still Processing');
-
+                    lastPlayingInSeconds = Math.floor((Date.now() - lastPlaying) / 1000);
+                    if(lastPlayingInSeconds > 60) {
+                        printDebug('isPlaying is stuck, resetting');
+                        isPlaying = false;
+                    }
                     return;
                 }
                 // Remove the event
