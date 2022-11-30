@@ -113,7 +113,7 @@
 
         plan = $.jsString(plan);
 
-        switch(plan.toLowerCase()) {
+        switch (plan.toLowerCase()) {
             case '1000':
                 return '1';
                 break;
@@ -148,7 +148,7 @@
 
         tier = $.jsString(tier);
 
-        switch(tier.toLowerCase()) {
+        switch (tier.toLowerCase()) {
             case '1':
                 return '1000';
                 break;
@@ -195,10 +195,10 @@
          * Bot: User just gave away 20 subs! Thank you!
          * @cached
          */
-        function amount(args, event) {
-            $.addActiveTickets(event.getAmount * 5000);
+        function amount(args) {
+            $.addActiveTickets(args.event.getAmount * 5000);
             return {
-                result: event.getAmount(),
+                result: args.event.getAmount(),
                 cache: true
             };
         }
@@ -212,19 +212,19 @@
          * Bot: User just subscribed! They have been subscribed for 3 months! Thank you! BloodTrail BloodTrail BloodTrail
          * @cached
          */
-        function customemote(args, event) {
+        function customemote(args) {
             var emotes = [];
-            var emote = $.jsString(customEmote[event.getPlan()]);
+            var emote = $.jsString(customEmote[args.event.getPlan()]);
             var num = null;
 
             try {
-                num = event.getMonths();
+                num = args.event.getMonths();
             } catch (e) {
             }
 
             if (num === undefined || num === null) {
                 try {
-                    num = event.getAmount();
+                    num = args.event.getAmount();
                 } catch (e) {
                 }
             }
@@ -253,9 +253,9 @@
          * Bot: User just gifted 6 months of Tier 1 to OtherUser! Thank you!
          * @cached
          */
-        function giftmonths(args, event) {
+        function giftmonths(args) {
             return {
-                result: event.getGiftedMonths(),
+                result: args.event.getGiftedMonths(),
                 cache: true
             };
         }
@@ -270,9 +270,9 @@
          * Bot: OtherUser just received a sub from User! User gets 25 points! Thank you!
          * @cached
          */
-        function giftreward(args, event, customArgs) {
+        function giftreward(args) {
             return {
-                result: customArgs['giftreward'],
+                result: args.customArgs['giftreward'],
                 cache: true
             };
         }
@@ -285,9 +285,9 @@
          * Bot: User just subscribed! They have been subscribed for 12 months! Thank you!
          * @cached
          */
-        function months(args, event) {
+        function months(args) {
             return {
-                result: event.getMonths(),
+                result: args.event.getMonths(),
                 cache: true
             };
         }
@@ -300,9 +300,9 @@
          * Bot: User just subscribed at Tier 1! Thank you!
          * @cached
          */
-        function name(args, event) {
+        function name(args) {
             return {
-                result: event.getUsername(),
+                result: args.event.getUsername(),
                 cache: true
             };
         }
@@ -316,9 +316,9 @@
          * Bot: User just subscribed at Friendo Tier! Thank you!
          * @cached
          */
-        function plan(args, event) {
+        function plan(args) {
             return {
-                result: getPlanName(event.getPlan()),
+                result: getPlanName(args.event.getPlan()),
                 cache: true
             };
         }
@@ -331,9 +331,9 @@
          * Bot: OtherUser just received a sub from User! Thank you!
          * @cached
          */
-        function recipient(args, event) {
+        function recipient(args) {
             return {
-                result: event.getRecipient(),
+                result: args.event.getRecipient(),
                 cache: true
             };
         }
@@ -347,9 +347,9 @@
          * Bot: User just subscribed at Tier 1! They get 100 points! Thank you!
          * @cached
          */
-        function reward(args, event, customArgs) {
+        function reward(args) {
             return {
-                result: customArgs['reward'],
+                result: args.customArgs['reward'],
                 cache: true
             };
         }
@@ -404,7 +404,7 @@
                     reward = subReward[plan],
                     message = $.jsString(subMessage[plan]);
 
-            message = $.transformers.tags(event, message, false, ['twitch', 'noevent'], [], transformers(types.SUB), {'reward': reward});
+            message = $.transformers.tags(event, message, ['twitch', 'noevent'], {localTransformers: transformers(types.SUB), customArgs: {'reward': reward}});
 
             if ($.jsString(message).trim() !== '') {
                 $.say(message);
@@ -434,7 +434,7 @@
                     reward = reSubReward[plan],
                     message = $.jsString(reSubMessage[plan]);
 
-            message = $.transformers.tags(event, message, false, ['twitch', 'noevent'], [], transformers(types.RESUB), {'reward': reward});
+            message = $.transformers.tags(event, message, ['twitch', 'noevent'], {localTransformers: transformers(types.RESUB), customArgs: {'reward': reward}});
 
             if ($.jsString(message).trim() !== '') {
                 $.say(message);
@@ -467,7 +467,7 @@
                     giftreward = giftSubReward[plan],
                     message = $.jsString(giftSubMessage[plan]);
 
-            message = $.transformers.tags(event, message, false, ['twitch', 'noevent'], [], transformers(types.GIFT), {'reward': reward, 'giftreward': giftreward});
+            message = $.transformers.tags(event, message, ['twitch', 'noevent'], {localTransformers: transformers(types.GIFT), customArgs: {'reward': reward, 'giftreward': giftreward}});
 
             if ($.jsString(message).trim() !== '') {
                 $.say(message);
@@ -501,7 +501,7 @@
                     giftreward = massGiftSubReward[plan] * parseInt(event.getAmount()),
                     message = $.jsString(massGiftSubMessage[plan]);
 
-            message = $.transformers.tags(event, message, false, ['twitch', 'noevent'], [], transformers(types.MASSGIFT), {'giftreward': giftreward});
+            message = $.transformers.tags(event, message, ['twitch', 'noevent'], {localTransformers: transformers(types.MASSGIFT), customArgs: {'giftreward': giftreward}});
 
             if ($.jsString(message).trim() !== '') {
                 $.say(message);
@@ -524,7 +524,7 @@
                     reward = subReward[plan],
                     message = $.jsString(giftAnonSubMessage[plan]);
 
-            message = $.transformers.tags(event, message, false, ['twitch', 'noevent'], [], transformers(types.GIFTANON), {'reward': reward});
+            message = $.transformers.tags(event, message, ['twitch', 'noevent'], {localTransformers: transformers(types.GIFTANON), customArgs: {'reward': reward}});
 
             if ($.jsString(message).trim() !== '') {
                 $.say(message);
@@ -551,7 +551,7 @@
         if (massAnonGiftSubWelcomeToggle === true && announce === true) {
             var message = $.jsString(massGiftSubMessage[event.getPlan()]);
 
-            message = $.transformers.tags(event, message, false, ['twitch', 'noevent'], [], transformers(types.MASSGIFTANON));
+            message = $.transformers.tags(event, message, ['twitch', 'noevent'], {localTransformers: transformers(types.MASSGIFTANON)});
 
             if ($.jsString(message).trim() !== '') {
                 $.say(message);

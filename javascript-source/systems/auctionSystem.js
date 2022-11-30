@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* global java */
+/* global Packages */
 
 (function() {
     var auction = {
@@ -33,7 +33,7 @@
         c,
         extTime = $.getSetIniDbNumber('auctionSettings', 'extTime', 15),
         warnTime = 10,
-        _auctionLock = new java.util.concurrent.locks.ReentrantLock();
+        _auctionLock = new Packages.java.util.concurrent.locks.ReentrantLock();
 
 
     /**

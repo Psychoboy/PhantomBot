@@ -15,15 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* global java, Packages */
+/* global Packages */
 
 (function () {
     var respond = getSetIniDbBoolean('settings', 'response_@chat', true),
             action = getSetIniDbBoolean('settings', 'response_action', false),
-            secureRandom = new java.security.SecureRandom(),
+            secureRandom = new Packages.java.security.SecureRandom(),
             reg = new RegExp(/^@\w+,\s?$/),
             timeout = 0,
-            _lock = new java.util.concurrent.locks.ReentrantLock();
+            _lock = new Packages.java.util.concurrent.locks.ReentrantLock();
 
     /*
      * @function reloadMisc
@@ -120,7 +120,7 @@
             return 0;
         }
 
-        if ((typeof str.length) instanceof java.lang.String) {
+        if ((typeof str.length) instanceof Packages.java.lang.String) {
             if ((typeof str.length).equalsIgnoreCase('number')) {
                 return str.length;
             } else {
@@ -155,7 +155,11 @@
      * @param {string} message
      */
     function say(message) {
-        if (reg.test(message)) {
+        if (message === undefined || message === null) {
+            return;
+        }
+        message = $.jsString(message);
+        if (message.trim().length === 0 || reg.test(message)) {
             return;
         }
 

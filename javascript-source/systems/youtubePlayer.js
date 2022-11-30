@@ -55,7 +55,7 @@
         connectedPlayerClient = null,
         /* @type {BotPlayList} */
         currentPlaylist = null,
-        _voteLock = new java.util.concurrent.locks.ReentrantLock();
+        _voteLock = new Packages.java.util.concurrent.locks.ReentrantLock();
 
     /**
      * @function reloadyt
@@ -341,7 +341,7 @@
             playListDbId = playlistDbPrefix + playlistName,
             defaultPlaylist = [], // @type { Integer[] }
             defaultPlaylistReadOnly = [], // @type { Integer[] }
-            requests = new java.util.concurrent.CopyOnWriteArrayList, // @type { YoutubeVideo[] }
+            requests = new Packages.java.util.concurrent.ConcurrentLinkedQueue, // @type { YoutubeVideo[] }
             requestFailReason = '';
 
         this.playlistName = playlistName;
@@ -984,7 +984,7 @@
          * the text constantly in a loop.
          */
         this.updateCurrentSongFile = function(youtubeVideo) {
-            var writer = new java.io.OutputStreamWriter(new java.io.FileOutputStream(baseFileOutputPath + 'currentsong.txt'), 'UTF-8');
+            var writer = new Packages.java.io.OutputStreamWriter(new Packages.java.io.FileOutputStream(baseFileOutputPath + 'currentsong.txt'), 'UTF-8');
 
             try {
                 writer.write(youtubeVideo.getVideoTitle());

@@ -44,6 +44,9 @@ import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.GuildMessageChannel;
 import discord4j.core.object.entity.channel.PrivateChannel;
+import discord4j.core.object.presence.Activity;
+import discord4j.core.object.presence.ClientActivity;
+import discord4j.core.object.presence.ClientPresence;
 import discord4j.gateway.DefaultGatewayClient;
 import discord4j.gateway.GatewayOptions;
 import discord4j.gateway.GatewayReactorResources;
@@ -93,6 +96,7 @@ public class DiscordAPI extends DiscordUtil {
 
     private final Object mutex = new Object();
     private static final int PROCESSMESSAGETIMEOUT = 5;
+    private static final int ISADMINTIMEOUT = 3;
     private static DiscordAPI instance;
     private static DiscordClient client;
     private static GatewayDiscordClient gateway;
@@ -178,10 +182,26 @@ public class DiscordAPI extends DiscordUtil {
             this.nextReconnect = Instant.now().plusSeconds(60);
         }
 
+        /**
+         * @botproperty discord_restore_presence - If `true`, the bots current Discord activity (_Playing foo_) is restored on startup. Default `true`
+         * @botpropertycatsort discord_restore_presence 50 200 Discord
+         */
         DiscordAPI.selfId = null;
         com.gmt2001.Console.debug.println("IntentSet: " + this.connectIntents.toString());
         DiscordAPI.client.gateway().setMaxMissedHeartbeatAck(5).setExtraOptions(o -> new DiscordGatewayOptions(o))
-                .setEnabledIntents(this.connectIntents).withEventDispatcher(this::subscribeToEvents).login(DefaultGatewayClient::new)
+                .setInitialPresence(shardInfo -> {
+                    ClientActivity activity = null;
+                    if (CaselessProperties.instance().getPropertyAsBoolean("discord_restore_presence", true)
+                            && PhantomBot.instance().getDataStore().HasKey("discordSettings", "", "lastActivityType")
+                            && PhantomBot.instance().getDataStore().HasKey("discordSettings", "", "lastActivityName")) {
+                        int lastActivityType = PhantomBot.instance().getDataStore().GetInteger("discordSettings", "", "lastActivityType");
+                        String lastActivityName = PhantomBot.instance().getDataStore().GetString("discordSettings", "", "lastActivityName");
+                        String lastActivityUrl = PhantomBot.instance().getDataStore().GetString("discordSettings", "", "lastActivityUrl");
+                        activity = ClientActivity.of(Activity.Type.of(lastActivityType), lastActivityName, lastActivityUrl);
+                    }
+
+                    return ClientPresence.online(activity);
+                }).setEnabledIntents(this.connectIntents).withEventDispatcher(this::subscribeToEvents).login(DefaultGatewayClient::new)
                 .timeout(Duration.ofSeconds(30)).doOnSuccess(cgateway -> {
             com.gmt2001.Console.out.println("Connected to Discord, finishing authentication...");
             synchronized (this.mutex) {
@@ -423,7 +443,7 @@ public class DiscordAPI extends DiscordUtil {
                 return;
             }
 
-            iMessage.getChannel().timeout(Duration.ofMillis(500)).doOnSuccess(iChannel -> {
+            iMessage.getChannel().timeout(Duration.ofSeconds(DiscordAPI.PROCESSMESSAGETIMEOUT)).doOnSuccess(iChannel -> {
                 if (iChannel == null) {
                     com.gmt2001.Console.debug.println("Ignored message " + iMessage.getId().asString() + " due to null iChannel");
                     return;
@@ -444,10 +464,9 @@ public class DiscordAPI extends DiscordUtil {
                 String username = iUser.getUsername().toLowerCase();
                 String message = iMessage.getContent();
                 String channel;
-                Mono<Boolean> isAdmin = DiscordAPI.instance().isAdministratorAsync(iUser);
 
                 DiscordEventListener.processedMessages.add(iMessage.getId().asLong());
-                ExecutorService.schedule(() -> DiscordEventListener.processedMessages.remove(iMessage.getId().asLong()), 5, TimeUnit.SECONDS);
+                ExecutorService.schedule(() -> DiscordEventListener.processedMessages.remove(iMessage.getId().asLong()), DiscordAPI.PROCESSMESSAGETIMEOUT, TimeUnit.SECONDS);
 
                 if (iChannel.getType() == Channel.Type.DM) {
                     channel = "DM";
@@ -462,12 +481,14 @@ public class DiscordAPI extends DiscordUtil {
 
                 com.gmt2001.Console.out.println("[DISCORD] [" + channel + "] " + username + ": " + message);
 
+                boolean isAdmin = DiscordAPI.instance().isAdministratorAsync(iUser).or(Mono.delay(Duration.ofSeconds(DiscordAPI.ISADMINTIMEOUT)).thenReturn(false)).block();
+
                 if (message.charAt(0) == '!') {
-                    DiscordAPI.instance().parseCommand(iUser, iChannel, iMessage, isAdmin.block(Duration.ofMillis(500)));
+                    DiscordAPI.instance().parseCommand(iUser, iChannel, iMessage, isAdmin);
                 }
 
-                EventBus.instance().postAsync(new DiscordChannelMessageEvent(iUser, iChannel, iMessage, isAdmin.block(Duration.ofMillis(500))));
-            }).doOnError(e -> com.gmt2001.Console.err.printStackTrace(e)).timeout(Duration.ofSeconds(DiscordAPI.PROCESSMESSAGETIMEOUT)).subscribe();
+                EventBus.instance().postAsync(new DiscordChannelMessageEvent(iUser, iChannel, iMessage, isAdmin));
+            }).doOnError(e -> com.gmt2001.Console.err.printStackTrace(e)).subscribe();
         }
 
         public static void onDiscordUserJoinEvent(MemberJoinEvent event) {

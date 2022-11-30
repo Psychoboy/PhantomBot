@@ -35,7 +35,7 @@ import json
 import os
 
 md_path = "./docs/guides/content/setupbot/properties.md"
-json_path = "./resources/web/setup/properties.json"
+json_path = "./resources/web/common/json/properties.json"
 
 botproperties = []
 
@@ -199,9 +199,7 @@ def sort():
     global botproperties
     categorysort = {}
     for botproperty in botproperties:
-        if not botproperty["category"] in categorysort:
-            categorysort[botproperty["category"]] = botproperty["category_sort"]
-        elif botproperty["category_sort"] < categorysort[botproperty["category"]]:
+        if not botproperty["category"] in categorysort or botproperty["category_sort"] < categorysort[botproperty["category"]]:
             categorysort[botproperty["category"]] = botproperty["category_sort"]
     for i in range(len(botproperties)):
         botproperties[i]["category_sort"] = categorysort[botproperties[i]["category"]]
@@ -252,4 +250,4 @@ with open(md_path, "w", encoding="utf8") as md_file:
     md_file.writelines(lines)
 
 with open(json_path, "w", encoding="utf8") as json_file:
-    json.dump(botproperties, json_file)
+    json.dump(sorted(botproperties, key=lambda x: x["botproperty"]), json_file)

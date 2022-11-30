@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* global java, Packages */
+/* global Packages */
 
 /**
  * noticeSystem.js
@@ -27,7 +27,7 @@
     var noticeGroups = [],
             selectedGroup = null,
             noticeTimeoutIds = [],
-            noticeLock = new java.util.concurrent.locks.ReentrantLock(),
+            noticeLock = new Packages.java.util.concurrent.locks.ReentrantLock(),
             messageCounts = [],
             lastNoticesSent = [],
             lastTimeNoticesSent = [];

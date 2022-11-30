@@ -84,7 +84,7 @@
         try {
             throw new Error();
         } catch (ex) {
-            return java.util.Objects.toString(ex.stack.split('\n')[2].trim());
+            return Packages.java.util.Objects.toString(ex.stack.split('\n')[2].trim());
         }
     }
 
@@ -565,7 +565,7 @@
             [cooldownDuration, isGlobalCooldown] = $.coolDown.get(cooldownCommand, sender, isMod);
 
             if (cooldownDuration > 0) {
-                consoleDebug('Command ! ' + command + ' was not sent due to it being on cooldown ' + (isGlobalCooldown ? 'globally' : 'for user' + sender) + '.');
+                consoleDebug('Command !' + command + ' was not sent due to it being on cooldown ' + (isGlobalCooldown ? 'globally' : 'for user ' + sender) + '.');
                 if ($.getIniDbBoolean('settings', 'coolDownMsgEnabled')) {
                     var cooldownDate = new Date(null);
                     cooldownDate.setSeconds(cooldownDuration);

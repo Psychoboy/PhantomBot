@@ -51,18 +51,18 @@
      * User: !joke bear
      * Bot: These jokes are un-bear-able
      */
-    function customapi(args, event) {
+    function customapi(args) {
         var match;
-        if ((match = args.match(/^\s(.+)$/))) {
-            var cmd = event.getCommand();
+        if ((match = args.args.match(/^\s(.+)$/))) {
+            var cmd = args.event.getCommand();
             var flag = false;
             match[1] = match[1].replace(/\$([1-9])/g, function (m) {
                 var i = parseInt(m[1]);
-                if (!event.getArgs()[i - 1]) {
+                if (!args.event.getArgs()[i - 1]) {
                     flag = true;
                     return m[0];
                 }
-                return event.getArgs()[i - 1];
+                return args.event.getArgs()[i - 1];
             });
             if (flag) {
                 return {result: $.lang.get('customcommands.customapi.404', cmd)};
@@ -129,16 +129,16 @@
                 jsonObject,
                 response,
                 responsePart;
-        if ((match = args.match(/^ (\S+) (.+)$/))) {
-            var cmd = event.getCommand();
+        if ((match = args.args.match(/^ (\S+) (.+)$/))) {
+            var cmd = args.event.getCommand();
             var flag = false;
             match[1] = match[1].replace(/\$([1-9])/g, function (m) {
                 var i = parseInt(m[1]);
-                if (!event.getArgs()[i - 1]) {
+                if (!args.event.getArgs()[i - 1]) {
                     flag = true;
                     return m[0];
                 }
-                return event.getArgs()[i - 1];
+                return args.event.getArgs()[i - 1];
             });
             if (flag) {
                 return {result: $.lang.get('customcommands.customapi.404', cmd)};

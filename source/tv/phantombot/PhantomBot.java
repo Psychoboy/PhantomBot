@@ -93,6 +93,7 @@ import tv.phantombot.httpserver.HTTPAuthenticatedHandler;
 import tv.phantombot.httpserver.HTTPNoAuthHandler;
 import tv.phantombot.httpserver.HTTPOAuthHandler;
 import tv.phantombot.httpserver.HTTPPanelAndYTHandler;
+import tv.phantombot.httpserver.HttpSetupHandler;
 import tv.phantombot.panel.WsAlertsPollsHandler;
 import tv.phantombot.panel.WsPanelHandler;
 import tv.phantombot.panel.WsPanelRemoteLoginHandler;
@@ -130,6 +131,8 @@ public final class PhantomBot implements Listener {
     private WsYTHandler ytHandler;
     private HTTPOAuthHandler oauthHandler;
     private HTTPAuthenticatedHandler httpAuthenticatedHandler;
+    private HTTPPanelAndYTHandler httpPanelHandler;
+    private HttpSetupHandler httpSetupHandler;
 
     /* PhantomBot Information */
     private static PhantomBot instance;
@@ -410,17 +413,30 @@ public final class PhantomBot implements Listener {
             /* Validate the chat OAUTH token. */
             TwitchValidate.instance().validateChat(CaselessProperties.instance().getProperty("oauth"), "CHAT (oauth)");
 
-            TwitchValidate.instance().checkOAuthInconsistencies(this.getBotName(), this.getChannelName());
+            TwitchValidate.instance().checkOAuthInconsistencies(this.getChannelName());
         }
     }
 
     private void initChat() {
         this.validateOAuth();
-        if (!TwitchValidate.instance().isChatValid()) {
+        if (CaselessProperties.instance().getProperty("channel", "").isBlank()) {
+            com.gmt2001.Console.warn.println();
+            com.gmt2001.Console.warn.println("Channel to join is not set");
+            com.gmt2001.Console.warn.println("Please go the the bots built-in setup page and setup the Admin section");
+            com.gmt2001.Console.warn.println("The default URL is http://localhost:" + CaselessProperties.instance().getPropertyAsInt("baseport", 25000) + "/setup/");
+            com.gmt2001.Console.warn.println();
+            if (!this.initChatBackoff.GetIsBackingOff()) {
+                com.gmt2001.Console.warn.println("Will check again in " + (this.initChatBackoff.GetNextInterval() / 1000) + " seconds");
+                com.gmt2001.Console.warn.println();
+                this.initChatBackoff.BackoffAsync(() -> {
+                    this.initChat();
+                });
+            }
+        } else if (!TwitchValidate.instance().isChatValid()) {
             com.gmt2001.Console.warn.println();
             com.gmt2001.Console.warn.println("OAuth was invalid, not starting TMI (Chat)");
             com.gmt2001.Console.warn.println("Please go the the bots built-in oauth page and setup a new Bot (Chat) token");
-            com.gmt2001.Console.warn.println("The default URL is http://localhost:25000/oauth/");
+            com.gmt2001.Console.warn.println("The default URL is http://localhost:" + CaselessProperties.instance().getPropertyAsInt("baseport", 25000) + "/oauth/");
             com.gmt2001.Console.warn.println();
             if (!this.initChatBackoff.GetIsBackingOff()) {
                 com.gmt2001.Console.warn.println("Will check again in " + (this.initChatBackoff.GetNextInterval() / 1000) + " seconds");
@@ -479,12 +495,16 @@ public final class PhantomBot implements Listener {
     }
 
     public void reloadProperties() {
+        this.checkPanelLogin();
         Helix.instance().setOAuth(CaselessProperties.instance().getProperty("apioauth", ""));
         if (this.pubSubEdge != null) {
             this.pubSubEdge.setOAuth(CaselessProperties.instance().getProperty("apioauth", ""));
         }
 
         this.httpAuthenticatedHandler.updateAuth(CaselessProperties.instance().getProperty("webauth"), this.getPanelOAuth().replace("oauth:", ""));
+        this.oauthHandler.updateAuth();
+        this.httpPanelHandler.updateAuth();
+        this.httpSetupHandler.updateAuth();
 
         EventBus.instance().postAsync(new PropertiesReloadedEvent());
     }
@@ -527,6 +547,10 @@ public final class PhantomBot implements Listener {
 
     public HTTPOAuthHandler getHTTPOAuthHandler() {
         return this.oauthHandler;
+    }
+
+    public HttpSetupHandler getHTTPSetupHandler() {
+        return this.httpSetupHandler;
     }
 
     /**
@@ -639,14 +663,26 @@ public final class PhantomBot implements Listener {
         return CaselessProperties.instance();
     }
 
-    private String getPanelPassword() {
+    private void checkPanelLogin() {
+        /**
+         * @botproperty paneluser - The username to login to the panel. Default `panel`
+         * @botpropertycatsort paneluser 20 40 Panel Login
+         */
         /**
          * @botproperty panelpassword - The password to login to the panel. Default is a randomly generated password
          * @botpropertycatsort panelpassword 30 40 Panel Login
          */
-        String pass = CaselessProperties.instance().getProperty("panelpassword", (String) null);
-        if (pass == null) {
-            pass = PhantomBot.generateRandomString(12);
+        if (CaselessProperties.instance().getProperty("paneluser", "").contains(":")) {
+            Transaction t = CaselessProperties.instance().startTransaction();
+            t.setProperty("paneluser", CaselessProperties.instance().getProperty("paneluser", "").replace(":", ""));
+            t.commit();
+            com.gmt2001.Console.warn.println("");
+            com.gmt2001.Console.warn.println("Found a colon in panel username...");
+            com.gmt2001.Console.warn.println("The panel username has been changed to: " + CaselessProperties.instance().getProperty("paneluser", "panel"));
+            com.gmt2001.Console.warn.println("");
+        }
+        if (CaselessProperties.instance().getProperty("panelpassword", "").isBlank()) {
+            String pass = PhantomBot.generateRandomString(12);
             Transaction t = CaselessProperties.instance().startTransaction();
             t.setProperty("panelpassword", pass);
             t.commit();
@@ -654,11 +690,10 @@ public final class PhantomBot implements Listener {
             com.gmt2001.Console.out.println("Did not find a panel password...");
             com.gmt2001.Console.out.println("The panel username has been set to: " + CaselessProperties.instance().getProperty("paneluser", "panel"));
             com.gmt2001.Console.out.println("The panel password has been set to: " + pass);
-            com.gmt2001.Console.out.println("You can change this in botlogin.txt, or by using the console command: panelsetup");
+            com.gmt2001.Console.out.println("You can change this on the setup page of the bots webserver");
+            com.gmt2001.Console.out.println("The default URL is http://localhost:" + CaselessProperties.instance().getPropertyAsInt("baseport", 25000) + "/setup/");
             com.gmt2001.Console.out.println("");
         }
-
-        return pass;
     }
 
     private String getPanelOAuth() {
@@ -677,25 +712,25 @@ public final class PhantomBot implements Listener {
          * @botpropertycatsort webenable 300 700 HTTP/WS
          */
         if (CaselessProperties.instance().getPropertyAsBoolean("webenable", true)) {
+            this.checkPanelLogin();
             HTTPWSServer.instance();
             new HTTPNoAuthHandler().register();
+            this.httpSetupHandler = new HttpSetupHandler();
+            this.httpSetupHandler.register();
             this.httpAuthenticatedHandler = new HTTPAuthenticatedHandler(CaselessProperties.instance().getProperty("webauth"), this.getPanelOAuth().replace("oauth:", ""));
             this.httpAuthenticatedHandler.register();
             /**
-             * @botproperty paneluser - The username to login to the panel. Default `panel`
-             * @botpropertycatsort paneluser 20 40 Panel Login
-             */
-            /**
              * @botproperty useeventsub - If `true`, enables the EventSub module. Default `false`
              */
-            new HTTPPanelAndYTHandler(CaselessProperties.instance().getProperty("paneluser", "panel"), this.getPanelPassword()).register();
-            this.oauthHandler = (HTTPOAuthHandler) new HTTPOAuthHandler(CaselessProperties.instance().getProperty("paneluser", "panel"), this.getPanelPassword()).register();
+            this.httpPanelHandler = new HTTPPanelAndYTHandler();
+            this.httpPanelHandler.register();
+            this.oauthHandler = new HTTPOAuthHandler();
+            this.oauthHandler.register();
             if (CaselessProperties.instance().getPropertyAsBoolean("useeventsub", false)) {
                 EventSub.instance().register();
             }
             this.panelHandler = (WsPanelHandler) new WsPanelHandler(CaselessProperties.instance().getProperty("webauthro"), CaselessProperties.instance().getProperty("webauth")).register();
-            new WsPanelRemoteLoginHandler(CaselessProperties.instance().getProperty("paneluser", "panel"), this.getPanelPassword(),
-                    CaselessProperties.instance().getProperty("webauthro"), CaselessProperties.instance().getProperty("webauth")).register();
+            new WsPanelRemoteLoginHandler().register();
             RestartRunner.instance().register();
         }
     }

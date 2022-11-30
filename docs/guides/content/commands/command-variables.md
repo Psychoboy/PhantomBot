@@ -106,7 +106,7 @@ Defined in script: _./javascript-source/core/transformers/user.js_
 
 - `(@sender)` - '@<Sender's Name>, '
 
-**Labels:** twitch commandevent user
+**Labels:** twitch discord commandevent user
 
 
 **Example:**
@@ -173,7 +173,29 @@ Defined in script: _./javascript-source/core/transformers/channelstream.js_
 - `(channelname)` - the display name of the Twitch channel
 - `(channelname channel:str)` - the display name of the provided Twitch channel
 
-**Labels:** twitch noevent channel stream
+**Labels:** twitch discord noevent channel stream
+
+Raw?[^raw]&nbsp;&nbsp; | Cached?[^cached]&nbsp;&nbsp; | Cancels?[^cancels]
+-------|-----------|----------
+No&nbsp;&nbsp; | No&nbsp;&nbsp; | No
+
+&nbsp;
+
+### cleardiscordactivity
+
+Defined in script: _./javascript-source/core/transformers/discord.js_
+
+**Formulas:**
+
+- `(cleardiscordactivity)` - removes the bots current activity in Discord, setting it to just plain Online
+
+**Labels:** twitch discord noevent presence
+
+
+**Example:**
+```text
+Caster: !addcom !cleardiscord (cleardiscordactivity)
+```
 
 Raw?[^raw]&nbsp;&nbsp; | Cached?[^cached]&nbsp;&nbsp; | Cancels?[^cancels]
 -------|-----------|----------
@@ -214,7 +236,7 @@ Defined in script: _./javascript-source/core/transformers/commands.js_
 - `(command name:str)` - execute command with given name and pass no args
 - `(command name:str args:str)` - execute command with given name and pass args
 
-**Labels:** twitch commandevent commands
+**Labels:** twitch discord commandevent commands
 
 Raw?[^raw]&nbsp;&nbsp; | Cached?[^cached]&nbsp;&nbsp; | Cancels?[^cancels]
 -------|-----------|----------
@@ -250,7 +272,7 @@ Defined in script: _./javascript-source/core/transformers/commands.js_
 - `(count amount:int name:str)` - increases the count of how often the named counter has been called by the specified amount and outputs new count
 - `(count reset name:str)` - zeroes the named counter and outputs new count
 
-**Labels:** twitch commandevent commands
+**Labels:** twitch discord commandevent commands
 
 
 _NOTE: Specify an amount of `0` to display the count without changing it._
@@ -420,7 +442,7 @@ Defined in script: _./javascript-source/core/transformers/channelstream.js_
 
 - `(downtime)` - how long the channel has been offline
 
-**Labels:** twitch noevent channel stream
+**Labels:** twitch discord noevent channel stream
 
 Raw?[^raw]&nbsp;&nbsp; | Cached?[^cached]&nbsp;&nbsp; | Cancels?[^cancels]
 -------|-----------|----------
@@ -537,7 +559,7 @@ Defined in script: _./javascript-source/core/transformers/channelstream.js_
 - `(follows)` - number of follower of this channel
 - `(follows channel:str)` - number of follower of the specified channel
 
-**Labels:** twitch noevent channel stream
+**Labels:** twitch discord noevent channel stream
 
 
 **Example:**
@@ -562,7 +584,7 @@ Defined in script: _./javascript-source/core/transformers/channelstream.js_
 - `(game)` - currently played game
 - `(game channel:str)` - currently played game of the specified channel
 
-**Labels:** twitch noevent channel stream
+**Labels:** twitch discord noevent channel stream
 
 
 **Example:**
@@ -586,7 +608,7 @@ Defined in script: _./javascript-source/core/transformers/channelstream.js_
 
 - `(gameinfo)` - similar to (game) but include game time if online
 
-**Labels:** twitch noevent channel stream
+**Labels:** twitch discord noevent channel stream
 
 
 **Example:**
@@ -627,7 +649,7 @@ Defined in script: _./javascript-source/core/transformers/channelstream.js_
 
 - `(gamesplayed)` - list games played in current stream, and the approximate uptime when each game was started; if offline, cancels the command
 
-**Labels:** twitch commandevent channel stream
+**Labels:** twitch discord commandevent channel stream
 
 
 **Example:**
@@ -726,7 +748,7 @@ Defined in script: _./javascript-source/core/transformers/channelstream.js_
 
 - `(lasttip)` - last tip message
 
-**Labels:** twitch noevent channel stream
+**Labels:** twitch discord noevent channel stream
 
 Raw?[^raw]&nbsp;&nbsp; | Cached?[^cached]&nbsp;&nbsp; | Cancels?[^cancels]
 -------|-----------|----------
@@ -740,7 +762,23 @@ Defined in script: _./javascript-source/core/transformers/misc.js_
 
 **Formulas:**
 
-- `(bl2br str:str)` - replaces all LF (`\n`) with `<br>` and removes all CR (`\r`)
+- `(nl2br str:str)` - replaces all LF (`\n`) with `<br>` and removes all CR (`\r`)
+
+**Labels:** twitch discord noevent misc
+
+Raw?[^raw]&nbsp;&nbsp; | Cached?[^cached]&nbsp;&nbsp; | Cancels?[^cancels]
+-------|-----------|----------
+No&nbsp;&nbsp; | Yes&nbsp;&nbsp; | No
+
+&nbsp;
+
+### nl2x
+
+Defined in script: _./javascript-source/core/transformers/misc.js_
+
+**Formulas:**
+
+- `(nl2x repl:str str:str)` - replaces all LF (`\n`) with the value provided in **repl** and removes all CR (`\r`)
 
 **Labels:** twitch discord noevent misc
 
@@ -847,7 +885,7 @@ Defined in script: _./javascript-source/core/transformers/channelstream.js_
 
 - `(playtime)` - how long this channel has streamed current game; if offline, sends an error to chat and cancels the command
 
-**Labels:** twitch commandevent channel stream
+**Labels:** twitch discord commandevent channel stream
 
 
 **Example:**
@@ -963,7 +1001,7 @@ Defined in script: _./javascript-source/core/transformers/basic.js_
 
 - `(random)` - random user in chat, or the bot's name if chat is empty
 
-**Labels:** twitch noevent basic
+**Labels:** twitch discord noevent basic
 
 
 **Example:**
@@ -1098,7 +1136,7 @@ Defined in script: _./javascript-source/core/transformers/user.js_
 
 - `(sender)` - the sender's display name
 
-**Labels:** twitch commandevent user
+**Labels:** twitch discord commandevent user
 
 
 **Example:**
@@ -1154,6 +1192,141 @@ No&nbsp;&nbsp; | Yes&nbsp;&nbsp; | No
 
 &nbsp;
 
+### setdiscordcompeting
+
+Defined in script: _./javascript-source/core/transformers/discord.js_
+
+**Formulas:**
+
+- `(setdiscordcompeting str:str)` - sets the bots current activity in Discord to: Competing in (str)
+
+**Labels:** twitch discord noevent presence
+
+
+**Example:**
+```text
+Caster: !addcom !lcs (setdiscordcompeting LCS)
+```
+
+Raw?[^raw]&nbsp;&nbsp; | Cached?[^cached]&nbsp;&nbsp; | Cancels?[^cancels]
+-------|-----------|----------
+No&nbsp;&nbsp; | No&nbsp;&nbsp; | No
+
+&nbsp;
+
+### setdiscordlistening
+
+Defined in script: _./javascript-source/core/transformers/discord.js_
+
+**Formulas:**
+
+- `(setdiscordlistening str:str)` - sets the bots current activity in Discord to: Listening to (str)
+
+**Labels:** twitch discord noevent presence
+
+
+**Example:**
+```text
+Caster: !addcom !heavymetal (setdiscordlistening Heavy Metal)
+```
+
+Raw?[^raw]&nbsp;&nbsp; | Cached?[^cached]&nbsp;&nbsp; | Cancels?[^cancels]
+-------|-----------|----------
+No&nbsp;&nbsp; | No&nbsp;&nbsp; | No
+
+&nbsp;
+
+### setdiscordplaying
+
+Defined in script: _./javascript-source/core/transformers/discord.js_
+
+**Formulas:**
+
+- `(setdiscordplaying str:str)` - sets the bots current activity in Discord to: Playing (str)
+
+**Labels:** twitch discord noevent presence
+
+
+**Example:**
+```text
+Caster: !addcom !rocketleague (setdiscordplaying Rocket League)
+```
+
+Raw?[^raw]&nbsp;&nbsp; | Cached?[^cached]&nbsp;&nbsp; | Cancels?[^cancels]
+-------|-----------|----------
+No&nbsp;&nbsp; | No&nbsp;&nbsp; | No
+
+&nbsp;
+
+### setdiscordstreaming
+
+Defined in script: _./javascript-source/core/transformers/discord.js_
+
+**Formulas:**
+
+- `(setdiscordstreaming url:str str:str)` - sets the bots current activity in Discord to: &lt;a href="(url)"&gt;Streaming (str)&lt;/a&gt;
+
+**Labels:** twitch discord noevent presence
+
+
+_NOTE: Only urls starting with `https://twitch.tv/` and `https://youtube.com/` will work_
+
+
+**Example:**
+```text
+Caster: !addcom !dontstarve (setdiscordstreaming https://twitch.tv/CoolStreamer Don't Starve)
+```
+
+Raw?[^raw]&nbsp;&nbsp; | Cached?[^cached]&nbsp;&nbsp; | Cancels?[^cancels]
+-------|-----------|----------
+No&nbsp;&nbsp; | No&nbsp;&nbsp; | No
+
+&nbsp;
+
+### setdiscordwatching
+
+Defined in script: _./javascript-source/core/transformers/discord.js_
+
+**Formulas:**
+
+- `(setdiscordwatching str:str)` - sets the bots current activity in Discord to: Watching (str)
+
+**Labels:** twitch discord noevent presence
+
+
+**Example:**
+```text
+Caster: !addcom !movienight (setdiscordwatching Movie Night)
+```
+
+Raw?[^raw]&nbsp;&nbsp; | Cached?[^cached]&nbsp;&nbsp; | Cancels?[^cancels]
+-------|-----------|----------
+No&nbsp;&nbsp; | No&nbsp;&nbsp; | No
+
+&nbsp;
+
+### setrole
+
+Defined in script: _./javascript-source/core/transformers/discord.js_
+
+**Formulas:**
+
+- `(setrole username:str, role:str)` - adds the specified user to the specified Discord role
+
+**Labels:** discord noevent roles
+
+
+**Example:**
+```text
+Caster: !addcom !coolrole (setrole (sender), Cool Kids)
+```
+
+Raw?[^raw]&nbsp;&nbsp; | Cached?[^cached]&nbsp;&nbsp; | Cancels?[^cancels]
+-------|-----------|----------
+No&nbsp;&nbsp; | No&nbsp;&nbsp; | No
+
+&nbsp;
+
 ### status
 
 Defined in script: _./javascript-source/core/transformers/channelstream.js_
@@ -1163,7 +1336,7 @@ Defined in script: _./javascript-source/core/transformers/channelstream.js_
 - `(status)` - the current stream title
 - `(status channel:str)` - the current stream title of the specified channel
 
-**Labels:** twitch noevent channel stream
+**Labels:** twitch discord noevent channel stream
 
 
 **Example:**
@@ -1187,7 +1360,7 @@ Defined in script: _./javascript-source/core/transformers/channelstream.js_
 
 - `(subscribers)` - number of subscribers of this channel
 
-**Labels:** twitch noevent channel stream
+**Labels:** twitch discord noevent channel stream
 
 
 _NOTE: only works if the apioauth in botlogin.txt belongs to the broadcaster_
@@ -1347,7 +1520,7 @@ Defined in script: _./javascript-source/core/transformers/channelstream.js_
 
 - `(titleinfo)` - title + uptime if online
 
-**Labels:** twitch noevent channel stream
+**Labels:** twitch discord noevent channel stream
 
 
 **Example:**
@@ -1397,7 +1570,7 @@ Defined in script: _./javascript-source/core/transformers/user.js_
 
 - `(touser)` - display name of the user provided as an argument by the sender; sender's display name if no other is provided
 
-**Labels:** twitch commandevent user
+**Labels:** twitch discord commandevent user
 
 
 **Example:**
@@ -1440,7 +1613,7 @@ Defined in script: _./javascript-source/core/transformers/channelstream.js_
 - `(uptime)` - how long the channel has been streaming this session; if offline, an error is sent to chat and the command is canceled
 - `(uptime channel:str)` - how long the specified channel has been streaming this session; if offline, an error is sent to chat and the command is canceled
 
-**Labels:** twitch commandevent channel stream
+**Labels:** twitch discord commandevent channel stream
 
 
 **Example:**
@@ -1502,7 +1675,7 @@ Defined in script: _./javascript-source/core/transformers/channelstream.js_
 - `(viewers)` - number of current viewers
 - `(viewers channel:str)` - number of current viewers for the specified channel
 
-**Labels:** twitch noevent channel stream
+**Labels:** twitch discord noevent channel stream
 
 
 **Example:**
@@ -1511,22 +1684,6 @@ Caster: !addcom !viewers We currently have (viewers) viewers watching us!
 User: !viewers
 Bot: We currently have 600 viewers watching us!
 ```
-
-Raw?[^raw]&nbsp;&nbsp; | Cached?[^cached]&nbsp;&nbsp; | Cancels?[^cancels]
--------|-----------|----------
-No&nbsp;&nbsp; | Yes&nbsp;&nbsp; | No
-
-&nbsp;
-
-### views
-
-Defined in script: _./javascript-source/core/transformers/channelstream.js_
-
-**Formulas:**
-
-- `(views)` - number of total view count for the stream
-
-**Labels:** twitch noevent channel stream
 
 Raw?[^raw]&nbsp;&nbsp; | Cached?[^cached]&nbsp;&nbsp; | Cancels?[^cancels]
 -------|-----------|----------

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* global java, Packages */
+/* global Packages */
 
 (function() {
     var bot = $.botName.toLowerCase();
@@ -45,7 +45,7 @@
                 $.say($.whisperPrefix(sender) + $.lang.get('init.disconnect'));
 
                 setTimeout(function() {
-                    java.lang.System.exit(0);
+                    Packages.java.lang.System.exit(0);
                 }, 1000);
             }
 
@@ -397,7 +397,7 @@
          */
         if (command.equalsIgnoreCase('disconnect')) {
             if ($.isBot(sender)) {
-                java.lang.System.exit(0);
+                Packages.java.lang.System.exit(0);
             }
         }
 
