@@ -3,9 +3,9 @@
         secondCommand = $.getSetIniDbString('first', 'second', 'second'),
         firstViewers = [],
         secondViewers = [],
-        firstStarting = 20000,
+        firstPointsMax = 3,
         firstDecrement = 250,
-        firstMax = 40,
+        firstMax = 60,
         secondStarting = 40000,
         secondDecrement = 500,
         secondMax = 40;
@@ -20,7 +20,7 @@
             $.say($.whisperPrefix(sender) + $.lang.get('first.offline'));
             return;
         }
-        var awardPoints = firstStarting - (firstViewers.length * firstDecrement);
+        var awardPoints = firstViewers.length >= firstMax ? 0 : $.randRange(1, firstPointsMax);;
         if(awardPoints <= 0) {
             $.say($.whisperPrefix(sender) + $.lang.get('first.late'));
             return;
@@ -35,26 +35,26 @@
         $.say($.whisperPrefix(sender) + $.lang.get('first.reward', firstViewers.length, awardPoints));
     }
 
-    function giveSecond(sender) {
-        if (!$.twitchcache.isStreamOnline()) {
-            $.say($.whisperPrefix(sender) + $.lang.get('first.offline'));
-            return;
-        }
+    // function giveSecond(sender) {
+    //     if (!$.twitchcache.isStreamOnline()) {
+    //         $.say($.whisperPrefix(sender) + $.lang.get('first.offline'));
+    //         return;
+    //     }
 
-        if(secondViewers.length >= secondMax) {
-            $.say($.whisperPrefix(sender) + $.lang.get('first.late'));
-            return;
-        }
+    //     if(secondViewers.length >= secondMax) {
+    //         $.say($.whisperPrefix(sender) + $.lang.get('first.late'));
+    //         return;
+    //     }
 
-        if(secondViewers.includes(sender)) {
-            return;
-        }
+    //     if(secondViewers.includes(sender)) {
+    //         return;
+    //     }
 
-        var awardPoints = secondStarting - (secondViewers.length * secondDecrement);
-        secondViewers.push(sender);
-        $.streamelements.AddTicketsToUsers([sender],awardPoints);
-        $.say($.whisperPrefix(sender) + $.lang.get('first.reward', secondViewers.length, awardPoints) + ' Check on !twitter to get bonus!');
-    }
+    //     var awardPoints = secondStarting - (secondViewers.length * secondDecrement);
+    //     secondViewers.push(sender);
+    //     $.streamelements.AddTicketsToUsers([sender],awardPoints);
+    //     $.say($.whisperPrefix(sender) + $.lang.get('first.reward', secondViewers.length, awardPoints) + ' Check on !twitter to get bonus!');
+    // }
 
     function registerFirst(newCommand) {
         if(newCommand != firstCommand) {
@@ -66,16 +66,16 @@
         }
     }
 
-    function registerSecond(newCommand) {
-        if(newCommand != secondCommand) {
-            $.unregisterChatCommand(secondCommand);
-            $.registerChatCommand('./custom/first.js', newCommand, 7);
-            secondCommand = newCommand;
-            $.inidb.set('first', 'second', newCommand);
-            $.say('Second command registered');
-            $.coolDown.add(secondCommand, 1, false);
-        }
-    }
+    // function registerSecond(newCommand) {
+    //     if(newCommand != secondCommand) {
+    //         $.unregisterChatCommand(secondCommand);
+    //         $.registerChatCommand('./custom/first.js', newCommand, 7);
+    //         secondCommand = newCommand;
+    //         $.inidb.set('first', 'second', newCommand);
+    //         $.say('Second command registered');
+    //         $.coolDown.add(secondCommand, 1, false);
+    //     }
+    // }
 
     $.bind('command', function(event) {
         var sender = event.getSender().toLowerCase(),
@@ -101,9 +101,9 @@
                 registerFirst(action);
             }
 
-            if(command.equalsIgnoreCase('registersecond')) {
-                registerSecond(action);
-            }
+            // if(command.equalsIgnoreCase('registersecond')) {
+            //     registerSecond(action);
+            // }
 
             if(command.equalsIgnoreCase('resetfirst')) {
                 reset();
@@ -113,9 +113,9 @@
     $.bind('initReady', function() {
         $.registerChatCommand('./custom/first.js', 'resetfirst', 1);
         $.registerChatCommand('./custom/first.js', 'registerfirst', 1);
-        $.registerChatCommand('./custom/first.js', 'registersecond', 1);
+        // $.registerChatCommand('./custom/first.js', 'registersecond', 1);
         $.registerChatCommand('./custom/first.js', firstCommand, 7);
-        $.registerChatCommand('./custom/first.js', secondCommand, 7);
+        // $.registerChatCommand('./custom/first.js', secondCommand, 7);
     });
 
     $.firstCommand = firstCommand;

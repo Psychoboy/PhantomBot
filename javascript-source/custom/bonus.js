@@ -1,8 +1,8 @@
 (function() {
     var bonusCommand = $.getSetIniDbString('bonus', 'command', 'bonus'),
         bonusViewers = [],
-        minAmount = 1000,
-        maxAmount = 20000;
+        minAmount = 1,
+        maxAmount = 3;
 
     function reset() {
         bonusViewers = [];

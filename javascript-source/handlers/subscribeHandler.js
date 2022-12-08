@@ -196,7 +196,7 @@
          * @cached
          */
         function amount(args) {
-            $.addActiveTickets(args.event.getAmount * 5000);
+            $.addActiveTickets(args.event.getAmount * 1);
             return {
                 result: args.event.getAmount(),
                 cache: true
@@ -355,7 +355,7 @@
         }
 
         function ticketsamount(args, event, customArgs) {
-            $.addActiveTickets(5000);
+            $.addActiveTickets(1);
             return {
                 result: '',
                 cache: false

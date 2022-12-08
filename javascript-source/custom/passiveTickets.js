@@ -1,5 +1,5 @@
 (function() {
-    var pointsToAdd = 100,
+    var pointsToAdd = 1,
         delay = 300000;
 
     function runTicketsPayout() {
