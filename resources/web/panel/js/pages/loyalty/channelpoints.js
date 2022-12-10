@@ -49,7 +49,7 @@ $(function () {
             keys: ['commands']
         }, function (results) {
             let tableData = [];
-            commands = structuredClone(results);
+            commands = JSON.parse(results.channelPointsSettings);
 
             if (updateTable !== false) {
                 for (const command of commands) {
@@ -139,7 +139,7 @@ $(function () {
                     let commandid = command.id;
                     let commandtitle = command.title;
 
-                    helpers.getAdvanceModal('edit-channelpoints-reward', 'Edit Channel Points Reward', 'Save', $('<form/>', {
+                    helpers.getModal('edit-channelpoints-reward', 'Edit Channel Points Reward', 'Save', $('<form/>', {
                         'role': 'form'
                     })
                             .append(helpers.getInputGroup('redemption-name', 'text', 'Redemption Title', '', commandtitle, 'Title of the linked Channel Points redemption. This cannot be edited.', true))
@@ -213,7 +213,7 @@ $(function () {
             socket.custom('channelpointslist', 'channelpoints_edit', null, function (e) {
                 let commandSelector = null;
 
-                if (e.hasOwnproperty('data') && e.data.length > 0) {
+                if (e.hasOwnProperty('data') && e.data.length > 0) {
                     let options = [];
                     for (const redemption of e.data) {
                         if (findCommand(redemption.id) === null) {
@@ -227,7 +227,10 @@ $(function () {
                     }
 
                     if (options.length > 0) {
-                        commandSelector = helpers.getFlatMultiDropdownGroup('redemption-select', 'Linked Redemption', options, 'The linked Channel Points redemption.');
+                        commandSelector = helpers.getDropdownGroup('redemption-select', 'Linked Redemption', '', options, 'The linked Channel Points redemption.');
+                    } else {
+                        commandSelector = helpers.getInputGroup('redemption-select', 'text', 'Linked Redemption', '', 'All Redemptions Linked. Manual Setup Enabled',
+                                'All known redemptions are already linked to a reward, using manual linking mode.', true);
                     }
                 }
 
@@ -237,7 +240,7 @@ $(function () {
                 }
 
                 // Get advance modal from our util functions in /utils/helpers.js
-                helpers.getAdvanceModal('add-channelpoints-reward', 'Add Channel Points Reward', 'Save', $('<form/>', {
+                helpers.getModal('add-channelpoints-reward', 'Add Channel Points Reward', 'Save', $('<form/>', {
                     'role': 'form'
                 })
                         .append(commandSelector)
@@ -298,7 +301,7 @@ $(function () {
                                 data.push({
                                     'id': redemptionSelect.find(':selected').val(),
                                     'title': redemptionSelect.find(':selected').text(),
-                                    'command': redemptionResponse
+                                    'command': redemptionResponse.val()
                                 });
                                 updateChannelPoints(data, function () {
                                     $('#add-channelpoints-reward').modal('hide');
