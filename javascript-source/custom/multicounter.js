@@ -66,14 +66,14 @@
     }
 
 
-    function multicounter(args, event) {
+    function multicounter(args) {
 
-        var sender = event.getSender().toLowerCase(),
-            eventArgs = event.getArgs(),
+        var sender = args.event.getSender().toLowerCase(),
+            eventArgs = args.event.getArgs(),
             action = eventArgs[0],
             actionArg1 = eventArgs[1];
 
-        if ((match = args.match(/^\s(\S+)(?:\s(.*))?$/))) {
+        if ((match = args.args.match(/^\s(\S+)(?:\s(.*))?$/))) {
             counterName = match[1];
             alertStr = match[2] || '';
         } else {

@@ -403,9 +403,9 @@
             _entriesLock.unlock();
         }
 
-        if (!openDraw) {
-            close(undefined);
-        }
+        // if (!openDraw) {
+        //     close(undefined);
+        // }
         hasDrawn = true;
         saveState();
     }
