@@ -304,4 +304,70 @@
 
     // Interval that updates stream data.
     setInterval(updateStreamData, 2e4);
+
+    /**
+     * Sends an ack response to a WS query
+     *
+     * @param {string} uniqueID The ID the callback is registered under, sent by the requester
+     */
+    var sendAck = function (uniqueID) {
+        $.panelsocketserver.sendAck($.javaString(uniqueID));
+    };
+
+    /**
+     * Sends an object response to a WS query
+     *
+     * @param {string} uniqueID The ID the callback is registered under, sent by the requester
+     * @param {object} object A js object of key/value pairs to send
+     */
+    var sendObject = function (uniqueID, object) {
+        var map = new Packages.java.util.HashMap();
+
+        var x;
+        for (x in object) {
+            map.put(x, object[x]);
+        }
+
+        $.panelsocketserver.sendObject($.javaString(uniqueID), map);
+    };
+
+    /**
+     * Sends an array response to a WS query
+     *
+     * @param {string} uniqueID The ID the callback is registered under, sent by the requester
+     * @param {array} arr A js array of values to send
+     */
+    var sendArray = function (uniqueID, arr) {
+        var array = new Packages.java.util.ArrayList();
+
+        var x;
+        for (x in arr) {
+            array.add(arr[x]);
+        }
+
+        $.panelsocketserver.sendArray($.javaString(uniqueID), array);
+    };
+
+    $.panel = {
+        /**
+         * Sends an ack response to a WS query
+         *
+         * @param {string} uniqueID The ID the callback is registered under, sent by the requester
+         */
+        sendAck: sendAck,
+        /**
+         * Sends an object response to a WS query
+         *
+         * @param {string} uniqueID The ID the callback is registered under, sent by the requester
+         * @param {object} object A js object of key/value pairs to send
+         */
+        sendObject: sendObject,
+        /**
+         * Sends an array response to a WS query
+         *
+         * @param {string} uniqueID The ID the callback is registered under, sent by the requester
+         * @param {array} arr A js array of values to send
+         */
+        sendArray: sendArray
+    };
 })();
