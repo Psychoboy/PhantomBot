@@ -21,7 +21,7 @@
  * This is version 2 of the youtube player.
  *
  */
-(function() {
+ (function() {
     var playlistDbPrefix = 'ytPlaylist_',
         randomizePlaylist = $.getSetIniDbBoolean('ytSettings', 'randomizePlaylist', false),
         announceInChat = $.getSetIniDbBoolean('ytSettings', 'announceInChat', false),
@@ -341,7 +341,7 @@
             playListDbId = playlistDbPrefix + playlistName,
             defaultPlaylist = [], // @type { Integer[] }
             defaultPlaylistReadOnly = [], // @type { Integer[] }
-            requests = new Packages.java.util.concurrent.ConcurrentLinkedQueue, // @type { YoutubeVideo[] }
+            requests = new Packages.java.util.concurrent.CopyOnWriteArrayList, // @type { YoutubeVideo[] }
             requestFailReason = '';
 
         this.playlistName = playlistName;
