@@ -17,15 +17,18 @@
 
 /* global Packages */
 
-/**
+/*
  * This module is to handle online and offline events from Twitch.
  */
 (function () {
     var onlineToggle = $.getSetIniDbBoolean('discordSettings', 'onlineToggle', false),
+            onlinePublish = $.getSetIniDbBoolean('discordSettings', 'onlinePublish', false),
             onlineMessage = $.getSetIniDbString('discordSettings', 'onlineMessage', '(name) just went online on Twitch!'),
             offlineToggle = $.getSetIniDbBoolean('discordSettings', 'offlineToggle', false),
+            offlinePublish = $.getSetIniDbBoolean('discordSettings', 'offlinePublish', false),
             offlineMessage = $.getSetIniDbString('discordSettings', 'offlineMessage', '(name) is now offline.'),
             gameToggle = $.getSetIniDbBoolean('discordSettings', 'gameToggle', false),
+            gamePublish = $.getSetIniDbBoolean('discordSettings', 'gamePublish', false),
             gameMessage = $.getSetIniDbString('discordSettings', 'gameMessage', '(name) just changed game on Twitch!'),
             botGameToggle = $.getSetIniDbBoolean('discordSettings', 'botGameToggle', true),
             channelName = $.getSetIniDbString('discordSettings', 'onlineChannel', ''),
@@ -36,16 +39,19 @@
             liveMessages = [],
             offlineMessages = [];
 
-    /**
+    /*
      * @event webPanelSocketUpdate
      */
     $.bind('webPanelSocketUpdate', function (event) {
         if (event.getScript().equalsIgnoreCase('./discord/handlers/streamHandler.js')) {
             onlineToggle = $.getIniDbBoolean('discordSettings', 'onlineToggle', false);
+            onlinePublish = $.getIniDbBoolean('discordSettings', 'onlinePublish', false);
             onlineMessage = $.getIniDbString('discordSettings', 'onlineMessage', '(name) just went online on Twitch!');
             offlineToggle = $.getIniDbBoolean('discordSettings', 'offlineToggle', false);
+            offlinePublish = $.getIniDbBoolean('discordSettings', 'offlinePublish', false);
             offlineMessage = $.getIniDbString('discordSettings', 'offlineMessage', '(name) is now offline.');
             gameToggle = $.getIniDbBoolean('discordSettings', 'gameToggle', false);
+            gamePublish = $.getIniDbBoolean('discordSettings', 'gamePublish', false);
             gameMessage = $.getIniDbString('discordSettings', 'gameMessage', '(name) just changed game on Twitch!');
             botGameToggle = $.getIniDbBoolean('discordSettings', 'botGameToggle', true);
             channelName = $.getIniDbString('discordSettings', 'onlineChannel', '');
@@ -68,7 +74,7 @@
         return s.replace(/(\@everyone|\@here|<@&\d+>|<@\d+>|<#\d+>)/ig, '');
     }
 
-    /**
+    /*
      * @event twitchOffline
      */
     $.bind('twitchOffline', function (event) {
@@ -165,6 +171,14 @@
                     offlineMessages.push(msg);
                 }
 
+                if (offlinePublish && $.discordAPI.canChannelPublish(channelName)) {
+                    try {
+                        msg.publish().block();
+                    } catch (e) {
+                        $.log.error(e);
+                    }
+                }
+
                 $.inidb.RemoveFile('discordStreamStats');
             }
 
@@ -172,7 +186,7 @@
         }, 6e4);
     });
 
-    /**
+    /*
      * @event twitchOnline
      */
     $.bind('twitchOnline', function (event) {
@@ -220,6 +234,14 @@
                         liveMessages.push(msg);
                     }
 
+                    if (onlinePublish && $.discordAPI.canChannelPublish(channelName)) {
+                        try {
+                            msg.publish().block();
+                        } catch (e) {
+                            $.log.error(e);
+                        }
+                    }
+
                     $.setIniDbNumber('discordSettings', 'lastOnlineEvent', $.systemTime());
                 }
                 if (botGameToggle === true) {
@@ -246,7 +268,7 @@
         }, 6e4);
     });
 
-    /**
+    /*
      * @event twitchGameChange
      */
     $.bind('twitchGameChange', function (event) {
@@ -264,7 +286,7 @@
         if (s.indexOf('@') !== -1) {
             liveMessages.push($.discord.say(channelName, s));
         }
-        liveMessages.push($.discordAPI.sendMessageEmbed(channelName, new Packages.tv.phantombot.discord.util.EmbedBuilder()
+        var msg = $.discordAPI.sendMessageEmbed(channelName, new Packages.tv.phantombot.discord.util.EmbedBuilder()
                 .withColor(100, 65, 164)
                 .withThumbnail($.twitchcache.getLogoLink())
                 .withTitle(sanitizeTitle(s))
@@ -275,10 +297,19 @@
                 .withTimestamp(Date.now())
                 .withFooterText('Twitch')
                 .withFooterIcon($.twitchcache.getLogoLink())
-                .withImage($.twitchcache.getPreviewLink() + '?=' + $.randRange(1, 99999)).build()));
+                .withImage($.twitchcache.getPreviewLink() + '?=' + $.randRange(1, 99999)).build());
+        liveMessages.push(msg);
+
+        if (gamePublish && $.discordAPI.canChannelPublish(channelName)) {
+            try {
+                msg.publish().block();
+            } catch (e) {
+                $.log.error(e);
+            }
+        }
     });
 
-    /**
+    /*
      * @event discordChannelCommand
      */
     $.bind('discordChannelCommand', function (event) {
@@ -297,7 +328,7 @@
                 return;
             }
 
-            /**
+            /*
              * @discordcommandpath streamhandler toggleonline - Toggles the stream online announcements.
              */
             if (action.equalsIgnoreCase('toggleonline')) {
@@ -306,7 +337,16 @@
                 $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.streamhandler.online.toggle', (onlineToggle === true ? $.lang.get('common.enabled') : $.lang.get('common.disabled'))));
             }
 
-            /**
+            /*
+             * @discordcommandpath streamhandler toggleonlinepublish - Toggles stream online announcements being published in Discord Announcement channels.
+             */
+            if (action.equalsIgnoreCase('toggleonlinepublish')) {
+                onlinePublish = !onlinePublish;
+                $.inidb.set('discordSettings', 'onlinePublish', onlinePublish);
+                $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.streamhandler.online.publish.' + (onlinePublish === true ? 'on' : 'off')));
+            }
+
+            /*
              * @discordcommandpath streamhandler onlinemessage [message] - Sets the stream online announcement message.
              */
             if (action.equalsIgnoreCase('onlinemessage')) {
@@ -320,7 +360,7 @@
                 $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.streamhandler.online.message.set', onlineMessage));
             }
 
-            /**
+            /*
              * @discordcommandpath streamhandler toggleoffline - Toggles the stream offline announcements.
              */
             if (action.equalsIgnoreCase('toggleoffline')) {
@@ -329,7 +369,16 @@
                 $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.streamhandler.offline.toggle', (offlineToggle === true ? $.lang.get('common.enabled') : $.lang.get('common.disabled'))));
             }
 
-            /**
+            /*
+             * @discordcommandpath streamhandler toggleofflinepublish - Toggles stream offline announcements being published in Discord Announcement channels.
+             */
+            if (action.equalsIgnoreCase('toggleofflinepublish')) {
+                offlinePublish = !offlinePublish;
+                $.inidb.set('discordSettings', 'offlinePublish', offlinePublish);
+                $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.streamhandler.offline.publish.' + (offlinePublish === true ? 'on' : 'off')));
+            }
+
+            /*
              * @discordcommandpath streamhandler offlinemessage [message] - Sets the stream offline announcement message.
              */
             if (action.equalsIgnoreCase('offlinemessage')) {
@@ -343,7 +392,7 @@
                 $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.streamhandler.offline.message.set', offlineMessage));
             }
 
-            /**
+            /*
              * @discordcommandpath streamhandler togglegame - Toggles the stream game change announcements.
              */
             if (action.equalsIgnoreCase('togglegame')) {
@@ -352,7 +401,16 @@
                 $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.streamhandler.game.toggle', (gameToggle === true ? $.lang.get('common.enabled') : $.lang.get('common.disabled'))));
             }
 
-            /**
+            /*
+             * @discordcommandpath streamhandler togglegamepublish - Toggles stream game change announcements being published in Discord Announcement channels.
+             */
+            if (action.equalsIgnoreCase('togglegamepublish')) {
+                gamePublish = !gamePublish;
+                $.inidb.set('discordSettings', 'gamePublish', gamePublish);
+                $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.streamhandler.game.publish.' + (gamePublish === true ? 'on' : 'off')));
+            }
+
+            /*
              * @discordcommandpath streamhandler gamemessage [message] - Sets the stream game change announcement message.
              */
             if (action.equalsIgnoreCase('gamemessage')) {
@@ -366,7 +424,7 @@
                 $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.streamhandler.game.message.set', gameMessage));
             }
 
-            /**
+            /*
              * @discordcommandpath streamhandler togglebotstatus - If enabled the bot will be marked as streaming with your Twitch title when you go live.
              */
             if (action.equalsIgnoreCase('togglebotstatus')) {
@@ -375,7 +433,7 @@
                 $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.streamhandler.bot.game.toggle', (botGameToggle === true ? $.lang.get('common.enabled') : $.lang.get('common.disabled'))));
             }
 
-            /**
+            /*
              * @discordcommandpath streamhandler channel [channel name] - Sets the channel that announcements from this module will be said in.
              */
             if (action.equalsIgnoreCase('channel')) {
@@ -389,7 +447,7 @@
                 $.discord.say(channel, $.discord.userPrefix(mention) + $.lang.get('discord.streamhandler.channel.set', subAction));
             }
 
-            /**
+            /*
              * @discordcommandpath streamhandler toggledeletemessage - Toggles if online announcements get deleted after stream.
              */
             if (action.equalsIgnoreCase('toggledeletemessage')) {
@@ -400,7 +458,7 @@
         }
     });
 
-    /**
+    /*
      * @event initReady
      */
     $.bind('initReady', function () {
