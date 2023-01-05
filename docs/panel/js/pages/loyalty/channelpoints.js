@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2022 phantombot.github.io/PhantomBot
+ * Copyright (C) 2016-2023 phantombot.github.io/PhantomBot
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -296,11 +296,11 @@ $(function () {
                             }
                             buttons.push($('<button/>', {
                                 'type': 'button',
-                                'class': 'btn btn-xs btn-' + managed.includes(redeemable.id) ? 'warning' : 'info',
+                                'class': 'btn btn-xs btn-' + (managed.includes(redeemable.id) ? 'warning' : 'info'),
                                 'style': 'float: right',
                                 'data-redeemableid': redeemable.id,
                                 'html': $('<i/>', {
-                                    'class': 'fa fa-' + managed.includes(redeemable.id) ? 'edit' : 'eye'
+                                    'class': 'fa fa-' + (managed.includes(redeemable.id) ? 'edit' : 'eye')
                                 })
                             }));
                             if (managed.includes(redeemable.id)) {
@@ -385,11 +385,21 @@ $(function () {
                                 }
 
                                 helpers.getConfirmDeleteModal('channelpoints_redeemable_modal_remove', 'Are you sure you want to remove the redeemable '
-                                        + redeemable.title + '?', true,
-                                        'Successfully removed the redeemable ' + redeemable.title, function () {
+                                        + redeemable.title + '?', true, '', function () {
                                             socket.wsEvent('channelpoints_redeemable_delete_ws', './handlers/channelPointsHandler.js', null,
-                                                    ['redeemable-delete-managed', redeemable.id], function () {
+                                                    ['redeemable-delete-managed', redeemable.id], function (e) {
                                                 loadRedeemables();
+                                                if (e.success) {
+                                                    return {
+                                                        'message': 'Successfully deleted redeemable ' + redeemable.title + ' (' + redeemable.id + ')',
+                                                        'icon': 'success'
+                                                    };
+                                                } else {
+                                                    return {
+                                                        'message': 'Failed to delete redeemable (' + redeemable.id + '): ' + e.error,
+                                                        'icon': 'error'
+                                                    };
+                                                }
                                             }, true, true);
                                         });
                             });
@@ -968,7 +978,7 @@ $(function () {
             }
 
             // Get advance modal from our util functions in /utils/helpers.js
-            let modal = helpers.getModal('convert-channelpoints-redeemble', 'Convert Redeemable', 'Close', $('<form/>', {
+            let modal = helpers.getModal('convert-channelpoints-redeemble', 'Convert Redeemable', null, $('<form/>', {
                 'role': 'form'
             })
                     .append($('<div/>', {
@@ -981,9 +991,7 @@ $(function () {
                     }))
                             )
                     .append(redeemableSelector)
-                    .append(otherHtml), function () {
-                $('#convert-channelpoints-redeemble').modal('hide');
-            });
+                    .append(otherHtml), null, {'cancelclass': 'btn-primary', 'canceltext': 'Close'});
 
             if (otherHtml !== null) {
                 modal.on('shown.bs.modal', function () {
