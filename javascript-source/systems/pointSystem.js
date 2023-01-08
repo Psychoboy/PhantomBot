@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* global Packages */
+
 /**
  * pointSystem.js
  *
@@ -408,7 +410,7 @@
         var s = pointsMessage;
 
         if (s.match(/\(userprefix\)/)) {
-            s = $.replace(s, '(userprefix)', $.whisperPrefix(username));
+            s = $.replace(s, '(userprefix)', $.whisperPrefix(username).trim());
         }
 
         if (s.match(/\(user\)/)) {
@@ -432,7 +434,7 @@
         }
 
         if (s.match(/\(time\)/)) {
-            s = $.replace(s, '(time)', $.getUserTimeString(username));
+            s = $.replace(s, '(time)', $.getUserTimeString(username).trim());
         }
 
         if (s.match(/\(messagesrank\)/)) {
@@ -492,6 +494,7 @@
             action = $.user.sanitize(action);
             if ($.user.isKnown(action)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('pointsystem.user.success', $.username.resolve(action), getPointsString(getUserPoints(action))));
+                return;
             }
 
             /**
@@ -812,7 +815,7 @@
                 return;
             }
 
-            $.say($.whisperPrefix(sender) + $.lang.get("pointsystem.usage.invalid", "!" + command));
+            $.say($.whisperPrefix(sender) + $.lang.get('pointsystem.usage.invalid', '!' + command));
         }
 
 

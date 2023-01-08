@@ -643,10 +643,13 @@
                     if (cooldownDuration > 0) {
                         consoleDebug('Command !' + command + ' was not sent due to it being on cooldown ' + (isGlobalCooldown ? 'globally' : 'for user ' + sender) + '.');
                         if ($.getIniDbBoolean('settings', 'coolDownMsgEnabled')) {
+                            var cooldownDate = new Date(null);
+                            cooldownDate.setSeconds(cooldownDuration);
+                            var cooldownDateString = cooldownDate.toISOString().substr(11,8);
                             if (isGlobalCooldown) {
-                                $.sayWithTimeout($.whisperPrefix(sender) + $.lang.get('init.cooldown.msg.global', command, cooldownDuration), true);
+                                $.sayWithTimeout($.whisperPrefix(sender) + $.lang.get('init.cooldown.msg.global', command, cooldownDateString), true);
                             } else {
-                                $.say($.whisperPrefix(sender) + $.lang.get('init.cooldown.msg.user', command, cooldownDuration));
+                                $.say($.whisperPrefix(sender) + $.lang.get('init.cooldown.msg.user', command, cooldownDateString));
                             }
                         }
                         return;
