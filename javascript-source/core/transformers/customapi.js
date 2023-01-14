@@ -81,9 +81,9 @@
         }
     }
 
-    function customapitext(args, event) {
-        if ((match = args.match(/^\s(.+)$/))) {
-            cmd = event.getCommand();
+    function customapitext(args) {
+        if ((match = args.args.match(/^\s(.+)$/))) {
+            cmd = args.event.getCommand();
             if (match[1].indexOf('(token)') !== -1 && $.inidb.HasKey('commandtoken', '', cmd)) {
                 match[1] = match[1].replace(/\(token\)/gi, $.inidb.GetString('commandtoken', '', cmd));
             }
@@ -91,11 +91,11 @@
             flag = false;
             match[1] = match[1].replace(/\$([1-9])/g, function (m) {
                 i = parseInt(m[1]);
-                if (!event.getArgs()[i - 1]) {
+                if (!args.event.getArgs()[i - 1]) {
                     flag = true;
                     return m[0];
                 }
-                return event.getArgs()[i - 1];
+                return args.event.getArgs()[i - 1];
             });
             if (flag) {
                 return {result: $.lang.get('customcommands.customapi.404', cmd)};
