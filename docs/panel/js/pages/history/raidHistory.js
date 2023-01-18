@@ -37,18 +37,58 @@ $(function() {
 
             raids.push([
                 results[i].key,
-                new Date(parseInt(json.lastRaidTime)).toLocaleString(),
+                new Date(parseInt(json.lastRaidTime)).toLocaleDateString('en-GB').split('/').reverse().join('-'),
                 helpers.getDefaultIfNullOrUndefined(json.lastRaidViewers, '0'),
                 helpers.getDefaultIfNullOrUndefined(json.totalRaids, '1'),
                 helpers.getDefaultIfNullOrUndefined(json.totalViewers, '0'),
+                parseInt(json.lastRaidTime)
+            ]);
+        }
+
+        // if the table exists, destroy it.
+        if ($.fn.DataTable.isDataTable('#raidHistoryTable')) {
+            $('#raidHistoryTable').DataTable().clear().rows.add(raids).invalidate().draw(false);
+            return;
+        }
+
+        // Create table.
+        $('#raidHistoryTable').DataTable({
+            'searching': true,
+            'autoWidth': false,
+            'data': raids,
+            'columnDefs': [
+                {'width': '20%', 'targets': 0}
+            ],
+            'columns': [
+                {'title': 'Username'},
+                {'title': 'Last Raid', 'orderData': [5]},
+                {'title': 'Viewers'},
+                {'title': 'Total Raids'},
+                {'title': 'Total Viewers'},
+                {'visible': false}
+            ]
+        });
+    });
+
+    socket.getDBTableValues('get_all_out_raids', 'outgoing_raids', function (results) {
+        let raids = [];
+
+        for (let i = 0; i < results.length; i++) {
+            let json = JSON.parse(results[i].value);
+
+            raids.push([
+                results[i].key,
+                new Date(parseInt(json.lastRaidTime)).toLocaleString(),
+                helpers.getDefaultIfNullOrUndefined(json.lastRaidViewers, '0'),
+                helpers.getDefaultIfNullOrUndefined(json.totalRaids, '1'),
+                helpers.getDefaultIfNullOrUndefined(json.totalViewers, '0')
             ]);
         }
         outgoing_raids = raids;
         // if the table exists, destroy it.
         if ($.fn.DataTable.isDataTable('#outRaidHistoryTable')) {
-            $('#outRaidHistoryTable').DataTable().destroy();
-            // Remove all of the old events.
-            $('#outRaidHistoryTable').off();
+            $('#outRaidHistoryTable').DataTable().clear().rows.add(raids).invalidate().draw(false);
+            return;
         }
 
         // Create table.
@@ -57,14 +97,14 @@ $(function() {
             'autoWidth': false,
             'data': raids,
             'columnDefs': [
-                { 'width': '20%', 'targets': 0 }
+                {'width': '20%', 'targets': 0}
             ],
             'columns': [
-                { 'title': 'Username' },
-                { 'title': 'Last Raid', 'orderData': [1] },
-                { 'title': 'Viewers' },
-                { 'title': 'Total Raids' },
-                { 'title': 'Total Viewers' }
+                {'title': 'Username'},
+                {'title': 'Last Raid', 'orderData': [1]},
+                {'title': 'Viewers'},
+                {'title': 'Total Raids'},
+                {'title': 'Total Viewers'}
             ]
         });
     });
@@ -77,12 +117,13 @@ $(function() {
 
 			raids.push([
 				results[i].key,
-				new Date(parseInt(json.lastRaidTime)).toLocaleString(),
+				new Date(parseInt(json.lastRaidTime)).toLocaleDateString('en-GB').split('/').reverse().join('-'),
 				helpers.getDefaultIfNullOrUndefined(json.lastRaidViewers, '0'),
 				helpers.getDefaultIfNullOrUndefined(json.totalRaids, '1'),
 				helpers.getDefaultIfNullOrUndefined(json.totalViewers, '0'),
 				parseInt(json.lastRaidTime),
-				getNumberOfOutgoingRaids(results[i].key)
+				getNumberOfOutgoingRaids(results[i].key),
+				helpers.getDefaultIfNullOrUndefined(json.online, 'false'),
 			]);
 		}
         incoming_raids = raids;
@@ -99,8 +140,9 @@ $(function() {
 			'autoWidth': false,
 			'data': raids,
 			'columnDefs': [
-    			{ 'width': '20%', 'targets': 0 }
+    			{ 'width': '20%', 'targets': 0 },
     		],
+    		'order': [[ 7, 'desc' ]],
 			'columns': [
 				{ 'title': 'Username' },
 				{ 'title': 'Last Raid', 'orderData': [5] },
@@ -108,7 +150,8 @@ $(function() {
 				{ 'title': 'Total Raids' },
 				{ 'title': 'Total Viewers' },
 				{ 'visible': false },
-				{'title': 'Outgoing Raids'}
+				{'title': 'Outgoing Raids'},
+				{'title': 'Is Online'}
 			]
 		});
 	});
