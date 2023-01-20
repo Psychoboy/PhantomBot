@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* global toastr */
+
 // Function that queries all of the data we need.
 $(run = function () {
     // Check if the module is enabled.
@@ -310,7 +312,7 @@ $(function () {
         })
                 // Main div for the browser source link.
                 .append($('<div/>', {
-                    'class': 'form-group',
+                    'class': 'form-group'
                 })
                         // Append the lable.
                         .append($('<label/>', {
@@ -385,36 +387,36 @@ $(function () {
             helpers.getAdvanceModal('add-audio-cmd', 'Add Audio Command', 'Save', $('<form/>', {
                 'role': 'form'
             })
-            // Append command name.
-            .append(helpers.getInputGroup('command-name', 'text', 'Command', '!boo', '', 'Command that will trigger the audio hook.'))
-            // All audio hooks in a list.
-            .append(helpers.getDropdownGroup('command-audio', 'Audio Hook', 'Select an Audio Hook', audioNames, 'Audio hook to be played when the command is ran.'))
-            // Append a select option for the command permission.
-            .append(helpers.getDropdownGroup('command-permission', 'User Level', helpers.getGroupNameById(7),
-                helpers.getPermGroupNames(), 'Users who can run the command.'))
-            // Add an advance section that can be opened with a button toggle.
-            .append($('<div/>', {
-                'class': 'collapse',
-                'id': 'advance-collapse',
-                'html': $('<form/>', {
-                        'role': 'form'
-                    })
-                    // Append input box for the command cost.
-                    .append(helpers.getInputGroup('command-cost', 'number', 'Cost', '0', '0',
-                        'Cost in points that will be taken from the user when running the command.'))
-                    // Append input box for the command reward.
-                    .append(helpers.getInputGroup('command-reward', 'number', 'Reward', '0', '0',
-                        'Reward in points the user will be given when running the command.'))
-                    // Append input box for the global command cooldown.
-                    .append(helpers.getInputGroup('command-cooldown-global', 'number', 'Global Cooldown (Seconds)', '-1', 60,
-                        'Global Cooldown of the command in seconds. -1 Uses the bot-wide settings.'))
-                    // Append input box for per-user cooldown.
-                    .append(helpers.getInputGroup('command-cooldown-user', 'number', 'Per-User Cooldown (Seconds)', '-1', -1,
-                        'Per-User cooldown of the command in seconds. -1 removes per-user cooldown.'))
-                    // Append input box for mods skip cooldown.
-                    .append(helpers.getCheckBox('command-cooldown-modsskip', false, 'Mods Skip Cooldown',
-                        'If checked, moderators are exempt from cooldowns on this command.'))
-            })), function() {
+                    // Append command name.
+                    .append(helpers.getInputGroup('command-name', 'text', 'Command', '!boo', '', 'Command that will trigger the audio hook.'))
+                    // All audio hooks in a list.
+                    .append(helpers.getDropdownGroup('command-audio', 'Audio Hook', 'Select an Audio Hook', audioNames, 'Audio hook to be played when the command is ran.'))
+                    // Append a select option for the command permission.
+                    .append(helpers.getDropdownGroup('command-permission', 'User Level', helpers.getGroupNameById(7),
+                            helpers.getPermGroupNames(), 'Users who can run the command.'))
+                    // Add an advance section that can be opened with a button toggle.
+                    .append($('<div/>', {
+                        'class': 'collapse',
+                        'id': 'advance-collapse',
+                        'html': $('<form/>', {
+                            'role': 'form'
+                        })
+                                // Append input box for the command cost.
+                                .append(helpers.getInputGroup('command-cost', 'number', 'Cost', '0', '0',
+                                        'Cost in points that will be taken from the user when running the command.'))
+                                // Append input box for the command reward.
+                                .append(helpers.getInputGroup('command-reward', 'number', 'Reward', '0', '0',
+                                        'Reward in points the user will be given when running the command.'))
+                                // Append input box for the global command cooldown.
+                                .append(helpers.getInputGroup('command-cooldown-global', 'number', 'Global Cooldown (Seconds)', '-1', 60,
+                                        'Global Cooldown of the command in seconds. -1 Uses the bot-wide settings.'))
+                                // Append input box for per-user cooldown.
+                                .append(helpers.getInputGroup('command-cooldown-user', 'number', 'Per-User Cooldown (Seconds)', '-1', -1,
+                                        'Per-User cooldown of the command in seconds. -1 removes per-user cooldown.'))
+                                // Append input box for mods skip cooldown.
+                                .append(helpers.getCheckBox('command-cooldown-modsskip', false, 'Mods Skip Cooldown',
+                                        'If checked, moderators are exempt from cooldowns on this command.'))
+                    })), function () {
                 let commandName = $('#command-name'),
                         commandAudio = $('#command-audio'),
                         commandPermission = $('#command-permission'),
