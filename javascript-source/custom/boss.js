@@ -172,7 +172,7 @@
     }
 
     function runBoss() {
-        var winners, maxlength = 0;
+        var winners, maxlength = 0, t;
         gameState = 2;
         findBoss();
         if(selectedBoss === undefined) {
@@ -183,30 +183,40 @@
         
         //Starting Message
         $.say($.lang.get('boss.running.1', selectedBoss.name))
-        winners = calculateWinners()
-        //Fight Message
-        $.say($.lang.get('boss.running.2', selectedBoss.name))
-        //End Messages - All Success, All Failure, Some Success
-        if(winners.length == 0) {
-            $.consoleLn('No survivors');
-            $.say($.lang.get('boss.nosurvivors', selectedBoss.name));
-        } else {
-            var i = 0;
-            var prize = parseInt(selectedBoss.loot / winners.length);
-            for(i = 0; i < winners.length; i++) {
-                $.inidb.incr('points', winners[i], prize);
-                $.consoleLn('Points Added');
-                maxlength += winners[i].length;
-            }
-            
-            if((maxlength + 14 + $.channelName.length) > 512) {
-                $.say($.lang.get('boss.tomanyresults', winners.length, $.getPointsString(prize)));
+         winners = calculateWinners()
+         t = setInterval(function() {
+            if(gameState === 2) {
+                $.say($.lang.get('boss.running.2', selectedBoss.name))
+                gameState++;
+            } else if (gameState === 3) {
+                var winners, maxlength = 0;
+                winners = calculateWinners()
+                if(winners.length == 0) {
+                    $.consoleLn('No survivors');
+                    $.say($.lang.get('boss.nosurvivors', selectedBoss.name));
+                } else {
+                    var i = 0;
+                    var prize = parseInt(selectedBoss.loot / winners.length);
+                    for(i = 0; i < winners.length; i++) {
+                        $.inidb.incr('points', winners[i], prize);
+                        $.consoleLn('Points Added');
+                        maxlength += winners[i].length;
+                    }
+                    
+                    if((maxlength + 14 + $.channelName.length) > 512) {
+                        $.say($.lang.get('boss.tomanyresults', winners.length, $.getPointsString(prize)));
+                    } else {
+                        $.say($.lang.get('boss.results', winners.join(', '), $.getPointsString(prize)))
+                    }
+                }
+                $.consoleLn('Done');
+                endBoss();
+                clearInterval(t);
             } else {
-                $.say($.lang.get('boss.results', winners.join(', '), $.getPointsString(prize)))
+                endBoss();
+                clearInterval(t);
             }
-        }
-        $.consoleLn('Done');
-        endBoss();
+         }, 7e3);
     }
 
     function endBoss() {
