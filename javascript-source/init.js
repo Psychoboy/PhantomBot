@@ -73,11 +73,11 @@
                     $.log.error(errmsg);
                 } catch (e) {
                     loc = 4;
-                    Packages.com.gmt2001.Console.err.printLn(errmsg);
+                    Packages.com.gmt2001.Console.err.println(errmsg);
                 }
             } else {
                 loc = 5;
-                Packages.com.gmt2001.Console.err.printLn(errmsg);
+                Packages.com.gmt2001.Console.err.println(errmsg);
             }
             if (ex.javaException !== undefined) {
                 consoleLn("Sending stack trace to error log...");
@@ -117,12 +117,16 @@
             } catch (e) {
             }
             try {
-                data.put("exstr", ex.toString());
+                data.put("trace", Packages.com.gmt2001.Console.err.getStackTrace(ex));
             } catch (e) {
             }
             Packages.com.gmt2001.Console.err.println(oopsmsg);
             Packages.com.gmt2001.Console.err.println(oops);
-            Packages.com.gmt2001.Console.err.printStackTrace(oops, data, oopsmsg, false);
+            try {
+                Packages.com.gmt2001.Console.err.printStackTrace(oops, data, oopsmsg, false);
+            } catch (e) {
+                Packages.com.gmt2001.Console.err.oops(oops, data, oopsmsg, false);
+            }
         }
     }
 

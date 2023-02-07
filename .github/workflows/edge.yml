@@ -43,12 +43,13 @@ jobs:
         version: latest
         driver-opts: network=host
     - name: Build Docker
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v4
       with:
         context: .
         file: ./Dockerfile
         platforms: linux/amd64
         push: true
+        cache-from: type=gha,scope=master
         build-args: |
           PROJECT_VERSION=0.0.0
           ANT_ARGS=-Dbuildtype=test -Dversion=0.0.0

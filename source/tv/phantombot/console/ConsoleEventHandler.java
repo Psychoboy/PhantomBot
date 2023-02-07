@@ -21,7 +21,6 @@ import com.gmt2001.HttpRequest;
 import com.gmt2001.HttpResponse;
 import com.gmt2001.Reflect;
 import com.gmt2001.TwitchAPIv5;
-import com.gmt2001.TwitterAPI;
 import com.psychoboy.BotImporter;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -36,7 +35,6 @@ import tv.phantombot.CaselessProperties;
 import tv.phantombot.CaselessProperties.Transaction;
 import tv.phantombot.PhantomBot;
 import static tv.phantombot.PhantomBot.getTimeZoneId;
-import tv.phantombot.cache.TwitterCache;
 import tv.phantombot.discord.DiscordAPI;
 import tv.phantombot.event.EventBus;
 import tv.phantombot.event.Listener;
@@ -49,8 +47,12 @@ import tv.phantombot.event.twitch.follower.TwitchFollowEvent;
 import tv.phantombot.event.twitch.offline.TwitchOfflineEvent;
 import tv.phantombot.event.twitch.online.TwitchOnlineEvent;
 import tv.phantombot.event.twitch.raid.TwitchRaidEvent;
-import tv.phantombot.event.twitch.subscriber.*;
-import tv.phantombot.event.twitter.TwitterRetweetEvent;
+import tv.phantombot.event.twitch.subscriber.TwitchAnonymousSubscriptionGiftEvent;
+import tv.phantombot.event.twitch.subscriber.TwitchMassAnonymousSubscriptionGiftedEvent;
+import tv.phantombot.event.twitch.subscriber.TwitchPrimeSubscriberEvent;
+import tv.phantombot.event.twitch.subscriber.TwitchReSubscriberEvent;
+import tv.phantombot.event.twitch.subscriber.TwitchSubscriberEvent;
+import tv.phantombot.event.twitch.subscriber.TwitchSubscriptionGiftEvent;
 import tv.phantombot.script.Script;
 
 public final class ConsoleEventHandler implements Listener {
@@ -123,74 +125,6 @@ public final class ConsoleEventHandler implements Listener {
          */
         if (message.equalsIgnoreCase("updategameslist")) {
             GamesListUpdater.update(true);
-        }
-
-        /**
-         * @consolecommand twittersetup [newapp] - Authenticates Twitter. If the optional _newapp_ argument is set, also updates the Client ID and
-         * Secret
-         */
-        if (message.equalsIgnoreCase("twittersetup")) {
-            boolean isNewTwitter = false;
-            if (CaselessProperties.instance().getProperty("twitter_client_id", "").isBlank()
-                    || CaselessProperties.instance().getProperty("twitter_client_secret", "").isBlank()
-                    || arguments.startsWith("newapp")) {
-                isNewTwitter = true;
-                com.gmt2001.Console.out.println("Please create a Twitter application at https://developer.twitter.com/en/portal/dashboard");
-                com.gmt2001.Console.out.println("Then, activate User Authentication in the App, with the settings below");
-            } else {
-                com.gmt2001.Console.out.println("Please ensure your Twitter application has the settings listed below");
-                com.gmt2001.Console.out.println("You can edit your Twitter application at https://developer.twitter.com/en/portal/dashboard");
-            }
-            com.gmt2001.Console.out.println("--- App permissions: Read and write");
-            com.gmt2001.Console.out.println("--- Type of app: Web App, Automated App or Bot");
-            com.gmt2001.Console.out.println("--- Callback URI / Redirect URL: http://localhost:25000");
-            com.gmt2001.Console.out.println("--- Website URL: Put your own URL, or use http://phantombot.dev");
-            com.gmt2001.Console.out.println();
-            if (isNewTwitter) {
-                com.gmt2001.Console.out.println("Once this is done, you should see your Client ID and Secret.");
-                com.gmt2001.Console.out.println("If you don't see it, go back to the dashboard, select the App,");
-                com.gmt2001.Console.out.println("and then switch to the Keys and tokens tab.");
-                com.gmt2001.Console.out.println();
-                System.out.print("Please enter the Client ID: ");
-                try {
-                    String clientid = com.gmt2001.Console.in.readLine().trim();
-                    transaction.setProperty("twitter_client_id", clientid);
-                    System.out.print("Please enter the Client Secret: ");
-                    String clientsecret = com.gmt2001.Console.in.readLine().trim();
-                    transaction.setProperty("twitter_client_secret", clientsecret);
-                } catch (Exception ex) {
-                    com.gmt2001.Console.err.printStackTrace(ex);
-                }
-                transaction.commit();
-                com.gmt2001.Console.out.println();
-                transaction = CaselessProperties.instance().startTransaction(Transaction.PRIORITY_MAX);
-                TwitterAPI.instance().updateClientIdSecret();
-            }
-
-            TwitterAPI.AuthorizationParameters params = TwitterAPI.instance().startAuthorize();
-            com.gmt2001.Console.out.println("To authorize Twitter, please visit this URL: " + params.authorizationUrl());
-            com.gmt2001.Console.out.println();
-            System.out.println("After approving the authorization, Twitter will send you back to http://localhost:25000");
-            System.out.println("You can find the authorization code in the URL");
-            System.out.print("Please enter the authorization code, the entire URL, or 'exit': ");
-            try {
-                String code = com.gmt2001.Console.in.readLine().trim();
-
-                if (!code.equalsIgnoreCase("exit")) {
-                    if (code.startsWith("http://") || code.startsWith("https://")) {
-                        code = code.substring(code.indexOf("code=") + 5);
-                    }
-
-                    com.gmt2001.Console.debug.println("code=" + code);
-
-                    TwitterAPI.instance().completeAuthorize(params, code);
-
-                    TwitterCache.instance(PhantomBot.instance().getChannelName());
-                }
-            } catch (Exception ex) {
-                com.gmt2001.Console.err.println("Failed to Authorize Twitter: " + ex.getMessage());
-                com.gmt2001.Console.err.printStackTrace(ex);
-            }
         }
 
         /**
@@ -282,19 +216,6 @@ public final class ConsoleEventHandler implements Listener {
             // Export to CSV
             PhantomBot.instance().toCSV(headers, values, "command_list.csv");
             com.gmt2001.Console.out.println("[CONSOLE] Command list has been created under command_list.csv");
-            return;
-        }
-
-        /**
-         * @consolecommand retweettest [Twitter ID] - Sends a fake test Retweet event.
-         */
-        if (message.equalsIgnoreCase("retweettest")) {
-            if (argument == null || argument.length == 0 || argument[0].isBlank()) {
-                com.gmt2001.Console.out.println(">> retweettest requires a Twitter ID (or Twitter IDs)");
-                return;
-            }
-            com.gmt2001.Console.out.println(">> Sending retweet test event");
-            EventBus.instance().postAsync(new TwitterRetweetEvent(argument));
             return;
         }
 
@@ -690,110 +611,102 @@ public final class ConsoleEventHandler implements Listener {
          * @consolecommand mysqlsetup - Sets up MySQL.
          */
         if (message.equalsIgnoreCase("mysqlsetup")) {
-            try {
-                System.out.println("");
-                System.out.println("PhantomBot MySQL setup.");
-                System.out.println("");
+            System.out.println("");
+            System.out.println("PhantomBot MySQL setup.");
+            System.out.println("");
 
-                System.out.print("Please enter your MySQL host name: ");
-                String mySqlHost = com.gmt2001.Console.in.readLine().trim();
-                transaction.setProperty("mysqlhost", mySqlHost);
+            System.out.print("Please enter your MySQL host name: ");
+            String mySqlHost = com.gmt2001.Console.in.readLine().trim();
+            transaction.setProperty("mysqlhost", mySqlHost);
 
-                System.out.print("Please enter your MySQL port: ");
-                String mySqlPort = com.gmt2001.Console.in.readLine().trim();
-                transaction.setProperty("mysqlport", mySqlPort);
+            System.out.print("Please enter your MySQL port: ");
+            String mySqlPort = com.gmt2001.Console.in.readLine().trim();
+            transaction.setProperty("mysqlport", mySqlPort);
 
-                System.out.print("Please enter your MySQL db name: ");
-                String mySqlName = com.gmt2001.Console.in.readLine().trim();
-                transaction.setProperty("mysqlname", mySqlName);
+            System.out.print("Please enter your MySQL db name: ");
+            String mySqlName = com.gmt2001.Console.in.readLine().trim();
+            transaction.setProperty("mysqlname", mySqlName);
 
-                System.out.print("Please enter a username for MySQL: ");
-                String mySqlUser = com.gmt2001.Console.in.readLine().trim();
-                transaction.setProperty("mysqluser", mySqlUser);
+            System.out.print("Please enter a username for MySQL: ");
+            String mySqlUser = com.gmt2001.Console.in.readLine().trim();
+            transaction.setProperty("mysqluser", mySqlUser);
 
-                System.out.print("Please enter a password for MySQL: ");
-                String mySqlPass = com.gmt2001.Console.in.readLine().trim();
-                transaction.setProperty("mysqlpass", mySqlPass);
+            System.out.print("Please enter a password for MySQL: ");
+            String mySqlPass = com.gmt2001.Console.in.readLine().trim();
+            transaction.setProperty("mysqlpass", mySqlPass);
 
-                String dataStoreType = "MySQLStore";
-                transaction.setProperty("datastore", dataStoreType);
+            String dataStoreType = "MySQLStore";
+            transaction.setProperty("datastore", dataStoreType);
 
-                com.gmt2001.Console.out.println("PhantomBot MySQL setup done, PhantomBot will exit.");
-                changed = true;
-            } catch (Exception ex) {
-                com.gmt2001.Console.err.printStackTrace(ex);
-            }
+            com.gmt2001.Console.out.println("PhantomBot MySQL setup done, PhantomBot will exit.");
+            changed = true;
         }
 
         /**
          * @consolecommand streamlabssetup - Sets up StreamLabs.
          */
         if (message.equalsIgnoreCase("streamlabssetup")) {
-            try {
-                System.out.println("");
-                System.out.println("PhantomBot StreamLabs setup.");
-                System.out.println("");
+            System.out.println("");
+            System.out.println("PhantomBot StreamLabs setup.");
+            System.out.println("");
 
-                System.out.println("Please register an application with StreamLabs");
-                System.out.println("Instructions are available at https://dev.streamlabs.com/docs/register-your-application");
-                System.out.println("Make sure you whitelist the broadcaster");
-                System.out.println("You should set the Redirect URI to: http://localhost");
+            System.out.println("Please register an application with StreamLabs");
+            System.out.println("Instructions are available at https://dev.streamlabs.com/docs/register-your-application");
+            System.out.println("Make sure you whitelist the broadcaster");
+            System.out.println("You should set the Redirect URI to: http://localhost");
 
-                System.out.println("");
-                System.out.print("From the StreamLabs Application Settings page, please paste or enter your StreamLabs Client ID: ");
-                String twitchAlertsClientId = com.gmt2001.Console.in.readLine().trim();
+            System.out.println("");
+            System.out.print("From the StreamLabs Application Settings page, please paste or enter your StreamLabs Client ID: ");
+            String twitchAlertsClientId = com.gmt2001.Console.in.readLine().trim();
 
-                System.out.println("");
-                System.out.print("From the StreamLabs Application Settings page, please paste or enter your StreamLabs Client Secret: ");
-                String twitchAlertsClientSecret = com.gmt2001.Console.in.readLine().trim();
+            System.out.println("");
+            System.out.print("From the StreamLabs Application Settings page, please paste or enter your StreamLabs Client Secret: ");
+            String twitchAlertsClientSecret = com.gmt2001.Console.in.readLine().trim();
 
-                System.out.println("");
-                System.out.print("From the StreamLabs Application Settings page, please paste or enter your StreamLabs Redirect URI: ");
-                String twitchAlertsRedirectURI = com.gmt2001.Console.in.readLine().trim();
+            System.out.println("");
+            System.out.print("From the StreamLabs Application Settings page, please paste or enter your StreamLabs Redirect URI: ");
+            String twitchAlertsRedirectURI = com.gmt2001.Console.in.readLine().trim();
 
-                System.out.println("");
-                System.out.println("Use this link to authorize to the account you want to read donations from");
-                System.out.println("NOTE: It is normal to see either a blank page, or a browser 'Can not connect' page after approving the authorization");
-                System.out.println("");
-                System.out.println("https://www.streamlabs.com/api/v1.0/authorize?client_id=" + twitchAlertsClientId + "&redirect_uri=" + twitchAlertsRedirectURI + "&response_type=code&scope=donations.read");
-                System.out.println("");
-                System.out.println("Please paste or enter the access code from the URL in your browser's address bar. You can also just paste the entire URL: ");
-                String twitchAlertsKickback = com.gmt2001.Console.in.readLine().trim();
+            System.out.println("");
+            System.out.println("Use this link to authorize to the account you want to read donations from");
+            System.out.println("NOTE: It is normal to see either a blank page, or a browser 'Can not connect' page after approving the authorization");
+            System.out.println("");
+            System.out.println("https://www.streamlabs.com/api/v1.0/authorize?client_id=" + twitchAlertsClientId + "&redirect_uri=" + twitchAlertsRedirectURI + "&response_type=code&scope=donations.read");
+            System.out.println("");
+            System.out.println("Please paste or enter the access code from the URL in your browser's address bar. You can also just paste the entire URL: ");
+            String twitchAlertsKickback = com.gmt2001.Console.in.readLine().trim();
 
-                if (twitchAlertsKickback.contains("code=")) {
-                    twitchAlertsKickback = twitchAlertsKickback.substring(twitchAlertsKickback.indexOf("code=") + 5);
-                }
+            if (twitchAlertsKickback.contains("code=")) {
+                twitchAlertsKickback = twitchAlertsKickback.substring(twitchAlertsKickback.indexOf("code=") + 5);
+            }
 
-                if (twitchAlertsKickback.contains("&")) {
-                    twitchAlertsKickback = twitchAlertsKickback.substring(0, twitchAlertsKickback.indexOf('&'));
-                }
+            if (twitchAlertsKickback.contains("&")) {
+                twitchAlertsKickback = twitchAlertsKickback.substring(0, twitchAlertsKickback.indexOf('&'));
+            }
 
-                HttpResponse res = HttpRequest.getData(HttpRequest.RequestType.POST, "https://streamlabs.com/api/v1.0/token",
-                        "grant_type=authorization_code&client_id=" + twitchAlertsClientId + "&client_secret=" + twitchAlertsClientSecret
-                        + "&redirect_uri=" + twitchAlertsRedirectURI + "&code=" + twitchAlertsKickback,
-                        new HashMap<>());
+            HttpResponse res = HttpRequest.getData(HttpRequest.RequestType.POST, "https://streamlabs.com/api/v1.0/token",
+                    "grant_type=authorization_code&client_id=" + twitchAlertsClientId + "&client_secret=" + twitchAlertsClientSecret
+                    + "&redirect_uri=" + twitchAlertsRedirectURI + "&code=" + twitchAlertsKickback,
+                    new HashMap<>());
 
-                if (res.success) {
-                    JSONObject j = new JSONObject(res.content);
-                    String twitchAlertsKey = j.getString("access_token");
-                    transaction.setProperty("twitchalertskey", twitchAlertsKey);
+            if (res.success) {
+                JSONObject j = new JSONObject(res.content);
+                String twitchAlertsKey = j.getString("access_token");
+                transaction.setProperty("twitchalertskey", twitchAlertsKey);
 
-                    System.out.println("PhantomBot StreamLabs setup done, PhantomBot will exit.");
-                    changed = true;
-                } else if (res.httpCode == 400) {
-                    JSONObject e = new JSONObject(res.content);
-                    System.out.println("PhantomBot StreamLabs setup failed");
-                    System.err.println(e.getString("error"));
-                    System.err.println(e.optString("error_description", "no error description"));
-                    System.err.println(e.optString("message", "no message"));
-                } else {
-                    System.out.println("PhantomBot StreamLabs setup failed");
-                    System.err.println(res.httpCode);
-                    System.err.println(res.content);
-                    System.err.println(res.exception);
-                }
-            } catch (Exception ex) {
-                com.gmt2001.Console.err.printStackTrace(ex);
+                System.out.println("PhantomBot StreamLabs setup done, PhantomBot will exit.");
+                changed = true;
+            } else if (res.httpCode == 400) {
+                JSONObject e = new JSONObject(res.content);
+                System.out.println("PhantomBot StreamLabs setup failed");
+                System.err.println(e.getString("error"));
+                System.err.println(e.optString("error_description", "no error description"));
+                System.err.println(e.optString("message", "no message"));
+            } else {
+                System.out.println("PhantomBot StreamLabs setup failed");
+                System.err.println(res.httpCode);
+                System.err.println(res.content);
+                System.err.println(res.exception);
             }
         }
 
@@ -801,63 +714,51 @@ public final class ConsoleEventHandler implements Listener {
          * @consolecommand tipeeestreamsetup - Sets up TipeeeStream.
          */
         if (message.equalsIgnoreCase("tipeeestreamsetup")) {
-            try {
-                System.out.println("");
-                System.out.println("PhantomBot TipeeeStream setup.");
-                System.out.println("");
+            System.out.println("");
+            System.out.println("PhantomBot TipeeeStream setup.");
+            System.out.println("");
 
-                System.out.print("Please enter your TipeeeStream Api OAuth: ");
-                String tipeeeStreamOAuth = com.gmt2001.Console.in.readLine().trim();
-                transaction.setProperty("tipeeestreamkey", tipeeeStreamOAuth);
+            System.out.print("Please enter your TipeeeStream Api OAuth: ");
+            String tipeeeStreamOAuth = com.gmt2001.Console.in.readLine().trim();
+            transaction.setProperty("tipeeestreamkey", tipeeeStreamOAuth);
 
-                System.out.println("PhantomBot TipeeeStream setup done, PhantomBot will exit.");
-                changed = true;
-            } catch (Exception ex) {
-                com.gmt2001.Console.err.printStackTrace(ex);
-            }
+            System.out.println("PhantomBot TipeeeStream setup done, PhantomBot will exit.");
+            changed = true;
         }
 
         /**
          * @consolecommand panelsetup - Sets up the panel.
          */
         if (message.equalsIgnoreCase("panelsetup")) {
-            try {
-                System.out.println("");
-                System.out.println("PhantomBot Web Panel setup.");
-                System.out.println("Note: Do not use any ascii characters in your username or password.");
-                System.out.println("");
+            System.out.println("");
+            System.out.println("PhantomBot Web Panel setup.");
+            System.out.println("Note: Do not use any ascii characters in your username or password.");
+            System.out.println("");
 
-                System.out.print("Please enter a username of your choice: ");
-                String panelUsername = com.gmt2001.Console.in.readLine().trim();
-                transaction.setProperty("paneluser", panelUsername);
+            System.out.print("Please enter a username of your choice: ");
+            String panelUsername = com.gmt2001.Console.in.readLine().trim();
+            transaction.setProperty("paneluser", panelUsername);
 
-                System.out.print("Please enter a password of your choice: ");
-                String panelPassword = com.gmt2001.Console.in.readLine().trim();
-                transaction.setProperty("panelpassword", panelPassword);
+            System.out.print("Please enter a password of your choice: ");
+            String panelPassword = com.gmt2001.Console.in.readLine().trim();
+            transaction.setProperty("panelpassword", panelPassword);
 
-                System.out.println("PhantomBot Web Panel setup done, PhantomBot will exit.");
-                changed = true;
-            } catch (Exception ex) {
-                com.gmt2001.Console.err.printStackTrace(ex);
-            }
+            System.out.println("PhantomBot Web Panel setup done, PhantomBot will exit.");
+            changed = true;
         }
 
         /**
          * @consolecommand ytsetup - Sets up YouTube API Key
          */
         if (message.equalsIgnoreCase("ytsetup")) {
-            try {
-                System.out.println("");
-                System.out.println("PhantomBot YouTube API Key Setup");
-                System.out.println("");
-                System.out.println("Please enter the YouTube API key that you have acquired: ");
-                String youtubeKey = com.gmt2001.Console.in.readLine().trim();
-                transaction.setProperty("youtubekey", youtubeKey);
-                System.out.println("PhantomBot YouTube API key setup done, PhantomBot will exit.");
-                changed = true;
-            } catch (Exception ex) {
-                com.gmt2001.Console.err.printStackTrace(ex);
-            }
+            System.out.println("");
+            System.out.println("PhantomBot YouTube API Key Setup");
+            System.out.println("");
+            System.out.println("Please enter the YouTube API key that you have acquired: ");
+            String youtubeKey = com.gmt2001.Console.in.readLine().trim();
+            transaction.setProperty("youtubekey", youtubeKey);
+            System.out.println("PhantomBot YouTube API key setup done, PhantomBot will exit.");
+            changed = true;
         }
 
         /**

@@ -18,6 +18,7 @@ package com.gmt2001.Console;
 
 import com.illusionaryone.Logger;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import tv.phantombot.PhantomBot;
 
@@ -32,14 +33,23 @@ public final class in {
     private in() {
     }
 
-    public static String readLine() throws Exception {
-        String s = br.readLine();
+    public static String readLine() {
+        try {
+            String s = br.readLine();
 
-        if (PhantomBot.getEnableDebugging()) {
-            Logger.instance().log(Logger.LogType.Input, "[" + logTimestamp.log() + "] " + s);
-            Logger.instance().log(Logger.LogType.Input, "");
+            if (PhantomBot.getEnableDebugging()) {
+                Logger.instance().log(Logger.LogType.Input, "[" + logTimestamp.log() + "] " + s);
+                Logger.instance().log(Logger.LogType.Input, "");
+            }
+
+            return s;
+        } catch (IOException ex) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ex2) {
+            }
         }
 
-        return s;
+        return "";
     }
 }

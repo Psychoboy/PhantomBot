@@ -41,12 +41,14 @@ jobs:
         version: latest
         driver-opts: network=host
     - name: Build Docker
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v4
       with:
         context: .
         file: ./Dockerfile
         platforms: linux/amd64
         push: true
+        cache-from: type=gha,scope=master
+        cache-to: type=gha,mode=max,scope=master
         build-args: |
           PROJECT_VERSION=0.0.0
           ANT_ARGS=-Dbuildtype=test -Dversion=0.0.0
@@ -338,12 +340,14 @@ jobs:
         echo $?
     - name: Build and Push DockerHub
       if: contains(needs.workflowvars.outputs.dockermissing, 'no')
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v4
       with:
         context: .
         file: ./Dockerfile
         platforms: linux/amd64,linux/arm64,linux/arm/v7
         push: true
+        cache-from: type=gha,scope=master
+        cache-to: type=gha,mode=max,scope=master
         build-args: |
           PROJECT_VERSION=${{ needs.workflowvars.outputs.version }}
           ANT_ARGS=-Dbuildtype=stable -Dfallback.revision=${{ needs.workflowvars.outputs.revision }} -Dversion=${{ needs.workflowvars.outputs.version }} -Drollbar_token=${{ secrets.ROLLBAR_TOKEN }} -Drollbar_endpoint=${{ secrets.ROLLBAR_ENDPOINT }}
@@ -351,12 +355,14 @@ jobs:
           ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_REPO_STABLE }}:${{ needs.workflowvars.outputs.version }}
           ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_REPO_STABLE }}:latest
     - name: Build and Push GitHub Containers
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v4
       with:
         context: .
         file: ./Dockerfile
         platforms: linux/amd64,linux/arm64,linux/arm/v7
         push: true
+        cache-from: type=gha,scope=master
+        cache-to: type=gha,mode=max,scope=master
         build-args: |
           PROJECT_VERSION=${{ needs.workflowvars.outputs.version }}
           ANT_ARGS=-Dbuildtype=stable -Dfallback.revision=${{ needs.workflowvars.outputs.revision }} -Dversion=${{ needs.workflowvars.outputs.version }} -Drollbar_token=${{ secrets.ROLLBAR_TOKEN }} -Drollbar_endpoint=${{ secrets.ROLLBAR_ENDPOINT }}
@@ -393,3 +399,25 @@ jobs:
         VERSION: ${{ needs.workflowvars.outputs.version }}
       run: |
         curl -X POST $URL -H "x-access-token: $ACCESS_TOKEN" -H "Content-Type: application/json; charset=UTF-8" -d "{\"type\":\"stable_docker\",\"version\":\"$VERSION\"}"
+  cleanup:
+    name: Cleanup Cache
+    runs-on: ubuntu-latest
+    needs: [dockertest, docker]
+    steps:
+    - name: Cleanup Cache
+      run: |
+        gh extension install actions/gh-actions-cache
+        REPO="${{ github.repository }}"
+        BRANCH="${{ github.ref }}"
+        echo "Fetching list of cache keys"
+        cacheKeys=$(gh actions-cache list -R $REPO -B $BRANCH | cut -f 1 )
+        ## Setting this to not fail the workflow while deleting cache keys.
+        set +e
+        echo "Deleting caches..."
+        for cacheKey in $cacheKeys
+        do
+            gh actions-cache delete $cacheKey -R $REPO -B $BRANCH --confirm
+        done
+        echo "Done"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -97,6 +97,14 @@ public final class err {
         printStackTrace(e, custom, description, isUncaught, false);
     }
 
+    public static void oops(Object o, Map<String, Object> custom, String description, boolean isUncaught) {
+        try {
+            throw new RuntimeException(o.toString());
+        } catch (RuntimeException e) {
+            printStackTrace(e, custom, description, isUncaught);
+        }
+    }
+
     public static void printStackTrace(Throwable e, Map<String, Object> custom, String description, boolean isUncaught, boolean force) {
         if (PhantomBot.getEnableDebugging() || force) {
             e.printStackTrace(System.err);
@@ -136,16 +144,22 @@ public final class err {
 
         RollbarProvider.instance().error(e, custom, description, isUncaught);
 
+        Logger.instance().log(Logger.LogType.Error, "[" + logTimestamp.log() + "] " + getStackTrace(e));
+        Logger.instance().log(Logger.LogType.Error, "");
+    }
+
+    public static String getStackTrace(Throwable e) {
         try ( Writer trace = new StringWriter()) {
             try ( PrintWriter ptrace = new PrintWriter(trace)) {
 
                 e.printStackTrace(ptrace);
 
-                Logger.instance().log(Logger.LogType.Error, "[" + logTimestamp.log() + "] " + trace.toString());
-                Logger.instance().log(Logger.LogType.Error, "");
+                return trace.toString();
             }
         } catch (IOException ex) {
             ex.printStackTrace(System.err);
         }
+
+        return "";
     }
 }
