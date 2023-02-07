@@ -19,13 +19,13 @@
 $(function() {
     var outgoing_raids = [];
 
-    function getNumberOfOutgoingRaids(streamer) {
+    function getOutgoingRaids(streamer) {
         for (let i = 0; i < outgoing_raids.length; i++) {
             if(outgoing_raids[i][0] == streamer) {
-                return outgoing_raids[i][3];
+                return outgoing_raids[i];
             }
         }
-        return 0;
+        return [0,'',0,0,0,0];
     }
 
     socket.getDBTableValues('get_all_out_raids', 'outgoing_raids', function (results) {
@@ -74,7 +74,7 @@ $(function() {
 
 		for (let i = 0; i < results.length; i++) {
 			let json = JSON.parse(results[i].value);
-
+            var outRaid = getOutgoingRaids(results[i].key);
 			raids.push([
 				results[i].key,
 				new Date(parseInt(json.lastRaidTime)).toLocaleDateString('en-GB').split('/').reverse().join('-'),
@@ -82,7 +82,9 @@ $(function() {
 				helpers.getDefaultIfNullOrUndefined(json.totalRaids, '1'),
 				helpers.getDefaultIfNullOrUndefined(json.totalViewers, '0'),
 				parseInt(json.lastRaidTime),
-				getNumberOfOutgoingRaids(results[i].key),
+				outRaid[3],
+                outRaid[1],
+                outRaid[2],
 				helpers.getDefaultIfNullOrUndefined(json.online, 'false'),
 			]);
 		}
@@ -102,7 +104,7 @@ $(function() {
 			'columnDefs': [
     			{ 'width': '20%', 'targets': 0 },
     		],
-    		'order': [[ 7, 'desc' ]],
+    		'order': [[ 9, 'desc' ],[8, 'asc']],
 			'columns': [
 				{ 'title': 'Username' },
 				{ 'title': 'Last Raid', 'orderData': [5] },
@@ -111,6 +113,8 @@ $(function() {
 				{ 'title': 'Total Viewers' },
 				{ 'visible': false },
 				{'title': 'Outgoing Raids'},
+                {'title': 'Last Raid'},
+                {'title': 'Viewers'},
 				{'title': 'Is Online'}
 			]
 		});
