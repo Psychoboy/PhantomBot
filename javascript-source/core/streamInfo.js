@@ -21,6 +21,44 @@
     var count = 1;
     var gamesPlayed;
 
+    $.bind('eventSubChannelUpdate', function (event) {
+        if ($.jsString(event.event().broadcasterUserId()) === $.jsString($.username.getIDCaster())) {
+            $.twitchcache.setStreamStatus(event.event().title());
+            $.twitchcache.setGameTitle(event.event().categoryName());
+        }
+    });
+
+    $.bind('eventSubStreamOnline', function (event) {
+        if ($.jsString(event.event().broadcasterUserId()) === $.jsString($.username.getIDCaster())) {
+            $.twitchcache.syncOnline();
+        }
+    });
+
+    $.bind('eventSubStreamOffline', function (event) {
+        if ($.jsString(event.event().broadcasterUserId()) === $.jsString($.username.getIDCaster())) {
+            $.twitchcache.goOffline();
+        }
+    });
+
+    $.bind('eventSubWelcome', function (event) {
+        if (!event.isReconnect()) {
+            const subscriptions = [
+                Packages.com.gmt2001.twitch.eventsub.subscriptions.channel.ChannelUpdate,
+                Packages.com.gmt2001.twitch.eventsub.subscriptions.stream.StreamOnline,
+                Packages.com.gmt2001.twitch.eventsub.subscriptions.stream.StreamOffline
+            ];
+
+            for (const subscription of subscriptions) {
+                const newSubscription = new subscription($.username.getIDCaster());
+                try {
+                    newSubscription.create().block();
+                } catch (ex) {
+                    $.log.error(ex);
+                }
+            }
+        }
+    });
+
     /**
      * @event twitchOnline
      */
@@ -405,6 +443,21 @@
     }
 
     /**
+     * @function getChannelCreatedZonedDateTime
+     * @export $
+     * @param event
+     */
+    function getChannelCreatedZonedDateTime(channel) {
+        var channelData = $.twitch.GetChannel($.user.sanitize(channel));
+
+        if (channelData.getInt('_http') === 404 || !channelData.getBoolean('_success')) {
+            return null;
+        }
+
+        return Packages.java.time.ZonedDateTime.parse(channelData.getString('created_at'), Packages.java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    }
+
+    /**
      * @function getSubscriberCount
      * @export $
      * @return {number} count
@@ -501,6 +554,7 @@
     $.getFollowAge = getFollowAge;
     $.getFollowDate = getFollowDate;
     $.getChannelAge = getChannelAge;
+    $.getChannelCreatedZonedDateTime = getChannelCreatedZonedDateTime;
     $.getStreamDownTime = getStreamDownTime;
     $.getGamesPlayed = getGamesPlayed;
     $.getSubscriberCount = getSubscriberCount;

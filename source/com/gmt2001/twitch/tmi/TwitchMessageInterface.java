@@ -18,7 +18,7 @@ package com.gmt2001.twitch.tmi;
 
 import com.gmt2001.ExecutorService;
 import com.gmt2001.Reflect;
-import com.gmt2001.ratelimiters.WindowedRateLimiter;
+import com.gmt2001.ratelimiters.WindowedSwitchingRateLimiter;
 import com.gmt2001.twitch.tmi.TMIMessage.TMIMessageType;
 import com.gmt2001.twitch.tmi.processors.AbstractTMIProcessor;
 import com.gmt2001.wsclient.WSClient;
@@ -54,9 +54,9 @@ public final class TwitchMessageInterface extends SubmissionPublisher<TMIMessage
      */
     private static final String TMI_URI = "wss://irc-ws.chat.twitch.tv:443";
     /**
-     * A {@link WindowedRateLimiter} to handle the PRIVMSG rate limit
+     * A {@link WindowedSwitchingRateLimiter} to handle the PRIVMSG rate limit
      */
-    private final WindowedRateLimiter rateLimiter = new WindowedRateLimiter(30000L, 100);
+    private final WindowedSwitchingRateLimiter rateLimiter = new WindowedSwitchingRateLimiter(30000L, 100, 20, false);
     /**
      * A {@link WSPinger} to handle pinging to detect connection failure
      */
@@ -69,10 +69,15 @@ public final class TwitchMessageInterface extends SubmissionPublisher<TMIMessage
      * The underlying {@link WSClient} for the connection
      */
     private WSClient client;
+    /**
+     * Max message length to avoid dropping
+     */
+    private static final int MAXLEN = 500;
 
     /**
      * Initializes the Twitch Message Interface. Creates a new {@link WSClient}, then initializes all processors and starts connecting
      */
+    @SuppressWarnings({"rawtypes"})
     public TwitchMessageInterface() {
         try {
             this.client = new WSClient(new URI(TMI_URI), this, this.pinger);
@@ -111,11 +116,25 @@ public final class TwitchMessageInterface extends SubmissionPublisher<TMIMessage
     }
 
     /**
-     * Returns the {@link WindowedRateLimiter} used to prevent PRIVMSG spam
+     * Calculates the maximum length for the message content of a PRIVMSG to avoid dropping
+     *
+     * @param channel The channel name
+     * @param isAction If this is for a ACTION (/me) message
+     * @param replyToId The {@code id} tag from the {@link TMIMessage#tags} of the message that is being replied to; {@code null} if not used
+     * @return
+     */
+    public int privMsgMaxLength(String channel, boolean isAction, String replyToId) {
+        return MAXLEN - 8 - (!channel.startsWith("#") ? 1 : 0) - channel.length() - 2
+            - (isAction ? 9 : 0)
+            - (replyToId != null && !replyToId.isEmpty() ? 22 + replyToId.length(): 0);
+    }
+
+    /**
+     * Returns the {@link WindowedSwitchingRateLimiter} used to prevent PRIVMSG spam
      *
      * @return The rate limiter
      */
-    public WindowedRateLimiter rateLimiter() {
+    public WindowedSwitchingRateLimiter rateLimiter() {
         return this.rateLimiter;
     }
 
