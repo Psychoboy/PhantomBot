@@ -334,7 +334,9 @@
             </classpath>
         </java>
     </target>
-    <target depends="clean,distclean,dist" name="full-clean-build"/>
+    <target depends="clean,distclean,dist" name="full-clean-build">
+        <antcall target="clean"/>
+    </target>
     <target depends="jar" name="dist">
         <delete file="${dist}/${version.name}.zip" />
         <zip destfile="${dist}/${version.name}.zip" basedir="${dist}" update="false">
