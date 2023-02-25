@@ -627,7 +627,7 @@
          * @commandpath commands - Provides a list of all available custom commands.
          */
         if (command.equalsIgnoreCase('commands')) {
-            $.say('For list of commands: https://superpenguintv.com/stream-commands/');
+            $.say('For list of commands: https://superpenguin.tv/stream-commands/');
             return;
             var cmds = $.inidb.GetKeyList('command', ''),
                     aliases = $.inidb.GetKeyList('aliases', ''),
