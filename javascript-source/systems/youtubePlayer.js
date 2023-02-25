@@ -1000,26 +1000,26 @@
         };
 
         this.updateSongQueueList = function(currentRequests) {
-            var i, csv = "Title,Requested By,Duration,URL\r\n"
-            for (i in currentRequests) {
-                csv = csv + '"' + currentRequests[i].getVideoTitle().replace(new RegExp('"','g'),'') + '"' +
-                      "," +
-                      currentRequests[i].getOwner() +
-                      "," +
-                      currentRequests[i].getVideoLengthMMSS() +
-                      "," +
-                      currentRequests[i].getVideoLink() +
-                      "\r\n"
-            }
+            // var i, csv = "Title,Requested By,Duration,URL\r\n"
+            // for (i in currentRequests) {
+            //     csv = csv + '"' + currentRequests[i].getVideoTitle().replace(new RegExp('"','g'),'') + '"' +
+            //           "," +
+            //           currentRequests[i].getOwner() +
+            //           "," +
+            //           currentRequests[i].getVideoLengthMMSS() +
+            //           "," +
+            //           currentRequests[i].getVideoLink() +
+            //           "\r\n"
+            // }
 
-            var writer = new java.io.OutputStreamWriter(new java.io.FileOutputStream(baseFileOutputPath + 'songlist.csv'), 'UTF-8');
-            try {
-                writer.write(csv);
-            } catch (ex) {
-                $.log.error('Failed to update song queue file: ' + ex.toString());
-            } finally {
-                writer.close();
-            }
+            // var writer = new java.io.OutputStreamWriter(new java.io.FileOutputStream(baseFileOutputPath + 'songlist.csv'), 'UTF-8');
+            // try {
+            //     writer.write(csv);
+            // } catch (ex) {
+            //     $.log.error('Failed to update song queue file: ' + ex.toString());
+            // } finally {
+            //     writer.close();
+            // }
         }
 
         /**

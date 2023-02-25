@@ -1714,31 +1714,31 @@
     }
 
     function runExport() {
-        var exportWaifuList = "viewer,Waifu ID,Waifu,Level,Attack,Defense,URL\r\n"
-        var sectionList = $.inidb.GetCategoryList('waifuscollected');
-        for(var x = 0; x < sectionList.length; x++) {
-            var owner = sectionList[x];
-            var keylist = $.inidb.GetKeyList('waifuscollected', sectionList[x]);
-            for(var i = 0; i < keylist.length; i++) {
-                var id = keylist[i];
-                var waifu = replace(getWaifu(id)) + getBonus(owner, id);
-                var link = $.shortenUrl(google + url(getWaifu(id)));
-                var level = getLevel(owner, id);
-                var attack = getAttack(owner, id);
-                var defense = getDefense(owner, id);
+        // var exportWaifuList = "viewer,Waifu ID,Waifu,Level,Attack,Defense,URL\r\n"
+        // var sectionList = $.inidb.GetCategoryList('waifuscollected');
+        // for(var x = 0; x < sectionList.length; x++) {
+        //     var owner = sectionList[x];
+        //     var keylist = $.inidb.GetKeyList('waifuscollected', sectionList[x]);
+        //     for(var i = 0; i < keylist.length; i++) {
+        //         var id = keylist[i];
+        //         var waifu = replace(getWaifu(id)) + getBonus(owner, id);
+        //         var link = $.shortenUrl(google + url(getWaifu(id)));
+        //         var level = getLevel(owner, id);
+        //         var attack = getAttack(owner, id);
+        //         var defense = getDefense(owner, id);
 
-                exportWaifuList = exportWaifuList + owner + ',' + id + ',' + '"' + waifu + '",' + level + ',' + attack + ',' + defense + ',' + link +  '\r\n'
-            }
-        }
+        //         exportWaifuList = exportWaifuList + owner + ',' + id + ',' + '"' + waifu + '",' + level + ',' + attack + ',' + defense + ',' + link +  '\r\n'
+        //     }
+        // }
 
-        var writer = new java.io.OutputStreamWriter(new java.io.FileOutputStream('./addons/youtubePlayer/' + 'waifu.csv'), 'UTF-8');
-        try {
-            writer.write(exportWaifuList);
-        } catch (ex) {
-            $.log.error('Failed to update waifu file: ' + ex.toString());
-        } finally {
-            writer.close();
-        }
+        // var writer = new java.io.OutputStreamWriter(new java.io.FileOutputStream('./addons/youtubePlayer/' + 'waifu.csv'), 'UTF-8');
+        // try {
+        //     writer.write(exportWaifuList);
+        // } catch (ex) {
+        //     $.log.error('Failed to update waifu file: ' + ex.toString());
+        // } finally {
+        //     writer.close();
+        // }
     }
 
     var interval = setInterval(function() {
