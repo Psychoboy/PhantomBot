@@ -371,6 +371,7 @@
                     <include name="**/*.jar"/>
                 </fileset>
             </classpath>
+            <link href="https://docs.oracle.com/en/java/javase/11/docs/api/" />
             <link href="https://javadoc.io/doc/com.discord4j/discord4j-common/latest/" />
             <link href="https://javadoc.io/doc/com.discord4j/discord4j-core/latest/" />
             <link href="https://javadoc.io/doc/com.discord4j/discord4j-rest/latest/" />
@@ -380,7 +381,7 @@
             <link href="https://projectreactor.io/docs/netty/release/api/" />
             <doctitle><![CDATA[<h1>PhantomBot</h1>]]></doctitle>
             <header><![CDATA[
-                <a id="javadoc-stable" href="../javadoc-stable/index.html">Stable</a>&nbsp;|&nbsp;<a id="javadoc-nightly" href="../javadoc/index.html">Nightly</a>
+                <a id="javadoc-stable" href="/javadoc-stable/index.html">Stable</a>&nbsp;|&nbsp;<a id="javadoc-nightly" href="/javadoc/index.html">Nightly</a>
                 <script>
                 document.getElementById('javadoc-' + (window.location.pathname.includes('javadoc-stable') ? 'stable' : 'nightly')).style.fontWeight = 'bold';
                 </script>
